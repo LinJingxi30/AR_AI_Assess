@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-            
-# @Author : LJX
+# @Author :
 # @Time : 2025/3/6 20:07
 # @Content :
 
@@ -7,7 +7,8 @@ import json
 import cv2
 import numpy as np
 
-json_dir = 'SavedJsons/Squat.json'
+# json_dir = 'SavedJsons/Squat.json'
+json_dir = 'SavedJsons/relatetest.json'
 
 def draw_pose(frame, scale, center_pos, color_point, color_line, radius, thickness, x_prog, y_prog):
     """
@@ -85,7 +86,7 @@ pink = (255, 0, 255)
 yellow = (0, 255, 255)
 
 # 我的参数
-fps = 8.3 # frame / s
+fps = 20 # frame / s
 center_main_pos = (200, 200)
 # starter position
 center_preview_pos = (1200, 520) # (1100, 650)
@@ -94,8 +95,11 @@ center_do_it_pos = center_preview_pos # (1200, 650)
 pointer_pos = ()  # 指针位置
 x_prog, y_prog = 0, 0
 x_prog_do_it, y_prog_do_it = 0, 0
-x_step, y_step = -5, 0
 pause_frame = {}
+preview_time = 3  # 预览时间（秒）
+frame_num_3s = int(preview_time * fps)  # 3秒对应的帧数
+moving_distance = 125  # 未来动作的移动距离（像素）
+x_step, y_step = -int(moving_distance/frame_num_3s), 0  # 速度（步长），左负右正
 
 while current_idx < len(frames):
     current_frame = frames[current_idx]
@@ -103,8 +107,6 @@ while current_idx < len(frames):
 
     # 查找未来3秒和5秒的帧
     # target_3s = current_time + 3000  # 3000ms = 3秒
-    preview_time = 3 # 预览时间（秒）
-    frame_num_3s = int((preview_time) * fps)
 
     # 二分查找最近的帧
     future_3s_idx = min((current_idx + frame_num_3s), len(frames) - 1)  # 示例简化，应改为实际时间查找
@@ -113,8 +115,9 @@ while current_idx < len(frames):
     canvas = np.zeros((win_height, win_width, 3), dtype=np.uint8)
 
     # 绘制当前骨架（主画面）
-    draw_pose(current_frame, 0.5, center_main_pos, red, pink, 5, 3, 0, 0)
+    draw_pose(current_frame, 0.5, center_main_pos, red, pink, 5, 3, 0, 0)   # 小红
 
+    # 采样、步进
     if current_idx % frame_num_3s == 0:
         if pause_frame:
             do_it_frame = pause_frame
@@ -138,10 +141,11 @@ while current_idx < len(frames):
              (pointer_x, win_height),
              (0, 0, 255), 2)
 
-    draw_pose(draw_frame, 0.2, center_preview_pos, blue, babyblue, 3, 2, x_prog, y_prog)
-    draw_pose(do_it_frame, 0.2, center_do_it_pos, yellow, lightyellow, 4, 3, x_prog_do_it, y_prog_do_it)
+    # 绘制预览区域（滑动小人）
+    draw_pose(draw_frame, 0.2, center_preview_pos, blue, babyblue, 3, 2, x_prog, y_prog)    # 滑动小蓝
+    draw_pose(do_it_frame, 0.2, center_do_it_pos, yellow, lightyellow, 4, 3, x_prog_do_it, y_prog_do_it)    # 小黄
 
-    # 绘制预览区域
+    # 小框
     preview_area = canvas[win_height - preview_height:win_height,
                    win_width - preview_width:win_width]
     cv2.rectangle(canvas,
@@ -154,8 +158,8 @@ while current_idx < len(frames):
     cv2.imshow('Motion Preview', canvas)
 
     # 控制播放速度
-    key = cv2.waitKey(int(1000/fps))  # 8.3fps
-    if key == 27:  # ESC退出
+    key = cv2.waitKey(int(1000/fps))  # fps在循环外定义
+    if key == 27 or key == ord('q') or key == ord('Q'):  # ESC、q、Q退出
         break
     elif key == ord(' '):  # 空格暂停
         cv2.waitKey(0)

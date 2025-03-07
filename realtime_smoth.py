@@ -8,9 +8,10 @@ from cvzone.PoseModule import PoseDetector
 import matplotlib
 import matplotlib.pyplot as plt
 import json
+from coord_process import coord_relativize
 
 # 保存的 JSON 文件路径
-json_dir = 'SavedJsons/Squat.json'
+json_dir = 'SavedJsons/relatetest.json'
 json_array = []
 
 # 启用 matplotlib 交互模式
@@ -82,12 +83,13 @@ while True:
         break
 
     img = detector.findPose(img)
+    # 接收检测到的关键点lmList
     lmList, bboxInfo = detector.findPosition(img)
     print("检测到的关键点数量:", len(lmList) if lmList else 0)
 
     lmString = ''
     if bboxInfo:
-        currdata = np.squeeze(lmList)
+        currdata = np.squeeze(lmList)   # to 33*3
         smooth_kps = np.zeros((jointnum, 3), dtype=np.float32)
 
         # Kalman
@@ -104,8 +106,12 @@ while True:
         for j in range(1, 6):
             PrevPose3D[j] = (PrevPose3D[j] * LowPassParam
                              + PrevPose3D[j - 1] * (1.0 - LowPassParam))
-
+        """
+        NumPy数组，finalPose[i][0] 表示第 i 个关键点的 X 坐标。
+        """
         finalPose = PrevPose3D[5]
+        coord_relativize(finalPose, True)
+
         # 生成 lmString
         for lm in finalPose:
             # 不再做 img.shape[0] - lm[1]，避免上下反转
@@ -132,9 +138,9 @@ while True:
     if key == ord('q'):
         break
 
+    # 写入 JSON 文件
     # 使用视频相对时间（单位 ms）作为时间戳
     video_time_ms = cap.get(cv2.CAP_PROP_POS_MSEC)
-    # 写入 JSON 文件
     frame_id += 1
     try:
         # 处理姿态数据
@@ -149,7 +155,7 @@ while True:
         }
         print(json_data)
         # 写入文件（使用追加模式）
-        with open("SavedJsons/Squat.json", 'a', encoding='utf-8') as f:
+        with open(json_dir, 'a', encoding='utf-8') as f:
             f.write(json.dumps(json_data, ensure_ascii=False) + '\n')  # 自动处理转义
 
         print("成功写入 JSON 文件, Frame:", frame_id)
