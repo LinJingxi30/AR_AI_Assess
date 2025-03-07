@@ -1,8 +1,12 @@
 # IDE配置
 .idea/
 .VS/
+.vsconfig
 ProjectSettings/
 Library/
+
+# python环境
+venv/
 
 # 编译产物与缓存
 __pycache__/
