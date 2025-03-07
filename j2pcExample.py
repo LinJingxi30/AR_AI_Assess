@@ -1,7 +1,7 @@
 from j2pc import Json2PreviewClass as j2pc
 import cv2
 import numpy as np
-from config.data import COLOR, POSE_CONNECTIONS
+from config.common_data import COLOR, POSE_CONNECTIONS
 
 """
 Json2PreviewClass.py 库使用说明 (as j2pc)

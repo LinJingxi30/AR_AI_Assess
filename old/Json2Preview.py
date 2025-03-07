@@ -6,8 +6,8 @@
 import json
 import cv2
 import numpy as np
-from config.data import POSE_CONNECTIONS
-from config.data import red, pink, blue, babyblue, lightyellow, yellow
+from config.common_data import POSE_CONNECTIONS
+from config.common_data import red, pink, blue, babyblue, lightyellow, yellow
 
 # json_dir = 'savedjsons/Squat.json'
 json_dir = '../savedjsons/relatetest.json'

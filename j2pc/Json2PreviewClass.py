@@ -1,8 +1,9 @@
 import json
 import cv2
 import numpy as np
-from config.data import POSE_CONNECTIONS
-from config.data import COLOR
+from config.common_data import POSE_CONNECTIONS
+from config.common_data import COLOR
+
 
 """
 Json2PreviewClass.py 库介绍
@@ -16,6 +17,7 @@ Json2PreviewClass.py 库介绍
     CoordsGenerator：坐标生成器
     PreviewCoordsGenerator：预览坐标生成器
 """
+
 
 def get_json_frames(frames, json_dir):
     """
@@ -39,6 +41,7 @@ def get_json_frames(frames, json_dir):
             time_ms = float(data['time'].replace('ms', ''))  # 转换为毫秒
             poses = [np.array(p) for p in data['poses'] if p]
             frames.append({'frame_idx': frame_idx, 'time': time_ms, 'poses': poses})
+
 
 def draw_pose_at_pos(canvas, frame, center_pos, color_point, color_line, radius, thickness, connections = POSE_CONNECTIONS):
     """
@@ -64,6 +67,7 @@ def draw_pose_at_pos(canvas, frame, center_pos, color_point, color_line, radius,
             x, y = int(pose[i] + center_pos[0]), int(pose[i + 1] + center_pos[1])
             cv2.circle(canvas, (x, y), radius, color_point, -1)
 
+
 def draw_pose(canvas, frame, color_point, color_line, radius, thickness, connections = POSE_CONNECTIONS):
     """
     :param connections: 骨架连接关系
@@ -86,6 +90,7 @@ def draw_pose(canvas, frame, color_point, color_line, radius, thickness, connect
         for i in range(0, len(pose), 3):
             x, y = int(pose[i]), int(pose[i + 1])
             cv2.circle(canvas, (x, y), radius, color_point, -1)
+
 
 # scale或许可以移动到draw_pose函数中
 def draw_preview_area(canvas,
