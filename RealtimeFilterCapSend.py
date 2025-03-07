@@ -1,17 +1,15 @@
 import sys
 import cv2
 import numpy as np
-import datetime
-import time
 import socket
 from cvzone.PoseModule import PoseDetector
-import matplotlib
 import matplotlib.pyplot as plt
 import json
-from coord_process import coord_relativize
+from CenterCoordProcess import coord_relativize
+from config.data import POSE_CONNECTIONS
 
 # 保存的 JSON 文件路径
-json_dir = 'SavedJsons/relatetest.json'
+json_dir = 'savedjsons/relatetest.json'
 json_array = []
 
 # 启用 matplotlib 交互模式
@@ -25,20 +23,8 @@ bones_lines = []  # 用于绘制骨架线
 
 ax.axis('off')
 
-# 定义骨架连线的点对（可按需求调整）
-bones = [
-    (11, 12),  # 左肩 -> 右肩
-    (11, 13),  # 左肩 -> 左肘
-    (12, 14),  # 右肩 -> 右肘
-    (13, 15),  # 左肘 -> 左手
-    (14, 16),  # 右肘 -> 右手
-    (11, 23),  # 左肩 -> 左髋
-    (12, 24),  # 右肩 -> 右髋
-    (23, 25),  # 左髋 -> 左膝
-    (24, 26),  # 右髋 -> 右膝
-    (25, 27),  # 左膝 -> 左脚
-    (26, 28),  # 右膝 -> 右脚
-]
+# 骨架连线的点对（可按需求调整）
+bones = POSE_CONNECTIONS
 
 # 为每条骨架线创建 Line2D 对象
 for _ in bones:

@@ -6,9 +6,11 @@
 import json
 import cv2
 import numpy as np
+from config.data import POSE_CONNECTIONS
+from config.data import red, pink, blue, babyblue, lightyellow, yellow
 
-# json_dir = 'SavedJsons/Squat.json'
-json_dir = 'SavedJsons/relatetest.json'
+# json_dir = 'savedjsons/Squat.json'
+json_dir = '../savedjsons/relatetest.json'
 
 def draw_pose(frame, scale, center_pos, color_point, color_line, radius, thickness, x_prog, y_prog):
     """
@@ -32,7 +34,7 @@ def draw_pose(frame, scale, center_pos, color_point, color_line, radius, thickne
             x, y = int(pose[i] * scale + x_offset), int(pose[i + 1] * scale + y_offset)  # 坐标缩放
             cv2.circle(canvas, (x, y), radius, color_point, -1)
 
-        for (i, j) in connections:
+        for (i, j) in POSE_CONNECTIONS:
             if i * 3 + 2 < len(pose) and j * 3 + 2 < len(pose):
                 pt1 = (int(pose[i * 3] * scale + x_offset), int(pose[i * 3 + 1] * scale + y_offset))
                 pt2 = (int(pose[j * 3] * scale + x_offset), int(pose[j * 3 + 1] * scale + y_offset))
@@ -50,21 +52,7 @@ with open(json_dir, 'r') as f:
         poses = [np.array(p) for p in data['poses'] if p]
         frames.append({'time': time_ms, 'poses': poses})
 
-# 2. 定义关节连接关系（示例，根据实际数据结构调整）
-connections = [
-    (11, 12),  # 左肩 -> 右肩
-    (11, 13),  # 左肩 -> 左肘
-    (12, 14),  # 右肩 -> 右肘
-    (13, 15),  # 左肘 -> 左手
-    (14, 16),  # 右肘 -> 右手
-    (11, 23),  # 左肩 -> 左髋
-    (12, 24),  # 右肩 -> 右髋
-    (23, 25),  # 左髋 -> 左膝
-    (24, 26),  # 右髋 -> 右膝
-    (23, 24),  # 左髋 -> 右髋
-    (25, 27),  # 左膝 -> 左脚
-    (26, 28),  # 右膝 -> 右脚
-]
+print(frames)
 
 # 3. 窗口和预览区域参数
 win_width, win_height = 1280, 720
@@ -75,15 +63,6 @@ preview_width, preview_height = 250, 200
 current_idx = 0
 time_scale = 1.0  # 时间缩放因子
 cv2.namedWindow('Motion Preview', cv2.WINDOW_NORMAL)
-
-# 颜色 BGR
-red = (0, 0, 255)
-green = (0, 255, 0)
-blue = (150, 50, 50)
-babyblue = (240, 207, 137)
-lightyellow = (137, 207, 240)
-pink = (255, 0, 255)
-yellow = (0, 255, 255)
 
 # 我的参数
 fps = 20 # frame / s

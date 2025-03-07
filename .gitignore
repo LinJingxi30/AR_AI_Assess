@@ -16,8 +16,9 @@ Build/
 Logs/
 
 # 用户数据与依赖
-# SavedJsons/
+# savedjsons/
 Packages/
+old/
 
 # 系统文件
 .DS_Store
