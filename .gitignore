@@ -16,8 +16,9 @@ Build/
 Logs/
 
 # 用户数据与依赖
-# SavedJsons/
+# savedjsons/
 Packages/
+old/
 
 # 系统文件
 .DS_Store
@@ -26,3 +27,7 @@ Thumbs.db
 # Unity相关（根据项目调整）
 # Assets/  # 若需版本控制则移除此规则
 Temp/
+
+# 垃圾箱
+display/
+**/json2predd.py
