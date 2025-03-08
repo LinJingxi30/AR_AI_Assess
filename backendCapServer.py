@@ -75,11 +75,11 @@ async def camera_task():
         pass
 
 def process_frame(frame):
-    frame = detector.findPose(frame, draw=False)
-    lmList, bboxInfo = detector.findPosition(frame, draw=False)
+    frame = detector.findPose(frame)
+    lmList, bboxInfo = detector.findPosition(frame)
     if lmList:
-        frame = draw(frame, lmList, point_radius=12, line_width=11)
-    _, jpeg = cv2.imencode('.jpg', frame)
+        img = draw(frame, lmList, point_radius=12, line_width=11)
+    _, jpeg = cv2.imencode('.jpg', img)
     return base64.b64encode(jpeg.tobytes()).decode()
 
 async def broadcast(data: str):
@@ -141,4 +141,4 @@ async def video_control(request: VideoControlRequest):
 app.mount("/", StaticFiles(directory="static"), name="static")
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="127.0.0.1", port=8000, reload=False)
+    uvicorn.run("backendCapServer:app", host="127.0.0.1", port=8000, reload=True)
