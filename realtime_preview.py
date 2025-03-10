@@ -1,15 +1,13 @@
 import cv2
-import mediapipe as mp
 import numpy as np
+from cvzone.PoseModule import PoseDetector
 from j2pc import Json2PreviewClass as j2pc
 from config.common_data import COLOR, POSE_CONNECTIONS
+from drawSkeleton import draw
 
 def main():
-    # 初始化MediaPipe
-    mp_pose = mp.solutions.pose
-    pose = mp_pose.Pose(
-        min_detection_confidence=0.5,
-        min_tracking_confidence=0.5)
+    # 初始化cvzone PoseDetector
+    detector = PoseDetector()
 
     # 读取json文件
     frames = []
@@ -35,31 +33,26 @@ def main():
     current_idx = 0
     while cap.isOpened():
         success, image = cap.read()
-        if not success:
-            continue
+        # if not success:
+        #     continue
 
         # 创建画布
         canvas = np.zeros((win_height, win_width, 3), dtype=np.uint8)
         
-        # MediaPipe处理
-        image.flags.writeable = False
-        results = pose.process(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
-        
-        if results.pose_landmarks:
-            # 绘制实时骨架
-            for connection in POSE_CONNECTIONS:
-                start_idx = connection[0]
-                end_idx = connection[1]
-                
-                start_point = results.pose_landmarks.landmark[start_idx]
-                end_point = results.pose_landmarks.landmark[end_idx]
-                
-                x1, y1 = int(start_point.x * win_width), int(start_point.y * win_height)
-                x2, y2 = int(end_point.x * win_width), int(end_point.y * win_height)
-                
-                cv2.line(canvas, (x1, y1), (x2, y2), COLOR['red'], 5)
-                cv2.circle(canvas, (x1, y1), 8, COLOR['green'], -1)
-                cv2.circle(canvas, (x2, y2), 8, COLOR['green'], -1)
+        # cvzone处理
+        image = detector.findPose(image)
+        lmList, bboxInfo = detector.findPosition(image)
+        if lmList:
+            # canvas = draw(canvas, lmList, point_radius=12, line_width=11)
+            print(np.reshape(lmList, -1))
+            j2pc.draw_pose_at_pos(canvas,  # 画布
+                              {"poses":np.reshape(lmList, -1)},  # 当前帧
+                              center_pos=(400,500),  # 骨架中心指定位置
+                              color_point=COLOR['red'],  # 节点颜色
+                              color_line=COLOR['green'],  # 连线颜色
+                              radius=8,  # 节点半径
+                              thickness=5,  # 连线粗细
+                              connections=POSE_CONNECTIONS)                      # 骨架连接关系（默认为data.py中的connections）
 
         # 绘制预览区域
         moving_sket_coords, do_it_sket_coords = get_coords.get_preview_coords_only(current_idx)
@@ -86,7 +79,6 @@ def main():
         elif key == ord(' '):
             cv2.waitKey(0)
 
-    pose.close()
     cap.release()
     cv2.destroyAllWindows()
 

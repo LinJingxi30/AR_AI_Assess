@@ -4,9 +4,9 @@ import socket
 import numpy as np
 
 # 自定义绘制函数
-def draw(img, lmList, point_radius=8, line_width=2):
+def draw(_canvas, lmList, point_radius=8, line_width=2):
     # 创建一个与输入图像大小相同的空白画布
-    canvas = np.ones_like(img) * 255
+    canvas = _canvas.copy()
     # 定义需要绘制的关键点索引
     key_points = [0, 11, 12, 13, 14, 15, 16, 23, 24, 25, 26, 27, 28, 31, 32]
     # 定义需要绘制的连接线（每对索引表示一条线）
@@ -29,15 +29,15 @@ def draw(img, lmList, point_radius=8, line_width=2):
             start_x, start_y, _ = lmList[start_idx]
             end_x, end_y, _ = lmList[end_idx]
             cv2.line(canvas, (int(start_x), int(start_y)), (int(end_x), int(end_y)),
-                     (0, 0, 0), line_width)  # 深绿色线
+                     (255, 255, 255), line_width)  # 深绿色线
     # 绘制关键点
     for idx in key_points:
         if idx < len(lmList):
             x, y, _ = lmList[idx]
             if idx == 0:  # 单独处理序号为0的点
-                cv2.circle(canvas, (int(x), int(y)), 24, (0, 0, 0), -1)  # 红色圆
+                cv2.circle(canvas, (int(x), int(y)), 24, (255, 255, 255), -1)  # 红色圆
             else:  # 其他点
-                cv2.circle(canvas, (int(x), int(y)), point_radius, (0, 0, 0), -1)  # 黑色圆
+                cv2.circle(canvas, (int(x), int(y)), point_radius, (255, 255, 255), -1)  # 黑色圆
     return canvas
 
 if __name__ == '__main__':
@@ -68,6 +68,7 @@ if __name__ == '__main__':
         lmList, bboxInfo = detector.findPosition(img, draw=False)  # 禁用默认绘制
         # 调用自定义绘制函数
         if lmList:
+            img = np.ones_like(img)*0
             img = draw(img, lmList, point_radius=12, line_width=11)
         # 自适应窗口大小
         window_name = "Image"
