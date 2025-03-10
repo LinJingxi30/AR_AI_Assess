@@ -1,3 +1,6 @@
+"""
+测试实时相机+preview的效果
+"""
 import cv2
 import numpy as np
 from cvzone.PoseModule import PoseDetector
@@ -33,8 +36,8 @@ def main():
     current_idx = 0
     while cap.isOpened():
         success, image = cap.read()
-        # if not success:
-        #     continue
+        if not success:
+            continue
 
         # 创建画布
         canvas = np.zeros((win_height, win_width, 3), dtype=np.uint8)
@@ -44,10 +47,8 @@ def main():
         lmList, bboxInfo = detector.findPosition(image)
         if lmList:
             # canvas = draw(canvas, lmList, point_radius=12, line_width=11)
-            print(np.reshape(lmList, -1))
-            j2pc.draw_pose_at_pos(canvas,  # 画布
+            j2pc.draw_pose(canvas,  # 画布
                               {"poses":np.reshape(lmList, -1)},  # 当前帧
-                              center_pos=(400,500),  # 骨架中心指定位置
                               color_point=COLOR['red'],  # 节点颜色
                               color_line=COLOR['green'],  # 连线颜色
                               radius=8,  # 节点半径
@@ -55,7 +56,7 @@ def main():
                               connections=POSE_CONNECTIONS)                      # 骨架连接关系（默认为data.py中的connections）
 
         # 绘制预览区域
-        moving_sket_coords, do_it_sket_coords = get_coords.get_preview_coords_only(current_idx)
+        moving_sket_coords, do_it_sket_coords = get_coords.get_preview_coords_only(current_idx,{"poses":np.reshape(lmList, -1)})
         j2pc.draw_preview_area(canvas,
                              moving_sket_coords,
                              do_it_sket_coords,

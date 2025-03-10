@@ -61,7 +61,7 @@ if __name__ == "__main__":
 
         """预览区"""
         # 获取预览坐标（小蓝、小黄）
-        moving_sket_coords, do_it_sket_coords = get_coords.get_preview_coords_only(current_idx)
+        moving_sket_coords, do_it_sket_coords = get_coords.get_preview_coords_only(current_idx,frames[current_idx])
         # 绘制预览区域
         j2pc.draw_preview_area(canvas,
                                moving_sket_coords,  # 小蓝

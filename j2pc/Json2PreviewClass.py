@@ -54,7 +54,7 @@ def draw_pose_at_pos(canvas, frame, center_pos, color_point, color_line, radius,
     :param thickness:   连线粗细
     :param center_pos:  骨架中心指定位置
     """
-    if frame['poses']:
+    if len(frame['poses']) > 0:
         pose = frame['poses']
         # 图层：先画线，再画点
         for (i, j) in connections:
@@ -78,7 +78,7 @@ def draw_pose(canvas, frame, color_point, color_line, radius, thickness, connect
     :param radius:  节点半径
     :param thickness:   连线粗细
     """
-    if frame['poses']:
+    if len(frame['poses']) > 0:
         pose = frame['poses']
         # 图层：先画线，再画点
         for (i, j) in connections:
@@ -122,7 +122,7 @@ class CoordsGenerator:
         self.y_speed = (center_pos_end[1] - center_pos_start[1]) / s_frame_num
 
     def get_sket_coords(self, frame, scale):
-        if frame['poses']:
+        if len(frame['poses']) > 0:
             pose = frame['poses'].copy()  # 创建副本避免污染原始数据
             for i in range(0, len(pose), 3):
                 # x
@@ -159,10 +159,10 @@ class PreviewCoordsGenerator:
         self.do_it_sket_coords_generator = CoordsGenerator(preview_end_center_pos, preview_end_center_pos, 1)
 
 
-    def get_preview_coords_only(self, current_idx):
+    def get_preview_coords_only(self, current_idx,current_frame):#current_frame改由外部传入
         future_s_idx = min((current_idx + self.s_frame_num), len(self.frames) - 1)    # 未来s秒的帧索引
         
-        current_frame = self.frames[current_idx]
+        # current_frame = self.frames[current_idx]
         future_s_frame = self.frames[future_s_idx]
 
         # 每隔 s_frame_num 帧采样一次（也就是每隔preview秒）
