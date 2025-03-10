@@ -39,7 +39,7 @@ def get_json_frames(frames, json_dir):
             data = json.loads(line)
             frame_idx = int(data['ID']) - 1
             time_ms = float(data['time'].replace('ms', ''))  # 转换为毫秒
-            poses = [np.array(p) for p in data['poses'] if p]
+            poses = [(p) for p in data['poses'] if p] #逻辑存疑
             frames.append({'frame_idx': frame_idx, 'time': time_ms, 'poses': poses})
 
 
