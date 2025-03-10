@@ -39,7 +39,8 @@
     </div>
 
     <script>
-      let baseURL = "";
+      let {protocol,host} = window.location;
+      let baseURL = protocol+"//"+host;
       const standardVideo = document.getElementById("standard-video");
 
       function startCapture() {

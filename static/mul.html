@@ -35,8 +35,8 @@
         const output = document.getElementById("output");
         const standardVideo = document.getElementById("standard-video");
         let ws;
-        let baseURL = "";
-        ws = new WebSocket(baseURL+"/ws");
+        let {protocol,host} = window.location;
+        ws = new WebSocket((protocol==="http:"?"ws://":"wss://")+host+"/ws");
 
         ws.onopen = function (event) {
             console.log("WebSocket is open now.");
