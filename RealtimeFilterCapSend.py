@@ -1,3 +1,9 @@
+"""
+video -> json
+此脚本用于实时捕捉视频中的人体姿态，并通过 Kalman 滤波器和低通滤波器对关键点进行平滑处理。
+处理后的关键点数据会通过 UDP 发送，并保存为 JSON 文件。同时，使用 Matplotlib 绘制关键点和骨架。
+"""
+
 import sys
 import cv2
 import numpy as np
@@ -11,6 +17,8 @@ from config.common_data import POSE_CONNECTIONS
 # 保存的 JSON 文件路径
 json_dir = 'savedjsons/relatetest.json'
 json_array = []
+
+target_video = "./static/video2.mp4"
 
 # 启用 matplotlib 交互模式
 plt.ion()
@@ -32,7 +40,7 @@ for _ in bones:
     bones_lines.append(line_obj)
 
 print("尝试初始化摄像头...")
-cap = cv2.VideoCapture('video2.mp4')
+cap = cv2.VideoCapture(target_video)
 print("摄像头初始化结果:", cap.isOpened())
 if not cap.isOpened():
     print("错误：摄像头初始化失败！请检查设备连接。")
