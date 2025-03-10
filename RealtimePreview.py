@@ -45,29 +45,32 @@ def main():
         # cvzone处理
         image = detector.findPose(image)
         lmList, bboxInfo = detector.findPosition(image)
+        frame = {"poses":np.reshape(lmList, -1)}
         if lmList:
             # canvas = draw(canvas, lmList, point_radius=12, line_width=11)
             j2pc.draw_pose(canvas,  # 画布
-                              {"poses":np.reshape(lmList, -1)},  # 当前帧
+                              frame,  # 当前帧
                               color_point=COLOR['red'],  # 节点颜色
                               color_line=COLOR['green'],  # 连线颜色
                               radius=8,  # 节点半径
                               thickness=5,  # 连线粗细
                               connections=POSE_CONNECTIONS)                      # 骨架连接关系（默认为data.py中的connections）
 
-        # 绘制预览区域
-        moving_sket_coords, do_it_sket_coords = get_coords.get_preview_coords_only(current_idx,{"poses":np.reshape(lmList, -1)})
-        j2pc.draw_preview_area(canvas,
-                             moving_sket_coords,
-                             do_it_sket_coords,
-                             moving_color_point=COLOR['blue'],
-                             moving_color_line=COLOR['babyblue'],
-                             moving_radius=12,
-                             moving_thickness=10,
-                             do_it_color_point=COLOR['yellow'],
-                             do_it_color_line=COLOR['lightyellow'],
-                             do_it_radius=12,
-                             do_it_thickness=10)
+            # 绘制预览区域
+            moving_sket_coords, do_it_sket_coords = get_coords.get_preview_coords_only(current_idx,frame)
+            j2pc.draw_preview_area(canvas,
+                                moving_sket_coords,
+                                do_it_sket_coords,
+                                moving_color_point=COLOR['blue'],
+                                moving_color_line=COLOR['babyblue'],
+                                moving_radius=12,
+                                moving_thickness=10,
+                                do_it_color_point=COLOR['yellow'],
+                                do_it_color_line=COLOR['lightyellow'],
+                                do_it_radius=12,
+                                do_it_thickness=10)
+        else:
+            canvas = image
 
         # 显示
         cv2.imshow('Realtime Preview', canvas)
