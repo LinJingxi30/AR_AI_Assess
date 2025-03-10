@@ -38,7 +38,7 @@ camera = None
 async def lifespan(app: FastAPI):
     # 启动时
     global camera
-    camera = cv2.VideoCapture(1)
+    camera = cv2.VideoCapture(0)
     if not camera.isOpened():
         raise RuntimeError("Failed to initialize camera - check if camera is connected and available")
     yield
@@ -79,6 +79,8 @@ def process_frame(frame):
     lmList, bboxInfo = detector.findPosition(frame)
     if lmList:
         img = draw(frame, lmList, point_radius=12, line_width=11)
+    else:
+        img = frame
     _, jpeg = cv2.imencode('.jpg', img)
     return base64.b64encode(jpeg.tobytes()).decode()
 
@@ -141,4 +143,4 @@ async def video_control(request: VideoControlRequest):
 app.mount("/", StaticFiles(directory="static"), name="static")
 
 if __name__ == "__main__":
-    uvicorn.run("backendCapServer:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run("backendCapServer:app", host="0.0.0.0", port=8000, reload=False)
