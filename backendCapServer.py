@@ -28,6 +28,7 @@ from pydantic import BaseModel
 from drawSkeleton import draw
 from j2pc import Json2PreviewClass as j2pc
 from config.common_data import COLOR, POSE_CONNECTIONS
+from CenterCoordProcess import coord_relativize
 
 # 全局状态管理
 clients: List[WebSocket] = []
@@ -104,22 +105,25 @@ async def camera_task():
 def process_frame(_frame):
     _frame = detector.findPose(_frame)
     lmList, bboxInfo = detector.findPosition(_frame)
-    canvas = np.zeros((win_height, win_width, 3), dtype=np.uint8)
+    # canvas = np.zeros((win_height, win_width, 3), dtype=np.uint8)
+    canvas = np.ones((win_height, win_width, 3), dtype=np.uint8) * 255
     if lmList:
         # img = draw(frame, lmList, point_radius=12, line_width=11)
-        
+        lmList = coord_relativize(lmList, use_ground=True)
         frame = {"poses":np.reshape(lmList, -1)}
-        j2pc.draw_pose(canvas,  # 画布
-                              frame,  # 当前帧
-                              color_point=COLOR['red'],  # 节点颜色
-                              color_line=COLOR['green'],  # 连线颜色
-                              radius=8,  # 节点半径
-                              thickness=5,  # 连线粗细
-                              connections=POSE_CONNECTIONS)                      # 骨架连接关系（默认为data.py中的connections）
+        j2pc.better_draw_pos_scale(canvas,  # 画布
+                                            frame,  # 当前帧
+                                            scale=0.5,  # 缩放比例
+                                            center_pos=(350, 900),  # 骨架中心指定位置
+                                            color_point=COLOR['red'],  # 节点颜色
+                                            color_line=COLOR['green'],  # 连线颜色
+                                            radius=8,  # 节点半径
+                                            thickness=5,  # 连线粗细
+                                            connections=POSE_CONNECTIONS)  # 骨架连接关系（默认为data.py中的connections）
 
         # 绘制预览区域
         global current_idx
-        moving_sket_coords, do_it_sket_coords = get_coords.get_preview_coords_only(current_idx,frames[current_idx])#待修改
+        moving_sket_coords, do_it_sket_coords = get_coords.get_preview_coords_only(current_idx,frame)#待修改
         j2pc.draw_preview_area(canvas,
                             moving_sket_coords,
                             do_it_sket_coords,

@@ -49,12 +49,13 @@ def main():
         image = detector.findPose(image)
         lmList, bboxInfo = detector.findPosition(image)
 
-        # 调用方法coord_relativize 使用脚底坐标作为中心点（相对坐标转换）
-        lmList = coord_relativize(lmList, use_ground=True)
-        frame = {"poses": np.reshape(lmList, -1)}
+        
 
         # 以指定坐标为中心点，指定缩放绘制：实时骨架
         if lmList:
+            # 调用方法coord_relativize 使用脚底坐标作为中心点（相对坐标转换）
+            lmList = coord_relativize(lmList, use_ground=True)
+            frame = {"poses": np.reshape(lmList, -1)}
             j2pc.better_draw_pos_scale(canvas,  # 画布
                                             frame,  # 当前帧
                                             scale=0.5,  # 缩放比例
