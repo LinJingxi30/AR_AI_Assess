@@ -26,6 +26,8 @@ from fastapi.responses import StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from drawSkeleton import draw
+from j2pc import Json2PreviewClass as j2pc
+from config.common_data import COLOR, POSE_CONNECTIONS
 
 # 全局状态管理
 clients: List[WebSocket] = []
@@ -33,6 +35,28 @@ frame_interval = 1 / 20  #  FPS
 detector = PoseDetector()
 capture_task = None
 camera = None
+
+ # 读取json文件
+frames = []
+json_dir = 'savedjsons/relatetest.json'
+j2pc.get_json_frames(frames, json_dir)
+
+# 基础设置
+camera_fps = 30
+win_width, win_height = 1920, 1080
+
+# 预览坐标生成器初始化
+get_coords = j2pc.PreviewCoordsGenerator(
+    preview_start_center_pos=(1900, 800),
+    preview_end_center_pos=(1300, 800),
+    preview_time=0.8,
+    fps=camera_fps,
+    current_idx=0,
+    frames=frames,
+    scale=0.9)
+
+current_idx = 0#待修改
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -57,6 +81,7 @@ app.add_middleware(
 
 async def camera_task():
     global camera
+    global current_idx
     try:
         while True:
             start_time = time.time()
@@ -71,17 +96,44 @@ async def camera_task():
 
             elapsed = time.time() - start_time
             await asyncio.sleep(max(0, frame_interval - elapsed))
+
+            current_idx = (current_idx + 1) % len(frames)#待修改
     except asyncio.CancelledError:
         pass
 
-def process_frame(frame):
-    frame = detector.findPose(frame)
-    lmList, bboxInfo = detector.findPosition(frame)
+def process_frame(_frame):
+    _frame = detector.findPose(_frame)
+    lmList, bboxInfo = detector.findPosition(_frame)
+    canvas = np.zeros((win_height, win_width, 3), dtype=np.uint8)
     if lmList:
-        img = draw(frame, lmList, point_radius=12, line_width=11)
+        # img = draw(frame, lmList, point_radius=12, line_width=11)
+        
+        frame = {"poses":np.reshape(lmList, -1)}
+        j2pc.draw_pose(canvas,  # 画布
+                              frame,  # 当前帧
+                              color_point=COLOR['red'],  # 节点颜色
+                              color_line=COLOR['green'],  # 连线颜色
+                              radius=8,  # 节点半径
+                              thickness=5,  # 连线粗细
+                              connections=POSE_CONNECTIONS)                      # 骨架连接关系（默认为data.py中的connections）
+
+        # 绘制预览区域
+        global current_idx
+        moving_sket_coords, do_it_sket_coords = get_coords.get_preview_coords_only(current_idx,frame)#待修改
+        j2pc.draw_preview_area(canvas,
+                            moving_sket_coords,
+                            do_it_sket_coords,
+                            moving_color_point=COLOR['blue'],
+                            moving_color_line=COLOR['babyblue'],
+                            moving_radius=12,
+                            moving_thickness=10,
+                            do_it_color_point=COLOR['yellow'],
+                            do_it_color_line=COLOR['lightyellow'],
+                            do_it_radius=12,
+                            do_it_thickness=10)
     else:
-        img = frame
-    _, jpeg = cv2.imencode('.jpg', img)
+        canvas = _frame
+    _, jpeg = cv2.imencode('.jpg', canvas)
     return base64.b64encode(jpeg.tobytes()).decode()
 
 async def broadcast(data: str):
