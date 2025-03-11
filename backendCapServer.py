@@ -119,7 +119,7 @@ def process_frame(_frame):
 
         # 绘制预览区域
         global current_idx
-        moving_sket_coords, do_it_sket_coords = get_coords.get_preview_coords_only(current_idx,frame)#待修改
+        moving_sket_coords, do_it_sket_coords = get_coords.get_preview_coords_only(current_idx,frames[current_idx])#待修改
         j2pc.draw_preview_area(canvas,
                             moving_sket_coords,
                             do_it_sket_coords,
