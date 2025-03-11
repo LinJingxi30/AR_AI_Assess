@@ -4,7 +4,7 @@
 
 ## 绘制预览区
 - 已经封装成库 j2pc/Json2PreviewClass.py (json to preview class version)
-- 使用示例 `j2pcExample.py`
+- **使用示例 `j2pcExample.py`**
 ### 方法
 - `get_json_frames`: 从json文件中解包帧数据
 - `draw_pose_at_pos`: 以指定坐标为中心点绘制骨架（这个别地方可以用）

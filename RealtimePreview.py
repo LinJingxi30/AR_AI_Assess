@@ -4,6 +4,8 @@
 import cv2
 import numpy as np
 from cvzone.PoseModule import PoseDetector
+
+from CenterCoordProcess import coord_relativize
 from j2pc import Json2PreviewClass as j2pc
 from config.common_data import COLOR, POSE_CONNECTIONS
 from drawSkeleton import draw
@@ -40,24 +42,31 @@ def main():
             continue
 
         # 创建画布
-        canvas = np.zeros((win_height, win_width, 3), dtype=np.uint8)
+        # canvas = np.zeros((win_height, win_width, 3), dtype=np.uint8)
+        canvas = np.ones((win_height, win_width, 3), dtype=np.uint8) * 255
         
         # cvzone处理
         image = detector.findPose(image)
         lmList, bboxInfo = detector.findPosition(image)
-        frame = {"poses":np.reshape(lmList, -1)}
+
+        # 调用方法coord_relativize 使用脚底坐标作为中心点（相对坐标转换）
+        lmList = coord_relativize(lmList, use_ground=True)
+        frame = {"poses": np.reshape(lmList, -1)}
+
+        # 以指定坐标为中心点，指定缩放绘制：实时骨架
         if lmList:
-            # canvas = draw(canvas, lmList, point_radius=12, line_width=11)
-            j2pc.draw_pose(canvas,  # 画布
-                              frame,  # 当前帧
-                              color_point=COLOR['red'],  # 节点颜色
-                              color_line=COLOR['green'],  # 连线颜色
-                              radius=8,  # 节点半径
-                              thickness=5,  # 连线粗细
-                              connections=POSE_CONNECTIONS)                      # 骨架连接关系（默认为data.py中的connections）
+            j2pc.better_draw_pos_scale(canvas,  # 画布
+                                            frame,  # 当前帧
+                                            scale=0.5,  # 缩放比例
+                                            center_pos=(350, 900),  # 骨架中心指定位置
+                                            color_point=COLOR['red'],  # 节点颜色
+                                            color_line=COLOR['green'],  # 连线颜色
+                                            radius=8,  # 节点半径
+                                            thickness=5,  # 连线粗细
+                                            connections=POSE_CONNECTIONS)  # 骨架连接关系（默认为data.py中的connections）
 
             # 绘制预览区域
-            moving_sket_coords, do_it_sket_coords = get_coords.get_preview_coords_only(current_idx,frame)
+            moving_sket_coords, do_it_sket_coords = get_coords.get_preview_coords_only(current_idx, frame)
             j2pc.draw_preview_area(canvas,
                                 moving_sket_coords,
                                 do_it_sket_coords,
