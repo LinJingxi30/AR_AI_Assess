@@ -20,7 +20,7 @@ Json2PreviewClass.py 库使用说明 (as j2pc)
 
 # 读取json文件，所有帧存入frames
 frames = []
-json_dir = 'savedjsons/relatetest.json'
+json_dir = "D:\Desktop\output_poses.json"
 j2pc.get_json_frames(frames, json_dir)
 print(frames)
 
