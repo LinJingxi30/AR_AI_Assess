@@ -3,6 +3,7 @@ import cv2
 import numpy as np
 from config.common_data import POSE_CONNECTIONS
 from config.common_data import COLOR
+import CenterCoordProcess as ccp
 
 
 """
@@ -46,12 +47,13 @@ def get_json_frames(frames, json_dir):
         for line in f:
             data = json.loads(line)
             frame_idx = int(data['ID']) - 1
-            time_ms = float(data['time'].replace('ms', ''))  # 转换为毫秒
+            time_ms = float(data['time_ms'])  # 转换为毫秒
             poses = [(p) for p in data['poses'] if p] #逻辑存疑
             frames.append({'frame_idx': frame_idx, 'time': time_ms, 'poses': poses})
 
 
-def draw_pose_at_pose_in_scale(canvas, frame, scale, center_pos, color_point, color_line, radius, thickness, connections = POSE_CONNECTIONS):
+# todo:: 坐标移动逻辑修改（使用ccp.move_coords_by_center_to_pos，先将目标与当前中心点做差，再遍历所有坐标减去这个差）（原本直接加上坐标，易出现重复位移）
+def draw_pose_at_pos_in_scale(canvas, frame, scale, center_pos, color_point, color_line, radius, thickness, connections = POSE_CONNECTIONS):
     """
     :param center_pos: 骨架中心指定位置
     :param connections: 骨架连接关系
@@ -77,7 +79,7 @@ def draw_pose_at_pose_in_scale(canvas, frame, scale, center_pos, color_point, co
             cv2.circle(canvas, (x, y), radius, color_point, -1)
 
 
-def better_draw_pos_scale(canvas, frame, scale, center_pos, color_point, color_line, radius, thickness, connections=POSE_CONNECTIONS):
+def better_draw_pos_scale(canvas, frame_type, pose, scale, at_position, color_point, color_line, radius, thickness, connections=POSE_CONNECTIONS, use_ground=True):
     # 定义关键点与连接规则
     key_points = [0, 11, 12, 13, 14, 15, 16, 23, 24, 25, 26, 27, 28, 31, 32]
     connections = [
@@ -94,49 +96,62 @@ def better_draw_pos_scale(canvas, frame, scale, center_pos, color_point, color_l
         (32, 28)   # 32与28相连
     ]
 
-    if len(frame['poses']) > 0:
-        pose = frame['poses']
+    # 传入帧类型
+    if frame_type == 'dict':
+        # 处理字典类型
+        if len(pose['poses']) > 0:
+            pose = pose['poses']
+            pose = [pose[i:i+3] for i in range(0, len(pose), 3)]
+
+    if pose:
+        # at_position 决定是否使用指定位置绘制
+        if at_position:
+            # 先移动整个骨架到指定位置
+            pose = ccp.move_coords_by_center_to_pos(pose, at_position, use_ground=use_ground)
 
         # 步骤2：绘制连接线
         for (start_idx, end_idx) in connections:
-            if start_idx * 3 + 2 < len(pose) and end_idx * 3 + 2 < len(pose):
-                start_x = int(pose[start_idx * 3] * scale + center_pos[0])
-                start_y = int(pose[start_idx * 3 + 1] * scale + center_pos[1])
-                end_x = int(pose[end_idx * 3] * scale + center_pos[0])
-                end_y = int(pose[end_idx * 3 + 1] * scale + center_pos[1])
-                cv2.line(canvas, (start_x, start_y), (end_x, end_y), (0,0,0), thickness)
+            if start_idx < len(pose) and end_idx < len(pose):
+                # 先对坐标进行缩放
+                scaled_start_x = pose[start_idx][0] * scale
+                scaled_start_y = pose[start_idx][1] * scale
+                scaled_end_x   = pose[end_idx][0] * scale
+                scaled_end_y   = pose[end_idx][1] * scale
 
-        # 单独连接序号为 0 和 11、12 的中点
-        if 0 * 3 + 2 < len(pose) and 11 * 3 + 2 < len(pose) and 12 * 3 + 2 < len(pose):
-            x0 = int(pose[0 * 3] * scale + center_pos[0])
-            y0 = int(pose[0 * 3 + 1] * scale + center_pos[1])
-            x11 = int(pose[11 * 3] * scale + center_pos[0])
-            y11 = int(pose[11 * 3 + 1] * scale + center_pos[1])
-            x12 = int(pose[12 * 3] * scale + center_pos[0])
-            y12 = int(pose[12 * 3 + 1] * scale + center_pos[1])
-            mid_x = int((x11 + x12) / 2)
-            mid_y = int((y11 + y12) / 2)
-            cv2.line(canvas, (x0, y0), (mid_x, mid_y), (0, 0, 0), thickness)
+                cv2.line(canvas,
+                         (int(scaled_start_x), int(scaled_start_y)),
+                         (int(scaled_end_x), int(scaled_end_y)),
+                         (0, 0, 0), thickness)
 
-        # 步骤3：绘制关键点（分类型处理）
+        # 连接关键点0与关键点11和12中点（先缩放）
+        if len(pose) > 12:
+            scaled_pt0  = (pose[0][0] * scale,  pose[0][1] * scale)
+            scaled_pt11 = (pose[11][0] * scale, pose[11][1] * scale)
+            scaled_pt12 = (pose[12][0] * scale, pose[12][1] * scale)
+            mid_x = int((scaled_pt11[0] + scaled_pt12[0]) / 2)
+            mid_y = int((scaled_pt11[1] + scaled_pt12[1]) / 2)
+            cv2.line(canvas,
+                     (int(scaled_pt0[0]), int(scaled_pt0[1])),
+                     (mid_x, mid_y),
+                     (0, 0, 0), thickness)
+
+        # 绘制关键点（不同部位设置不同样式）
         for idx in key_points:
-            if idx * 3 + 2 >= len(pose):
-                continue
-            x = int(pose[idx * 3] * scale + center_pos[0])
-            y = int(pose[idx * 3 + 1] * scale + center_pos[1])
+            if idx < len(pose):
+                # 先缩放
+                scaled_x = pose[idx][0] * scale
+                scaled_y = pose[idx][1] * scale
+                x, y = int(scaled_x), int(scaled_y)
+                if idx == 0:  # 头部
+                    cv2.circle(canvas, (x, y), 25, (0, 0, 0), -1)
+                elif idx in [15, 16]:  # 双手
+                    cv2.circle(canvas, (x, y), 13, (0, 0, 0), -1)
+                elif idx in [27, 28, 31, 32]:  # 双脚及新增点
+                    cv2.circle(canvas, (x, y), 13, (0, 0, 0), -1)
+                else:  # 其他节点
+                    cv2.circle(canvas, (x, y), radius, (0, 0, 0), -1)
 
-            # 根据不同部位设置样式
-            if idx == 0:  # 头部
-                cv2.circle(canvas, (x, y), 25, (0, 0, 0), -1)  # 黑色边框
-                # cv2.circle(canvas, (x, y), 23, (203, 192, 255), -1)  # 浅橙色填充
-            elif idx in [15, 16]:  # 双手
-                cv2.circle(canvas, (x, y), 13, (0, 0, 0), -1)  # 黑色边框
-                # cv2.circle(canvas, (x, y), 11, (155, 255, 84), -1)  # 浅绿色填充
-            elif idx in [27, 28, 31, 32]:  # 双脚及新增点31和32
-                cv2.circle(canvas, (x, y), 13, (0, 0, 0), -1)  # 黑色边框
-                # cv2.circle(canvas, (x, y), 11, (155, 255, 84), -1)  # 浅绿色填充
-            else:  # 其他节点
-                cv2.circle(canvas, (x, y), radius, (0,0,0), -1)  # 浅棕色填充
+
 def draw_pose_at_pos(canvas, frame, center_pos, color_point, color_line, radius, thickness, connections = POSE_CONNECTIONS):
     """
     :param connections: 骨架连接关系

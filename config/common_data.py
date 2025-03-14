@@ -2,6 +2,12 @@
 公用数据，避免代码段重复
 """
 
+
+# 统一窗口大小
+win_width, win_height = 1680, 1050
+WIN_SIZE = (win_width, win_height)
+
+
 # 定义关节连接关系（示例，根据实际数据结构调整）
 POSE_CONNECTIONS = [
     (11, 12),  # 左肩 -> 右肩
@@ -19,15 +25,18 @@ POSE_CONNECTIONS = [
 ]
 
 # 颜色 BGR
-COLOR = {
-    "red": (0, 0, 255),
-    "green": (0, 255, 0),
-    "blue": (150, 50, 50),
-    "babyblue": (240, 207, 137),
-    "lightyellow": (137, 207, 240),
-    "pink": (255, 0, 255),
-    "yellow": (0, 255, 255)
-}
+# ! 注意：OpenCV 默认使用 BGR 格式，非 RGB
+COLOR = {   
+    "black": (0, 0, 0),                 # rgb(0, 0, 0)
+    "white": (255, 255, 255),           # rgb(255, 255, 255)
+    "red": (0, 0, 255),                 # rgb(255, 0, 0)
+    "green": (0, 255, 0),               # rgb(0, 255, 0)
+    "blue": (150, 50, 50),              # rgb(50, 50, 150)
+    "babyblue": (240, 207, 137),        # rgb(137, 207, 240)
+    "lightyellow": (137, 207, 240),     # rgb(240, 207, 137)
+    "pink": (255, 0, 255),              # rgb(255, 0, 255)
+    "yellow": (0, 255, 255)             # rgb(255, 255, 0)
+}           
 
 if __name__ == "__main__":
     pass

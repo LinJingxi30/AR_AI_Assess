@@ -114,7 +114,7 @@ def process_frame(_frame):
         j2pc.better_draw_pos_scale(canvas,  # 画布
                                             frame,  # 当前帧
                                             scale=0.5,  # 缩放比例
-                                            center_pos=(350, 900),  # 骨架中心指定位置
+                                            at_position=(350, 900),  # 骨架中心指定位置
                                             color_point=COLOR['red'],  # 节点颜色
                                             color_line=COLOR['green'],  # 连线颜色
                                             radius=8,  # 节点半径
