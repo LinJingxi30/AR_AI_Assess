@@ -2,7 +2,8 @@
 # @Author :
 # @Time : 2025/3/14 17:51
 # @Content : 
-import os
+import sys, os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))) # 当前识别路径：media_pipe根路径
 
 from jsonProcessKit import Video2Json as v2j, Json2Images as j2i, JsonDiffSampler as jdif, Images2Masks as i2m
 from config.common_data import WIN_SIZE
@@ -11,7 +12,7 @@ import shutil
 std_video_fps = 30  # 标准视频帧率
 
 # 标准原视频路径
-std_video = "./static/part2.mp4"
+std_video = "static/part2.mp4"  # 标准视频路径
 
 # 帧路径
 std_frames_save_dir = "stdProcess/full_std_frames"    # 完整流帧保存路径
