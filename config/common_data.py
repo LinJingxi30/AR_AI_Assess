@@ -1,3 +1,5 @@
+import os
+
 """
 公用数据，避免代码段重复
 """
@@ -37,6 +39,16 @@ COLOR = {
     "pink": (255, 0, 255),              # rgb(255, 0, 255)
     "yellow": (0, 255, 255)             # rgb(255, 255, 0)
 }           
+
+def clear_directory(directory):
+    """
+    清空指定文件夹内所有文件。
+    """
+    if os.path.exists(directory):
+        for item in os.listdir(directory):
+            item_path = os.path.join(directory, item)
+            if os.path.isfile(item_path):
+                os.remove(item_path)
 
 if __name__ == "__main__":
     pass

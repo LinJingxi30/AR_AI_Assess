@@ -1,6 +1,6 @@
 import json
 import math
-from j2pc import Json2PreviewClass as j2pc
+from jsonProcessKit import Json2PreviewClass as j2pc
 import cv2
 import numpy as np
 from config.common_data import POSE_CONNECTIONS
@@ -56,7 +56,7 @@ def get_sampled_json(json_input_dir, json_save_dir, threshold):
 
 
 def get_sampled_json_with_img(json_input_dir, json_save_dir, threshold, img_output_dir):
-    print("开始采样明显变化帧到 JSON 文件和对应图片")    
+    print("开始采样明显变化帧到 JSON 文件和对应图片...")    
     
     # 逐行读取 JSON 数据
     with open(json_input_dir, 'r') as f:
@@ -124,6 +124,7 @@ def get_sampled_json_with_img(json_input_dir, json_save_dir, threshold, img_outp
             f_save.write(json.dumps(data) + "\n")
     
     print(f"已保存明显变化的帧到 JSON 文件 {json_save_dir}！")
+    print("\n")
 
 
 if __name__ == "__main__":

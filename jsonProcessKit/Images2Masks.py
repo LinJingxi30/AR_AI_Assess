@@ -1,8 +1,9 @@
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
-from config.common_data import COLOR
+from config.common_data import COLOR, clear_directory
 import os
+from tqdm import tqdm
 
 
 def get_glow_edge(frame, contours, color=COLOR['babyblue'], thickness=4):
@@ -73,12 +74,12 @@ def get_alpha_background(frame, contours, bg_opacity=0.5):
 
     result = get_glow_edge(result, contours)
 
-    cv2.imwrite("display\\alpha.png", result)
+    cv2.imwrite("../display/alpha.png", result)
 
     return result
 
 
-def change_background_color(image_path, color_threshold):
+def get_alpha_glow_border(image_path, color_threshold):
     # 读取图像
     image = cv2.imread(image_path)
 
@@ -157,16 +158,43 @@ def change_background_color(image_path, color_threshold):
     return background_alpha  # 返回透明挖孔背景图像
 
 
+def get_folder_masked_imgs(from_dir, save_dir, display_masked_img=False):
+    print("开始获取抽样遮罩标准帧...")
+    # 确保保存目录存在
+    os.makedirs(save_dir, exist_ok=True)
+    # 清空保存目录
+    clear_directory(save_dir)
+
+    # 遍历目录中的所有图像文件
+    for filename in tqdm(os.listdir(from_dir), total=len(os.listdir(from_dir)), desc="获取抽样遮罩标准帧"):
+        if filename.endswith('.png') or filename.endswith('.jpg'):
+            image_path = os.path.join(from_dir, filename)
+            image = cv2.imread(image_path)
+
+            # 处理图像
+            alpha_mask = get_alpha_glow_border(image_path, color_threshold=155)
+
+            """可选：显示处理后的图像"""
+            if display_masked_img:
+                cv2.imshow('Masked Image', alpha_mask)
+                cv2.waitKey(500)
+
+            # 保存处理后的图像
+            save_path = os.path.join(save_dir, "masked_" + filename)
+            cv2.imwrite(save_path, alpha_mask)
+    cv2.destroyAllWindows()
+    print(f"已保存遮罩标准帧到 {save_dir}！", "\n")
+
 # 使用示例
-folder_path = "savedjsons/sampled_standard_frames"
-color_threshold = 155  # 设置亮度阈值
-alpha_mask = change_background_color(image_path, color_threshold)
-cv2.imwrite("display\\alpha_mask.png", alpha_mask)
-# 重置画布
-cv2.destroyAllWindows()
-cv2.imshow('alpha_mask', alpha_mask)
-cv2.waitKey(5000)  # 持续显示 5000 毫秒（即 5 秒）
-cv2.destroyAllWindows()
+# folder_path = "savedjsons/sampled_standard_frames"
+# color_threshold = 155  # 设置亮度阈值
+# alpha_mask = get_alpha_glow_border(image_path, color_threshold)
+# cv2.imwrite("display\\alpha_mask.png", alpha_mask)
+# # 重置画布
+# cv2.destroyAllWindows()
+# cv2.imshow('alpha_mask', alpha_mask)
+# cv2.waitKey(5000)  # 持续显示 5000 毫秒（即 5 秒）
+# cv2.destroyAllWindows()
 
 def main():
-    
+    pass

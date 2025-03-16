@@ -16,7 +16,7 @@ Build/
 Logs/
 
 # 用户数据与依赖
-# savedjsons/
+savedjsons/sampled_standard_frames/
 Packages/
 old/
 
@@ -31,3 +31,9 @@ Temp/
 # 垃圾箱
 display/
 **/json2predd.py
+
+# 标准视频生成的帧文件和 JSON 文件
+stdProcess/**
+# 标准视频生成脚本
+!stdProcess/StandardGenerate.py
+

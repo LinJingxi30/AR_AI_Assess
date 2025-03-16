@@ -6,7 +6,7 @@ import numpy as np
 from cvzone.PoseModule import PoseDetector
 
 from CenterCoordProcess import coord_relativize
-from j2pc import Json2PreviewClass as j2pc
+from jsonProcessKit import Json2PreviewClass as j2pc
 from config.common_data import COLOR, POSE_CONNECTIONS, WIN_SIZE
 from drawSkeleton import draw
 

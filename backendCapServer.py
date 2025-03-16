@@ -26,7 +26,7 @@ from fastapi.responses import StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from drawSkeleton import draw
-from j2pc import Json2PreviewClass as j2pc
+from jsonProcessKit import Json2PreviewClass as j2pc
 from config.common_data import COLOR, POSE_CONNECTIONS
 from CenterCoordProcess import coord_relativize
 
