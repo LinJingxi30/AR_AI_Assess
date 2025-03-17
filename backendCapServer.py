@@ -26,7 +26,7 @@ from fastapi.responses import StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from drawSkeleton import draw
-from j2pc import Json2PreviewClass as j2pc
+from jsonProcessKit import Json2PreviewClass as j2pc
 from config.common_data import COLOR, POSE_CONNECTIONS
 from CenterCoordProcess import coord_relativize
 
@@ -114,7 +114,7 @@ def process_frame(_frame):
         j2pc.better_draw_pos_scale(canvas,  # 画布
                                             frame,  # 当前帧
                                             scale=0.5,  # 缩放比例
-                                            center_pos=(350, 900),  # 骨架中心指定位置
+                                            at_position=(350, 900),  # 骨架中心指定位置
                                             color_point=COLOR['red'],  # 节点颜色
                                             color_line=COLOR['green'],  # 连线颜色
                                             radius=8,  # 节点半径

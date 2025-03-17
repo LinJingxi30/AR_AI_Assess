@@ -1,26 +1,26 @@
-from j2pc import Json2PreviewClass as j2pc
+from jsonProcessKit import Json2PreviewClass as j2pc
 import cv2
 import numpy as np
 from config.common_data import COLOR, POSE_CONNECTIONS
 
 """
-Json2PreviewClass.py 库使用说明 (as j2pc)
+Json2PreviewClass.py 库使用说明 (as jsonProcessKit)
 
 0. 读取json文件，所有帧存入frames：
-    使用 j2pc.get_json_frames(...) 方法
+    使用 jsonProcessKit.get_json_frames(...) 方法
 
 1. 指定坐标位置绘制骨架：
-    j2pc.draw_pose_at_pos(...)
+    jsonProcessKit.draw_pose_at_pos(...)
 
 2. 指定起始终止坐标位置、提前多少秒，生成预览坐标：
-    先初始化预览坐标生成器：get_coords = j2pc.PreviewCoordsGenerator(...) 使用get_coords接方法
+    先初始化预览坐标生成器：get_coords = jsonProcessKit.PreviewCoordsGenerator(...) 使用get_coords接方法
     然后在主循环中使用 get_coords.get_preview_coords_only(...) 获取预览坐标，返回值为两个骨架的坐标
-    最后使用 j2pc.draw_preview_area(...) 绘制预览区域
+    最后使用 jsonProcessKit.draw_preview_area(...) 绘制预览区域
 """
 
 # 读取json文件，所有帧存入frames
 frames = []
-json_dir = 'savedjsons/relatetest.json'
+json_dir = "D:\Desktop\output_poses.json"
 j2pc.get_json_frames(frames, json_dir)
 print(frames)
 

@@ -2,6 +2,41 @@
 # @Author : LJX
 # @Time : 2025/3/7 14:27
 # @Content :
+# todo:: 添加以左脚为原点的坐标系？人移动怎么办呢
+
+def move_coords_by_center_to_pos(Pose, to_position, use_ground=True):
+    """
+    将骨架以中心为基准移动到指定位置
+    先将目标与当前中心点做差，再遍历所有坐标减去这个差
+    参数：
+      Pose: 骨架坐标系，33个关节点的坐标。
+      to_position: 移动到的目标位置。
+      use_ground: 是否使用脚底坐标作为中心点。
+
+    返回：
+      Pose: 移动后的骨架坐标系。
+    """
+    if use_ground:
+        # 使用脚底坐标作为中心点
+        center_pos = get_ground_pos(Pose)
+    else:
+        # 使用骨架躯干作为中心点
+        center_pos = get_center_pos(Pose)
+    
+    # 计算移动距离
+    move_x = to_position[0] - center_pos[0]
+    move_y = to_position[1] - center_pos[1]
+    # move_z = to_position[2] - center_pos[2]
+    
+    # 对每个关节坐标加上移动距离
+    for i in range(33):
+        Pose[i][0] += move_x
+        Pose[i][1] += move_y
+        # Pose[i][2] += move_z
+
+    return Pose
+
+
 
 def get_center_pos(finalPose):
     # 大致在躯干位置
@@ -19,6 +54,11 @@ def get_ground_pos(finalPose):
                 (finalPose[27][1] + finalPose[28][1]) / 2, \
                 (finalPose[27][2] + finalPose[28][2]) / 2
     return ground_pos
+
+def get_Lfoot_pos(finalPose):
+    # 左脚
+    Lfoot_pos = finalPose[27][0], finalPose[27][1], finalPose[27][2]
+    return Lfoot_pos
 
 def coord_relativize(finalPose, use_ground=True):
     if use_ground:

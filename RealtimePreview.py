@@ -6,9 +6,10 @@ import numpy as np
 from cvzone.PoseModule import PoseDetector
 
 from CenterCoordProcess import coord_relativize
-from j2pc import Json2PreviewClass as j2pc
-from config.common_data import COLOR, POSE_CONNECTIONS
+from jsonProcessKit import Json2PreviewClass as j2pc
+from config.common_data import COLOR, POSE_CONNECTIONS, WIN_SIZE
 from drawSkeleton import draw
+
 
 def main():
     # 初始化cvzone PoseDetector
@@ -22,7 +23,7 @@ def main():
     # 基础设置
     camera_fps = 30
     cap = cv2.VideoCapture(0)
-    win_width, win_height = 1920, 1080
+    win_width, win_height = WIN_SIZE    # 1920, 1080
     cv2.namedWindow('Realtime Preview', cv2.WINDOW_NORMAL)
 
     # 预览坐标生成器初始化
@@ -59,7 +60,7 @@ def main():
             j2pc.better_draw_pos_scale(canvas,  # 画布
                                             frame,  # 当前帧
                                             scale=0.5,  # 缩放比例
-                                            center_pos=(350, 900),  # 骨架中心指定位置
+                                            at_position=(350, 900),  # 骨架中心指定位置
                                             color_point=COLOR['red'],  # 节点颜色
                                             color_line=COLOR['green'],  # 连线颜色
                                             radius=8,  # 节点半径
