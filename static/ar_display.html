@@ -1,56 +1,327 @@
-<!-- ar_display.html -->
 <!DOCTYPE html>
-<html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D分屏演示</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+        }
+
+        canvas {
+            width: 100vw;
+            height: 100vh;
+        }
+    </style>
+
+</head>
+
 <body>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script>
-let renderer, camera, scene, skeleton;
+    <script type="importmap">
+        {
+          "imports": {
+            "three": "./js/three.module.js",
+            "three/addons/": "./js/addons/"
+          }
+        }
+      </script>
+    <script type="module">
+        import * as THREE from 'three';
+        import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+        
+        let lastUpdate = 0;
+        const UPDATE_INTERVAL = 1000 / 120; // 120fps
+        // 平滑参数配置
+        const SMOOTH_FACTOR = 0.5;    // 插值强度 (0.1~0.5)
+        const MIN_ANGLE = 0.001;       // 最小旋转阈值
+        const MAX_ANGEL =Math.PI/2    //最大旋转阈值，防止视角剧烈抖动
+        // 基础参数配置
+        const config = {
+            eyeDistance: 0.08,   // 双眼间距（米）// 生成配置
+        };
 
-// 1. 初始化3D场景
-function init() {
-    // AR显示配置
-    renderer = new THREE.WebGLRenderer({ alpha: true });
-    camera = new THREE.PerspectiveCamera(60, window.innerWidth/window.innerHeight, 0.1, 10);
-    scene = new THREE.Scene();
-    
-    // 2. 创建虚拟骨架
-    skeleton = createSkeletonModel();
-    scene.add(skeleton);
-    
-    // 3. 连接WebSocket获取数据
-    const ws = new WebSocket('ws://localhost:8765');
-    ws.onmessage = (event) => {
-        const points = JSON.parse(event.data);
-        updateSkeleton(points);
-    };
-}
+        // 初始化场景
+        const scene = new THREE.Scene();
+        const container = document.body;
+        
+        let currentQuaternion = new THREE.Quaternion();
+        let targetQuaternion = new THREE.Quaternion();
+        let correctionQuaternion = new THREE.Quaternion();
 
-// 4. 动态更新骨架位置
-function updateSkeleton(arPoints) {
-    arPoints.forEach((pos, i) => {
-        const joint = skeleton.children[i];
-        joint.position.set(pos[0], pos[1], pos[2]);
-    });
-}
+        // 初始方向修正
+        correctionQuaternion.setFromEuler(new THREE.Euler(
+            -Math.PI / 2,
+            Math.PI,
+            0
+        ));
 
-// 5. 创建骨架模型（简化示例）
-function createSkeletonModel() {
-    const group = new THREE.Group();
-    const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
-    
-    // 创建关节球体
-    for(let i=0; i<33; i++) { // MediaPipe Pose有33个关键点
-        const sphere = new THREE.Mesh(
-            new THREE.SphereGeometry(0.02),
-            material
-        );
-        group.add(sphere);
-    }
-    return group;
-}
+        // 替换原有的光照设置
+        // 环境光 - 提供基础环境照明
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
+        scene.add(ambientLight);
 
-// 启动场景
-init();
-</script>
+        // 主方向光 - 模拟太阳光
+        const mainLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        mainLight.position.set(5, 5, 5);
+        mainLight.castShadow = true; // 启用阴影
+        mainLight.shadow.mapSize.width = 2048;
+        mainLight.shadow.mapSize.height = 2048;
+        scene.add(mainLight);
+
+        // 补光 - 提供柔和的填充光
+        const fillLight = new THREE.DirectionalLight(0x9ca3af, 0.2);
+        fillLight.position.set(-5, 0, -5);
+        scene.add(fillLight);
+
+        // 重点光 - 突出模型细节
+        const spotLight = new THREE.SpotLight(0xffffff, 0.5);
+        spotLight.position.set(0, 5, 0);
+        spotLight.angle = Math.PI / 4;
+        spotLight.penumbra = 0.1;
+        spotLight.decay = 2;
+        spotLight.distance = 200;
+        scene.add(spotLight);
+
+        // 配置渲染器的阴影设置
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        renderer.setPixelRatio(window.devicePixelRatio);
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        container.appendChild(renderer.domElement);
+
+
+        // 创建左右相机
+        const cameras = {
+            left: createCamera(-config.eyeDistance / 2),
+            right: createCamera(config.eyeDistance / 2)
+        };
+
+        const cameraParent = new THREE.Group();
+        cameraParent.position.set(0, 0.5, 0);
+        scene.add(cameraParent);
+        cameraParent.add(cameras.left, cameras.right);
+        // 初始化四元数
+        currentQuaternion.copy(cameraParent.quaternion);
+        targetQuaternion.copy(cameraParent.quaternion);
+
+
+        // 添加坐标轴辅助
+        scene.add(new THREE.AxesHelper(5));
+
+        // 动画循环
+        animate();
+
+        // 工具函数
+        function createCamera(eyeOffset) {
+            const aspect = window.innerWidth / (window.innerHeight * 2);
+            const camera = new THREE.PerspectiveCamera(65, aspect, 0.1, 1000);
+            camera.position.set(eyeOffset, 0, 0); // 设置视点高度为0.5米
+            camera.lookAt((3.5*eyeOffset),0,-1);//设置双眼汇聚点
+            return camera;
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            const angleDiff = currentQuaternion.angleTo(targetQuaternion);
+          
+          // 当角度变化大于阈值时执行插值
+            if (angleDiff > MIN_ANGLE && angleDiff<MAX_ANGEL) {
+                currentQuaternion.slerp(targetQuaternion, SMOOTH_FACTOR);
+                cameraParent.quaternion.copy(currentQuaternion);
+            }
+            // 分屏渲染
+            renderStereoViews();
+        }
+
+        function renderStereoViews() {
+            const width = window.innerWidth;
+            const height = window.innerHeight;
+
+            // 关闭自动清除
+            renderer.autoClear = false;
+            renderer.clear();
+
+            // 左眼视图
+            renderer.setViewport(0, 0, width / 2, height);
+            renderer.clearDepth(); // 仅清除深度缓冲
+            renderer.render(scene, cameras.left);
+
+            // 右眼视图
+            renderer.setViewport(width / 2, 0, width / 2, height);
+            renderer.clearDepth(); // 仅清除深度缓冲
+            renderer.render(scene, cameras.right);
+
+            // 恢复默认设置
+            renderer.autoClear = true;
+        }
+
+        // 窗口响应
+        window.addEventListener('resize', () => {
+            const width = window.innerWidth;
+            const height = window.innerHeight;
+
+            Object.values(cameras).forEach(camera => {
+                camera.aspect = width / (height * 2);
+                camera.updateProjectionMatrix();
+            });
+
+            renderer.setSize(width, height);
+        });
+
+        // 屏幕旋转时更改初始方向修正
+        window.addEventListener('orientationchange', function () {
+            if (window.orientation == 0) {
+                correctionQuaternion.setFromEuler(new THREE.Euler(
+                    -Math.PI / 2,
+                    Math.PI,
+                    0
+                ));
+            } else if (window.orientation == 90) {
+                correctionQuaternion.setFromEuler(new THREE.Euler(
+                    Math.PI / 2,
+                    0,
+                    Math.PI / 2
+                ));
+            }
+        }, false);
+
+        function handleOrientation(event) {
+            // 添加节流机制
+            const now = performance.now();
+            if (now - lastUpdate < UPDATE_INTERVAL) return;
+            lastUpdate = now;
+            
+            const alpha = event.alpha ? THREE.MathUtils.degToRad(event.alpha) : 0;
+            const beta = event.beta ? THREE.MathUtils.degToRad(event.beta) : 0;
+            const gamma = event.gamma ? THREE.MathUtils.degToRad(180 - event.gamma) : 0;
+
+            const euler = new THREE.Euler(
+                beta,    // X轴
+                alpha,   // Y轴
+                gamma,   // Z轴
+                'YXZ'    // 旋转顺序
+            );
+
+            targetQuaternion.setFromEuler(euler).multiply(correctionQuaternion);
+        }
+
+        if (window.DeviceOrientationEvent) {
+            window.addEventListener('deviceorientation', handleOrientation);
+        }
+
+        // 请求设备方向权限（如果需要）
+        if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+            document.addEventListener('click', async () => {
+                try {
+                    const permission = await DeviceOrientationEvent.requestPermission();
+                    if (permission !== 'granted') {
+                        console.warn('设备方向权限未获取');
+                    }
+                } catch (error) {
+                    console.error('获取设备方向权限失败:', error);
+                }
+            }, { once: true });
+        }
+
+        const socket = new WebSocket("ws://localhost:8000/ws");
+        const spheres = [];
+        const lines = []; // 用于存储连线
+        const POSE_CONNECTIONS = [
+            [11, 12], [11, 13], [12, 14], [13, 15], [14, 16],
+            [11, 23], [12, 24], [23, 25], [24, 26], [23, 24],
+            [25, 27], [26, 28]
+        ];
+
+        // 创建小球
+        function createSphere(position, color = 0xff0000) {
+            const geometry = new THREE.SphereGeometry(0.05, 16, 16);
+            const material = new THREE.MeshBasicMaterial({ color });
+            const sphere = new THREE.Mesh(geometry, material);
+            sphere.position.set(...position);
+            scene.add(sphere);
+            return sphere;
+        }
+
+        // 创建连线
+        function createLine(color = 0x00ff00) {
+            const material = new THREE.LineBasicMaterial({ color });
+            const geometry = new THREE.BufferGeometry().setFromPoints([
+                new THREE.Vector3(0, 0, 0),
+                new THREE.Vector3(0, 0, 0)
+            ]);
+            const line = new THREE.Line(geometry, material);
+            scene.add(line);
+            return line;
+        }
+
+        // 初始化 WebSocket
+        socket.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+            if (data.type === "pose_data" && data.landmarks) {
+                updateSpheres(data.landmarks);
+            }
+        };
+
+        // 更新骨架连线
+        function updateLines(landmarks) {
+            // 如果连线数量不足，创建新的连线
+            while (lines.length < POSE_CONNECTIONS.length) {
+                lines.push(createLine());
+            }
+
+            // 更新连线位置
+            POSE_CONNECTIONS.forEach(([startIdx, endIdx], index) => {
+                const start = landmarks[startIdx];
+                const end = landmarks[endIdx];
+                if (start && end) {
+                    spheres[startIdx].visible = true;// 连线小球可见
+                    spheres[endIdx].visible = true;
+
+                    const line = lines[index];
+                    const positions = line.geometry.attributes.position.array;
+                    positions[0] = start[0] / 200;
+                    positions[1] = start[1] / 200;
+                    positions[2] = start[2] / 200 - 1;
+                    positions[3] = end[0] / 200;
+                    positions[4] = end[1] / 200;
+                    positions[5] = end[2] / 200 - 1;
+                    line.geometry.attributes.position.needsUpdate = true;
+                    line.visible = true; // 确保连线可见
+                }
+            });
+
+            // 隐藏多余的连线
+            for (let i = POSE_CONNECTIONS.length; i < lines.length; i++) {
+                lines[i].visible = false;
+            }
+        }
+
+        // 更新小球和连线位置
+        function updateSpheres(landmarks) {
+            // 如果小球数量不足，创建新的小球
+            while (spheres.length < landmarks.length) {
+                spheres.push(createSphere([0, 0, 0]));
+            }
+
+            // 更新小球位置
+            landmarks.forEach((landmark, index) => {
+                const [x, y, z] = landmark;
+                spheres[index].position.set(x / 200, y / 200, z / 200 - 1);
+            });
+
+            // 隐藏所有小球
+            for (let i = 0; i < spheres.length; i++) {
+                spheres[i].visible = false;
+            }
+
+            // 更新骨架连线
+            updateLines(landmarks);
+        }
+    </script>
 </body>
+
 </html>

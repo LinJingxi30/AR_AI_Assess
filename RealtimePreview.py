@@ -17,7 +17,7 @@ def main():
 
     # 读取json文件
     frames = []
-    json_dir = 'savedjsons/relatetest.json'
+    json_dir = 'savedjsons/2222.json'
     j2pc.get_json_frames(frames, json_dir)
 
     # 基础设置
@@ -58,7 +58,8 @@ def main():
             lmList = coord_relativize(lmList, use_ground=True)
             frame = {"poses": np.reshape(lmList, -1)}
             j2pc.better_draw_pos_scale(canvas,  # 画布
-                                            frame,  # 当前帧
+                                       "list",  # 当前帧        
+                                            lmList,  # 当前帧
                                             scale=0.5,  # 缩放比例
                                             at_position=(350, 900),  # 骨架中心指定位置
                                             color_point=COLOR['red'],  # 节点颜色

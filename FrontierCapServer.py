@@ -1,5 +1,7 @@
 '''
 该文件实现了一个基于 FastAPI 的后端服务器，摄像头在前端接入，通过WS将视频帧传给后端处理
+
+注意前端想要接入摄像头，需要开启https
 '''
 import cv2
 import numpy as np

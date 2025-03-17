@@ -21,7 +21,7 @@ Json2PreviewClass.py 库介绍
 
 # 从frame或frames中获取最大身高
 def get_frame_max_height(frame):
-    if len(frame['poses']) > 0:
+    if frame and len(frame['poses']) > 0:
         pose = frame['poses']
         y_coords = [pose[i + 1] for i in range(0, len(pose), 3)]
         max_height = max(y_coords) - min(y_coords)
@@ -71,7 +71,7 @@ def draw_pose_at_pos_in_scale(canvas, frame_type, pose, scale, at_position, colo
     # 传入帧类型
     if frame_type == 'dict':
         # 处理字典类型
-        if len(pose['poses']) > 0:
+        if pose and len(pose['poses']) > 0:
             pose = pose['poses']
             pose = [pose[i:i+3] for i in range(0, len(pose), 3)]
     if pose:
@@ -174,7 +174,7 @@ def draw_pose_at_pos(canvas, frame, center_pos, color_point, color_line, radius,
     :param thickness:   连线粗细
     :param center_pos:  骨架中心指定位置
     """
-    if len(frame['poses']) > 0:
+    if frame and len(frame['poses']) > 0:
         pose = frame['poses']
         # 图层：先画线，再画点
         for (i, j) in connections:
@@ -198,7 +198,7 @@ def draw_pose(canvas, frame, color_point, color_line, radius, thickness, connect
     :param radius:  节点半径
     :param thickness:   连线粗细
     """
-    if len(frame['poses']) > 0:
+    if frame['poses']is not None and len(frame['poses']) > 0:
         pose = frame['poses']
         # 图层：先画线，再画点
         for (i, j) in connections:
@@ -242,7 +242,7 @@ class CoordsGenerator:
         self.y_speed = (center_pos_end[1] - center_pos_start[1]) / s_frame_num
 
     def get_sket_coords(self, frame, scale):
-        if len(frame['poses']) > 0:
+        if frame and len(frame['poses']) > 0:
             pose = frame['poses'].copy()  # 创建副本避免污染原始数据
             for i in range(0, len(pose), 3):
                 # x

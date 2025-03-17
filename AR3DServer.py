@@ -25,7 +25,6 @@ from contextlib import asynccontextmanager
 from fastapi.responses import StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
-from drawSkeleton import draw
 from jsonProcessKit import Json2PreviewClass as j2pc
 from config.common_data import COLOR, POSE_CONNECTIONS
 from CenterCoordProcess import coord_relativize
@@ -63,7 +62,7 @@ current_idx = 0#待修改
 async def lifespan(app: FastAPI):
     # 启动时
     global camera
-    camera = cv2.VideoCapture(0)
+    camera = cv2.VideoCapture("./static/part1.mp4")
     if not camera.isOpened():
         raise RuntimeError("Failed to initialize camera - check if camera is connected and available")
     yield
@@ -87,6 +86,7 @@ async def camera_task():
         while True:
             start_time = time.time()
             success, frame = await asyncio.to_thread(camera.read)
+            print(success)
             if not success:
                 print("Camera read failed")
                 await asyncio.sleep(1)
@@ -105,46 +105,26 @@ async def camera_task():
 def process_frame(_frame):
     _frame = detector.findPose(_frame)
     lmList, bboxInfo = detector.findPosition(_frame)
-    # canvas = np.zeros((win_height, win_width, 3), dtype=np.uint8)
-    canvas = np.ones((win_height, win_width, 3), dtype=np.uint8) * 255
+    
     if lmList:
-        # img = draw(frame, lmList, point_radius=12, line_width=11)
+        # 将坐标数据相对化
         lmList = coord_relativize(lmList, use_ground=True)
-        frame = {"poses":np.reshape(lmList, -1)}
-        j2pc.better_draw_pos_scale(canvas,  # 画布
-                                   "list",
-                                    lmList,  # 当前帧
-                                    scale=0.5,  # 缩放比例
-                                    at_position=(350, 900),  # 骨架中心指定位置
-                                    color_point=COLOR['red'],  # 节点颜色
-                                    color_line=COLOR['green'],  # 连线颜色
-                                    radius=8,  # 节点半径
-                                    thickness=5,  # 连线粗细
-                                    connections=POSE_CONNECTIONS)  # 骨架连接关系（默认为data.py中的connections）
+        
+        # 构建JSON数据
+        pose_data = {
+            "type": "pose_data",
+            "landmarks": lmList,  # 转换numpy数组为list
+        }
+        return pose_data
+    return None
 
-        # 绘制预览区域
-        global current_idx
-        moving_sket_coords, do_it_sket_coords = get_coords.get_preview_coords_only(current_idx,frame)#待修改
-        j2pc.draw_preview_area(canvas,
-                            moving_sket_coords,
-                            do_it_sket_coords,
-                            moving_color_point=COLOR['blue'],
-                            moving_color_line=COLOR['babyblue'],
-                            moving_radius=12,
-                            moving_thickness=10,
-                            do_it_color_point=COLOR['yellow'],
-                            do_it_color_line=COLOR['lightyellow'],
-                            do_it_radius=12,
-                            do_it_thickness=10)
-    else:
-        canvas = _frame
-    _, jpeg = cv2.imencode('.jpg', canvas)
-    return base64.b64encode(jpeg.tobytes()).decode()
-
-async def broadcast(data: str):
+async def broadcast(data):
+    if data is None:
+        return
+        
     for ws in clients.copy():
         try:
-            await ws.send_text(f"data:image/jpeg;base64,{data}")
+            await ws.send_json(data)  # 使用send_json
         except:
             clients.remove(ws)
 
@@ -200,4 +180,4 @@ async def video_control(request: VideoControlRequest):
 app.mount("/", StaticFiles(directory="static"), name="static")
 
 if __name__ == "__main__":
-    uvicorn.run("BackendCapServer:app", host="0.0.0.0", port=8000, reload=False)
+    uvicorn.run("AR3DServer:app", host="0.0.0.0", port=8000, reload=False)
