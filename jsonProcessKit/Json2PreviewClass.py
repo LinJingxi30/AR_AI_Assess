@@ -53,7 +53,7 @@ def get_json_frames(frames, json_dir):
 
 
 # todo:: 坐标移动逻辑修改（使用ccp.move_coords_by_center_to_pos，先将目标与当前中心点做差，再遍历所有坐标减去这个差）（原本直接加上坐标，易出现重复位移）
-def draw_pose_at_pos_in_scale(canvas, frame, scale, center_pos, color_point, color_line, radius, thickness, connections = POSE_CONNECTIONS):
+def draw_pose_at_pos_in_scale(canvas, frame_type, pose, scale, at_position, color_point, color_line, radius, thickness, connections = POSE_CONNECTIONS, use_ground=False):
     """
     :param center_pos: 骨架中心指定位置
     :param connections: 骨架连接关系
@@ -65,17 +65,28 @@ def draw_pose_at_pos_in_scale(canvas, frame, scale, center_pos, color_point, col
     :param radius:  节点半径
     :param thickness:   连线粗细
     """
-    if len(frame['poses']) > 0:
-        pose = frame['poses']
-        # 图层：先画线，再画点
+    if at_position is None:
+        at_position_ = [0, 0]
+
+    # 传入帧类型
+    if frame_type == 'dict':
+        # 处理字典类型
+        if len(pose['poses']) > 0:
+            pose = pose['poses']
+            pose = [pose[i:i+3] for i in range(0, len(pose), 3)]
+    if pose:
+        if at_position:
+            # 移动骨架到指定位置，pose此时为二维列表，每个元素类似 [x, y, score]
+            pose = ccp.move_coords_by_center_to_pos(pose, at_position, use_ground=use_ground)
+        # 图层：先画连线，再画关键点
         for (i, j) in connections:
-            if i * 3 + 2 < len(pose) and j * 3 + 2 < len(pose):
-                pt1 = (int(pose[i * 3] * scale + center_pos[0]), int(pose[i * 3 + 1] * scale + center_pos[1]))
-                pt2 = (int(pose[j * 3] * scale + center_pos[0]), int(pose[j * 3 + 1] * scale + center_pos[1]))
+            if i < len(pose) and j < len(pose):
+                pt1 = (int(pose[i][0] * scale), int(pose[i][1] * scale))
+                pt2 = (int(pose[j][0] * scale), int(pose[j][1] * scale))
                 cv2.line(canvas, pt1, pt2, color_line, thickness)
 
-        for i in range(0, len(pose), 3):
-            x, y = int(pose[i] * scale + center_pos[0]), int(pose[i + 1] * scale + center_pos[1])
+        for point in pose:
+            x, y = int(point[0] * scale), int(point[1] * scale)
             cv2.circle(canvas, (x, y), radius, color_point, -1)
 
 

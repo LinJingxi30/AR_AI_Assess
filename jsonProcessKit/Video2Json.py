@@ -21,14 +21,15 @@ def get_std_json(std_video, std_json_dir, std_frames_save_dir, std_sket_center_p
     # 初始化摄像头：使用标准视频
     cap = cv2.VideoCapture(std_video)
     if not cap.isOpened():
-        print("错误：摄像头初始化失败！请检查设备连接。")
+        print("错误：标准视频初始化失败！请检查视频路径。")
         sys.exit()
     else:
         print(f"使用标准视频 {std_video} 生成完整流 JSON 文件 {std_json_dir}...")
 
     # 循环前先清空json文件（循环里用的是追加模式，不会直接覆盖）
-    with open(std_json_dir, "w") as f:
-        pass  # 空操作触发清空
+    if os.path.exists(std_json_dir):  # 若文件存在
+        with open(std_json_dir, "w") as f:
+            pass  # 空操作触发清空
 
     # 若启用保存帧，循环前清空保存目录
     if save_frames:
@@ -52,7 +53,7 @@ def get_std_json(std_video, std_json_dir, std_frames_save_dir, std_sket_center_p
     while cap.isOpened():
         success, image = cap.read()
         if not success:
-            break
+            break   # 读取完毕跳出
 
         # cvzone处理
         image = detector.findPose(image)

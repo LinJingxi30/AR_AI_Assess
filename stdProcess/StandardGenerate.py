@@ -3,6 +3,7 @@
 # @Time : 2025/3/14 17:51
 # @Content : 
 import sys, os
+from pathlib import Path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))) # 当前识别路径：media_pipe根路径
 
 from jsonProcessKit import Video2Json as v2j, Json2Images as j2i, JsonDiffSampler as jdif, Images2Masks as i2m
@@ -17,7 +18,7 @@ std_video = "static/part2.mp4"  # 标准视频路径
 # 帧路径
 std_frames_save_dir = "stdProcess/full_std_frames"    # 完整流帧保存路径
 sampled_frames_save_dir = "stdProcess/sampled_std_frames"  # 抽样后帧保存路径
-std_masked_frames_save_dir = "stdProcess/masked_sampled_std_frames"  # 抽样后、遮罩后帧保存路径
+std_masked_frames_save_dir = "stdProcess/masked_sampled_std_frames"  # 抽样后、遮罩后帧保存路径 --> 下一步
 
 # JSON路径
 std_json_dir = 'stdProcess/full_std_frames.json' # 完整流JSON文件路径
@@ -29,9 +30,8 @@ std_sket_center_pos = (win_width // 2, win_height - 100)  # （以骨架中心�
 std_sket_scale = 1.0  # 缩放比例
 
 
-def main():
-    threshold = 1200  # 采样阈值
-
+def StandardGenerate(threshold=1200):
+    # 采样阈值threshold
     # 生成完整流 JSON
     # save_frames=True 配合 line45 中 direct_copy_from_std_frame_dir使用。都会先清空保存目录，再保存图片。
     v2j.get_std_json(std_video, std_json_dir, std_frames_save_dir, std_sket_center_pos, std_sket_scale, display_sket=False, save_frames=True, win_size=WIN_SIZE)
@@ -52,6 +52,6 @@ def main():
     print(f"已保存采样帧 JSON 文件到 {dest_json_path}！")
 
 if __name__ == '__main__':
-    main()
+    StandardGenerate()
 
 # @A last new line here:
