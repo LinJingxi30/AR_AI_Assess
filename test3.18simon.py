@@ -144,40 +144,7 @@ def main():
         sketList, _ = detector.findPosition(imageSket, draw=False)
 
         # 创建画布
-        canvas = np.ones((win_height, win_width, 3), dtype=np.uint8) * 255
-
-        # === 新增：在画布上绘制实时骨架 ===
-        # 方法1：绘制骨架（火柴人）
-        # if sketList:
-        #     # todo:: 骨架整体横坐标不在摄像头正中央；左右颠倒，需镜像对称
-        #     j2pc.better_draw_pos_scale(canvas, frame_type='list', pose=sketList, scale=1, at_position=False, color_point=COLOR["blue"], color_line=COLOR["lightyellow"], radius=17, thickness=19, connections = POSE_CONNECTIONS)
-        # else:
-        #     print("未检测到骨架！")
-        # 方法2：mediapipe直接绘制
-        if sketList:
-            cam_width = image.shape[1]
-            cam_height = image.shape[0]
-
-            # 绘制骨架连接线
-            for connection in POSE_CONNECTIONS:
-                start_idx, end_idx = connection
-                if start_idx < len(sketList) and end_idx < len(sketList):
-                    # 坐标缩放
-                    start_x = int(sketList[start_idx][0] * win_width / cam_width)
-                    start_y = int(sketList[start_idx][1] * win_height / cam_height)
-                    end_x = int(sketList[end_idx][0] * win_width / cam_width)
-                    end_y = int(sketList[end_idx][1] * win_height / cam_height)
-
-                    # 绘制连接线
-                    cv2.line(canvas, (start_x, start_y), (end_x, end_y),
-                             COLOR["lightyellow"], 2)
-
-            # 绘制关节点
-            for idx, lm in enumerate(sketList):
-                x = int(lm[0] * win_width / cam_width)
-                y = int(lm[1] * win_height / cam_height)
-                cv2.circle(canvas, (x, y), 5, COLOR["blue"], -1)
-        # === 结束新增 ===
+        canvas = cv2.resize(image, (win_width, win_height))  # 直接使用摄像头内容作为画布
 
         # 加载标准掩膜帧
         std_masked_frame_path = f"{std_masked_frames_save_dir}/masked_frame_{std_mask_idx:05d}.png"
