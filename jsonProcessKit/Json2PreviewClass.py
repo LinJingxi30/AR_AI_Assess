@@ -19,6 +19,22 @@ Json2PreviewClass.py 库介绍
     PreviewCoordsGenerator：预览坐标生成器
 """
 
+
+def get_scaled_coords(pose_list, scale):
+    """
+    :param pose_list: 骨架坐标列表
+    :param scale: 缩放比例
+    :param center_pos: 中心点坐标
+    :return: 缩放后的坐标列表
+    """
+    scaled_coords = []
+    for point in pose_list:
+        point[0] = int(float(point[0]) * scale)
+        point[1] = int(float(point[1]) * scale)
+    #     scaled_coords.append([x, y, pose_list[i + 2]])  # 添加置信度
+    # return scaled_coords
+
+
 # 从frame或frames中获取最大身高
 def get_frame_max_height(frame):
     if frame and len(frame['poses']) > 0:

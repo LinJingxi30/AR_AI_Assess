@@ -110,7 +110,7 @@ def draw_points_to_reach(canvas, std_points, real_points, threshold=50):
 
     # 如果所有点都匹配，显示完成提示
     if all_points_matched:
-        cv2.putText(canvas, "所有点已匹配！", (50, 100), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+        cv2.putText(canvas, "All points matched!", (50, 100), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
 
     return all_points_matched
 
@@ -121,6 +121,16 @@ def main():
     std_json_frames = []
     j2pc.get_json_frames(std_json_frames, sampled_json_dir)
     original_std_size = (win_width, win_height)  # 将标准视频分辨率调整为窗口大小
+
+    # 初始化时预加载所有遮罩图像
+    masked_frames = []
+    for idx in range(len(std_json_frames)):
+        frame_path = f"{std_masked_frames_save_dir}/masked_frame_{idx:05d}.png"
+        overlay = cv2.imread(frame_path, cv2.IMREAD_UNCHANGED)
+        if overlay is not None:
+            overlay = cv2.resize(overlay, original_std_size)
+        masked_frames.append(overlay)
+
 
     # 摄像头初始化
     cap = cv2.VideoCapture(0)
@@ -150,8 +160,9 @@ def main():
         canvas = cv2.resize(image, (win_width, win_height))  # 直接使用摄像头内容作为画布
 
         # 加载标准掩膜帧
-        std_masked_frame_path = f"{std_masked_frames_save_dir}/masked_frame_{std_mask_idx:05d}.png"
-        overlay = cv2.imread(std_masked_frame_path, cv2.IMREAD_UNCHANGED)
+        overlay = masked_frames[std_mask_idx]  # 直接读取内存中的预加载帧
+        # std_masked_frame_path = f"{std_masked_frames_save_dir}/masked_frame_{std_mask_idx:05d}.png"
+        # overlay = cv2.imread(std_masked_frame_path, cv2.IMREAD_UNCHANGED)
         if overlay is not None:
             overlay = cv2.resize(overlay, (win_width, win_height))
             if overlay.shape[2] == 4:
@@ -190,7 +201,7 @@ def main():
             if all_points_matched:  # 当所有点都匹配时跳转
                 if json_line_idx < len(std_json_frames) - 1:
                     json_line_idx += 1
-                    std_mask_idx = std_json_frames[json_line_idx]["frame_idx"]
+                    std_mask_idx = std_json_frames[json_line_idx]["frame_idx"] + 1
                 else:
                     print("已完成所有动作序列！")
                     cv2.putText(canvas, "已完成所有动作序列！", (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)

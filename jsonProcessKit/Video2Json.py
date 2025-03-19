@@ -62,6 +62,9 @@ def get_std_json(std_video, std_json_dir, std_frames_save_dir, std_sket_center_p
         # 滤波处理
         # sketList = Filter(sketList, sketList, sketList, len(sketList), Q=0.001, R=0.0015, lpf_param=0.1)
 
+        # 先缩放
+        j2pc.get_scaled_coords(sketList, scale=std_sket_scale)  # 先缩放
+
         # 以脚为中心点，处理坐标
         sketList = ccp.coord_relativize(sketList, use_ground=True)
 
@@ -79,9 +82,9 @@ def get_std_json(std_video, std_json_dir, std_frames_save_dir, std_sket_center_p
         # 绘制骨架
         if sketList:
             # frame = {"poses": np.reshape(sketList, -1)}
-            j2pc.better_draw_pos_scale(canvas, pose=sketList, frame_type='list', scale=std_sket_scale, at_position=std_sket_center_pos,
-                                        color_point=COLOR["black"], color_line=COLOR["black"], radius=13,
-                                        thickness=24, connections=POSE_CONNECTIONS)
+            j2pc.better_draw_pos_scale(canvas, pose=sketList, frame_type='list', scale=1, at_position=std_sket_center_pos,
+                                        color_point=COLOR["black"], color_line=COLOR["black"], radius=32,
+                                        thickness=60, connections=POSE_CONNECTIONS)
         else:
             print("未检测到骨架！")
 
