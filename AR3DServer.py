@@ -14,20 +14,16 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.websockets import WebSocket
 import cv2
-import numpy as np
 import time
-import base64
 import asyncio
 import uvicorn
 from cvzone.PoseModule import PoseDetector
 from typing import List
 from contextlib import asynccontextmanager
-from fastapi.responses import StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
-from jsonProcessKit import Json2PreviewClass as j2pc
-from config.common_data import COLOR, POSE_CONNECTIONS
-from CenterCoordProcess import coord_relativize
+from ProcessKit import Json2PreviewClass as j2pc
+from ProcessKit.CenterCoordProcess import coord_relativize
 
 # 全局状态管理
 clients: List[WebSocket] = []
@@ -38,7 +34,7 @@ camera = None
 
  # 读取json文件
 frames = []
-json_dir = 'savedjsons/2222.json'
+json_dir = 'SavedJsons/2222.json'
 j2pc.get_json_frames(frames, json_dir)
 
 # 基础设置
@@ -187,7 +183,7 @@ async def video_control(request: VideoControlRequest):
     return {"status": "success"}
 
 # 挂载静态文件目录(注意放在ws之后让websocket连接优先匹配，防止冲突报错)
-app.mount("/", StaticFiles(directory="static"), name="static")
+app.mount("/", StaticFiles(directory="Static"), name="Static")
 
 if __name__ == "__main__":
     uvicorn.run("AR3DServer:app", host="0.0.0.0", port=8000, reload=False)

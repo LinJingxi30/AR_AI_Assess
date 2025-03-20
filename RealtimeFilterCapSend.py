@@ -11,14 +11,14 @@ import socket
 from cvzone.PoseModule import PoseDetector
 import matplotlib.pyplot as plt
 import json
-from CenterCoordProcess import coord_relativize
-from config.common_data import POSE_CONNECTIONS
+from ProcessKit.CenterCoordProcess import coord_relativize
+from Config.common_data import POSE_CONNECTIONS
 
 # 保存的 JSON 文件路径
-json_dir = 'savedjsons/part22.json'
+json_dir = 'SavedJsons/part22.json'
 json_array = []
 
-target_video = "./static/part2.mp4"
+target_video = "./Static/part2.mp4"
 
 # 启用 matplotlib 交互模式
 plt.ion()

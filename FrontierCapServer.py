@@ -71,7 +71,7 @@ async def websocket_endpoint(websocket: WebSocket):
         # print("Connection  closed")
 
 # 挂载静态文件目录(注意放在ws之后让websocket连接优先匹配，防止冲突报错)
-app.mount("/", StaticFiles(directory="static"), name="static")
+app.mount("/", StaticFiles(directory="Static"), name="Static")
 
 if __name__ == '__main__':
-    uvicorn.run(app='test:app', host="127.0.0.1", port=8000, reload=False)
+    uvicorn.run(app='Test:app', host="127.0.0.1", port=8000, reload=False)
