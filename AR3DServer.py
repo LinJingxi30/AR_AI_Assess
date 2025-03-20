@@ -31,7 +31,7 @@ from CenterCoordProcess import coord_relativize
 
 # 全局状态管理
 clients: List[WebSocket] = []
-frame_interval = 1 / 20  #  FPS
+frame_interval = 1 / 10  #  FPS
 detector = PoseDetector()
 capture_task = None
 camera = None
@@ -62,9 +62,12 @@ current_idx = 0#待修改
 async def lifespan(app: FastAPI):
     # 启动时
     global camera
-    camera = cv2.VideoCapture("./static/part1.mp4")
+    camera = cv2.VideoCapture(0)
     if not camera.isOpened():
         raise RuntimeError("Failed to initialize camera - check if camera is connected and available")
+    
+    global camera_task
+    capture_task = asyncio.create_task(camera_task())
     yield
     # 关闭时
     if camera:
@@ -86,7 +89,6 @@ async def camera_task():
         while True:
             start_time = time.time()
             success, frame = await asyncio.to_thread(camera.read)
-            print(success)
             if not success:
                 print("Camera read failed")
                 await asyncio.sleep(1)
@@ -115,7 +117,15 @@ def process_frame(_frame):
             "type": "pose_data",
             "landmarks": lmList,  # 转换numpy数组为list
         }
+        
+        # 显示图像
+        cv2.imshow("Processed Frame", _frame)
+        
         return pose_data
+    
+    # 显示图像（即使没有检测到姿态）
+    cv2.imshow("Processed Frame", _frame)
+    
     return None
 
 async def broadcast(data):

@@ -29,6 +29,7 @@ from drawSkeleton import draw
 from jsonProcessKit import Json2PreviewClass as j2pc
 from config.common_data import COLOR, POSE_CONNECTIONS
 from CenterCoordProcess import coord_relativize
+import json  # 添加导入 json 模块
 
 # 全局状态管理
 clients: List[WebSocket] = []
@@ -93,12 +94,12 @@ async def camera_task():
                 continue
 
             processed_frame = await asyncio.to_thread(process_frame, frame)
-            await broadcast(processed_frame)
+            await broadcast(json.dumps({"type": "video", "image": f"data:image/jpeg;base64,{processed_frame}"}))  # 发送 JSON 数据
 
             elapsed = time.time() - start_time
             await asyncio.sleep(max(0, frame_interval - elapsed))
 
-            current_idx = (current_idx + 1) % len(frames)#待修改
+            current_idx = (current_idx + 1) % len(frames)
     except asyncio.CancelledError:
         pass
 
@@ -144,7 +145,7 @@ def process_frame(_frame):
 async def broadcast(data: str):
     for ws in clients.copy():
         try:
-            await ws.send_text(f"data:image/jpeg;base64,{data}")
+            await ws.send_text(data)
         except:
             clients.remove(ws)
 
@@ -158,7 +159,7 @@ async def websocket_endpoint(websocket: WebSocket):
             message = await websocket.receive_text()
             for ws in clients.copy():
                 if ws != websocket:
-                    await ws.send_text(message)
+                    await ws.send_text(message)  # 保持原样，直接转发文本消息
     except:
         clients.remove(websocket)
 

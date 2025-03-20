@@ -54,9 +54,11 @@
                     } else if (data.action === "pause") {
                         standardVideo.pause();
                     }
+                }else if(data.type === "video"){
+                    output.src = data.image;
                 }
             } catch (e) {
-                output.src = event.data;
+                console.log("WebSocket message received:", event.data);
             }
         };
 

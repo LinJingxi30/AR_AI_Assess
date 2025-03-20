@@ -283,12 +283,12 @@
 
                     const line = lines[index];
                     const positions = line.geometry.attributes.position.array;
-                    positions[0] = start[0] / 200;
-                    positions[1] = start[1] / 200;
-                    positions[2] = start[2] / 200 - 1;
-                    positions[3] = end[0] / 200;
-                    positions[4] = end[1] / 200;
-                    positions[5] = end[2] / 200 - 1;
+                    positions[0] = start[0] / -200;
+                    positions[1] = start[1] / -200;
+                    positions[2] = start[2] / 200 - 3;
+                    positions[3] = end[0] / -200;
+                    positions[4] = end[1] / -200;
+                    positions[5] = end[2] / 200 - 3;
                     line.geometry.attributes.position.needsUpdate = true;
                     line.visible = true; // 确保连线可见
                 }
@@ -310,12 +310,12 @@
             // 更新小球位置
             landmarks.forEach((landmark, index) => {
                 const [x, y, z] = landmark;
-                spheres[index].position.set(x / 200, y / 200, z / 200 - 1);
+                spheres[index].position.set(x / -200, y / -200, z / 200 - 3);
             });
 
             // 隐藏所有小球
             for (let i = 0; i < spheres.length; i++) {
-                spheres[i].visible = false;
+                spheres[i].visible = true;
             }
 
             // 更新骨架连线
