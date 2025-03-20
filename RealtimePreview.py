@@ -5,10 +5,9 @@ import cv2
 import numpy as np
 from cvzone.PoseModule import PoseDetector
 
-from CenterCoordProcess import coord_relativize
-from jsonProcessKit import Json2PreviewClass as j2pc
-from config.common_data import COLOR, POSE_CONNECTIONS, WIN_SIZE
-from drawSkeleton import draw
+from ProcessKit.CenterCoordProcess import coord_relativize
+from ProcessKit import Json2PreviewClass as j2pc
+from Config.common_data import COLOR, POSE_CONNECTIONS, WIN_SIZE
 
 
 def main():
@@ -17,7 +16,7 @@ def main():
 
     # 读取json文件
     frames = []
-    json_dir = 'savedjsons/2222.json'
+    json_dir = 'SavedJsons/2222.json'
     j2pc.get_json_frames(frames, json_dir)
 
     # 基础设置
