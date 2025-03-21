@@ -41,7 +41,7 @@ def StandardGenerate(sampleThreshold=THRESHOLD["sample"], overlayThreshold=THRES
                             std_json_dir, std_frames_save_dir, 
                             std_sket_center_pos, 
                             std_sket_scale, 
-                            display_sket=False, 
+                            display_sket=True, 
                             draw_config=BLACK_SKET_CONFIG, 
                             save_frames=True, 
                             win_size=WIN_SIZE)

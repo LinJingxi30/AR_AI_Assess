@@ -160,10 +160,10 @@ class RealtimePractice:
             # todo:: 滤波
 
             # 画布绘制左右翻转的实时画面，这里必须返回接收画布
-            self.canvas = Draw.draw_realtime_cap_only(self.canvas, image)
+            self.canvas = draw.draw_realtime_cap_only(self.canvas, image)
 
             # 画布绘制标准掩膜帧
-            Draw.draw_overlay_on_canvas(self.canvas, self.overlay)
+            draw.draw_overlay_on_canvas(self.canvas, self.overlay)
 
             # 获取标准 LANDMARK 点坐标
             self.std_points = self.get_std_points()
@@ -182,10 +182,16 @@ class RealtimePractice:
             self.overlay = self.get_std_overlay(self.std_overlay_idx)
 
             # 画布绘制标准点和实时点，以及箭头
-            Draw.draw_points_with_arrow(self.canvas, self.std_points, self.realtime_points, self.condition_dict)
+            draw.draw_points_with_arrow(self.canvas, self.std_points, self.realtime_points, self.condition_dict)
 
             # 显示合成画面
-            cv2.imshow("Realtime Guide", self.canvas)
+            window_name = "Realtime Guide"
+            cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)
+            # 获取当前窗口尺寸（x, y, width, height）
+            x, y, w, h = cv2.getWindowImageRect(window_name)
+            # 将画布按照窗口尺寸拉伸
+            resized_canvas = cv2.resize(self.canvas, (w, h))
+            cv2.imshow(window_name, resized_canvas)
 
             # 按键控制
             key = cv2.waitKey(1)

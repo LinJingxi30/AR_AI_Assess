@@ -22,12 +22,21 @@ def get_body_part_coord_dict(sketList, keypoints): # from 3*33 to dict
             """样式：sketDict["头部"] = [100, 132] """
             sketDict[keyname] = sketList[keypoint][0:2]  # 部位对应坐标，仅取2d (x, y)
         """自定义部位"""
-        sketDict["脖子根"] = (int((sketDict["左肩"][0] + sketDict["右肩"][0])/2), int((sketDict["左肩"][1] + sketDict["右肩"][1])/2))  # 颈部坐标
+        sketDict["脖子根"] = (int((sketDict["左肩"][0] + sketDict["右肩"][0]) / 2),
+                            int((sketDict["左肩"][1] + sketDict["右肩"][1]) / 2))  # 颈部坐标
+
+        sketDict["左手心"] = (int((sketDict["左手掌"][0] + sketDict["左食指"][0] + sketDict["左小指"][0]) / 3),
+                            int((sketDict["左手掌"][1] + sketDict["左食指"][1] + sketDict["左小指"][1]) / 3))  # 计算左手心坐标
+
+        sketDict["右手心"] = (int((sketDict["右手掌"][0] + sketDict["右食指"][0] + sketDict["右小指"][0]) / 3),
+                            int((sketDict["右手掌"][1] + sketDict["右食指"][1] + sketDict["右小指"][1]) / 3))
+                            
     return sketDict
 
 
 def draw_connections(canvas, sketDict, connections, color_line, thickness=24):
     if connections and sketDict is not None:
+        thickness = int(thickness)  # 确保线条粗细为整数
         for connection in connections.values():     # "脖子": ("头部", "脖子根")
             start_point = tuple(map(int, sketDict[connection[0]]))   # sp = sketDict["头部"]
             end_point = tuple(map(int, sketDict[connection[1]]))     # ep = sketDict["脖子根"]
@@ -36,6 +45,7 @@ def draw_connections(canvas, sketDict, connections, color_line, thickness=24):
 
 
 def draw_head(canvas, coord, color, radius=64, eye_color=COLOR["white"], mouth_color=COLOR["lightyellow"]):
+    radius = int(radius)  # 确保半径为整数
     # 画头部，转换坐标为整数类型
     int_coord = tuple(map(int, coord))
     cv2.circle(canvas, int_coord, radius, color, -1)  # -1表示填充圆形
@@ -56,9 +66,14 @@ def draw_head(canvas, coord, color, radius=64, eye_color=COLOR["white"], mouth_c
 
 def draw_key_points(canvas, sketDict, color_point=COLOR["black"], color_head=COLOR["black"], radius=32, radius_head=64):
     if sketDict is not None:
+        radius = int(radius)  # 确保半径为整数
+        radius_head = int(radius_head)  # 确保头部半径为整数
         for keyname, coord in sketDict.items():
-            if keyname == "脖子根":
+            if keyname == "脖子根" or keyname == "左食指" or keyname == "右食指" or keyname == "左小指" or keyname == "右小指":
                 continue
+            elif keyname == "左手心" or keyname == "右手心":
+                coord = tuple(map(int, coord))
+                cv2.circle(canvas, coord, radius, color_point, -1)
             elif keyname == "头部":
                 canvas = draw_head(canvas, coord, color=color_head, radius=radius_head)
             else:

@@ -21,10 +21,10 @@ VISUAL_CONFIG = {
 }
 
 POSE_LANDMARKS = {
-    "left_wrist": 15,
-    "right_wrist": 16,
-    "left_ankle": 27,
-    "right_ankle": 28
+    "左手掌": 15,
+    "右手掌": 16,
+    "左脚踝": 27,
+    "右脚踝": 28
 }
 
 # @A last new line here:
