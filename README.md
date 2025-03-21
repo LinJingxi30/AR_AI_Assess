@@ -3,13 +3,18 @@
 - `common_data.py` 为通用（公用）数据文件，比如骨架连接关系，避免重复定义的代码段
 
 ## stdProcess 标准帧采样遮罩处理
+- 在 stdProcess\\`config.py` 进行配置
 - 标准采样遮罩帧生成完整脚本：stdProcess\\`StandardGenerate.py`
 - 运行后在 stdProcess 文件夹内进行存取
 
-## jsonProcessKit 库
-- JSON 相关处理脚本，统一放到`jsonProcessKit`文件夹中
+## ProcessKit 库
+- 全局通用处理脚本，统一放到`ProcessKit`文件夹中
+- `Draw` 模块中的 `draw_skeleton` 方法，可以方便地通过config字典配置画法（将config字典传入函数中），
+  字典格式参见 Config\\`common_data.py` 中的 `DRAW_SKET_OVERALL_CONFIG` 字典
 ```
-jsonProcessKit/
+ProcessKit/
+├── __init__.py
+├── Draw.py
 ├── Images2Masks.py
 ├── j2pcExample.py
 ├── Json2Images.py

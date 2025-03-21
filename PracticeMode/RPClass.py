@@ -7,7 +7,7 @@ import numpy as np
 from cvzone.PoseModule import PoseDetector
 from Config.common_data import WIN_SIZE, COLOR
 from ProcessKit import Json2PreviewClass as j2pc
-import Draw
+import draw
 from config import POSE_LANDMARKS
 
 

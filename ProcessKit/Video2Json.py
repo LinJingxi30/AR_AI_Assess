@@ -11,12 +11,13 @@ import sys
 
 from tqdm import tqdm
 import json
-from ProcessKit import Json2PreviewClass as j2pc, CenterCoordProcess as ccp
+from ProcessKit import Json2PreviewClass as j2pc, CenterCoordProcess as ccp, Draw
 from cvzone.PoseModule import PoseDetector
-from Config.common_data import POSE_CONNECTIONS, COLOR, WIN_SIZE, clear_directory
+from Config.common_data import WIN_SIZE, DRAW_SKET_OVERALL_CONFIG, clear_directory
 
 
-def get_std_json(std_video, std_json_dir, std_frames_save_dir, std_sket_center_pos, std_sket_scale, display_sket=False, save_frames=False, win_size=WIN_SIZE):
+
+def get_std_json_images(std_video, std_json_dir, std_frames_save_dir, std_sket_center_pos, std_sket_scale, display_sket=False, draw_config=DRAW_SKET_OVERALL_CONFIG, save_frames=False, win_size=WIN_SIZE):
     # 初始化摄像头：使用标准视频
     cap = cv2.VideoCapture(std_video)
     if not cap.isOpened():
@@ -80,10 +81,7 @@ def get_std_json(std_video, std_json_dir, std_frames_save_dir, std_sket_center_p
 
         # 绘制骨架
         if sketList:
-            # frame = {"poses": np.reshape(sketList, -1)}
-            j2pc.better_draw_pos_scale(canvas, pose=sketList, frame_type='list', scale=1, at_position=std_sket_center_pos,
-                                        color_point=COLOR["black"], color_line=COLOR["black"], radius=32,
-                                        thickness=60, connections=POSE_CONNECTIONS)
+            Draw.draw_skeleton(canvas, sketList, custom_config=draw_config)
         else:
             print("未检测到骨架！")
 
@@ -107,7 +105,7 @@ def get_std_json(std_video, std_json_dir, std_frames_save_dir, std_sket_center_p
 
         """写入 JSON 文件"""
         if current_idx == 0:
-            print("开始写入 JSON 文件...")
+            print("开始写入 JSON 文件，保存完整流标准帧图片...")
             pbar = tqdm(total=total_frames, desc="处理视频帧")
 
         try:

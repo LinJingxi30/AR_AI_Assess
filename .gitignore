@@ -35,7 +35,7 @@ display/
 # 标准视频生成的帧文件和 JSON 文件
 StdProcess/**
 # 标准视频生成脚本
-!StdProcess/StandardGenerate.py
+!StdProcess/**/*.py
 
 TODO
 

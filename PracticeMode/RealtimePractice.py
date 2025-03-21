@@ -7,8 +7,8 @@ import numpy as np
 from cvzone.PoseModule import PoseDetector
 from Config.common_data import WIN_SIZE, COLOR
 from ProcessKit import Json2PreviewClass as j2pc
-import Draw
-from Draw import POSE_LANDMARKS
+import draw
+from draw import POSE_LANDMARKS
 
 
 # 路径配置 Path(MEDIA_PIPE_ROOT) / "相对根目录路径"
