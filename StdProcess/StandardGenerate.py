@@ -16,7 +16,7 @@ from pathlib import Path
 std_video_fps = 30  # 标准视频帧率
 
 # 标准原视频路径
-std_video = Path(MEDIA_PIPE_ROOT) / "Static" / "part2.mp4"  # 标准视频路径
+std_video = Path(MEDIA_PIPE_ROOT) / "Static/video/part2.mp4"  # 标准视频路径
 
 # 帧路径
 std_frames_save_dir = Path(MEDIA_PIPE_ROOT) / "StdProcess/full_std_frames"    # 完整流帧保存路径
