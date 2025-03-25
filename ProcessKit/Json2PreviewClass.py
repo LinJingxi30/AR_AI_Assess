@@ -60,7 +60,7 @@ def get_json_frames(frames, json_dir):
     with open(json_dir, 'r') as f:
         for line in f:
             data = json.loads(line)
-            frame_idx = int(data['ID']) - 1
+            frame_idx = int(data['ID'])
             time_ms = float(data['time_ms'])  # 转换为毫秒
             poses = [(p) for p in data['poses'] if p] #逻辑存疑
             frames.append({'frame_idx': frame_idx, 'time': time_ms, 'poses': poses})
