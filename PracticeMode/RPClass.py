@@ -73,6 +73,7 @@ class RealtimePractice:
         """
         if self.json_line_idx < len(self.std_sampled_json_dict):
             frame_data = self.std_sampled_json_dict[self.json_line_idx]
+            print(frame_data)  # 调试
             pose_list = frame_data["poses"]
             if len(pose_list) == 33 * 3:
                 poses = np.array(pose_list).reshape(33, 3)
@@ -87,7 +88,7 @@ class RealtimePractice:
                 # 数据长度不对，跳过或做其他处理
                 pass
         return self.std_points
-    
+
 
     def get_realtime_points(self, sketList):
         """
@@ -201,20 +202,6 @@ class RealtimePractice:
 
             # todo:: 滤波
 
-            """绘制"""
-            # 画布绘制左右翻转的实时画面，这里必须返回接收画布
-            self.canvas = draw.draw_realtime_cap_only(self.canvas, image)
-
-            # 根据掩膜索引获取标准掩膜帧
-            # print(self.std_overlay_idx) # 调试
-            self.overlay = self.get_std_overlay(self.std_overlay_idx)
-
-            # 画布绘制标准掩膜帧
-            draw.draw_overlay_on_canvas(self.canvas, self.overlay)
-
-            # 画布绘制标准点和实时点，以及箭头
-            draw.draw_points_with_arrow(self.canvas, self.std_points, self.realtime_points, self.condition_dict)
-
             """判定"""
             # 获取标准 LANDMARK 点坐标
             self.std_points = self.get_std_points()
@@ -229,6 +216,22 @@ class RealtimePractice:
             # 更新掩膜索引、点索引
             self.json_line_idx, self.std_overlay_idx = self.idx_update(self.condition_overall)
             # self.json_line_idx, self.std_overlay_idx = self.idx_update(True)  # 调试
+            # print(f"掩膜帧索引：{self.std_overlay_idx}")  # 调试
+            # print(f"标准点帧索引：{self.json_line_idx}")  # 调试
+
+            """绘制"""
+            # 画布绘制左右翻转的实时画面，这里必须返回接收画布
+            self.canvas = draw.draw_realtime_cap_only(self.canvas, image)
+
+            # 根据掩膜索引获取标准掩膜帧
+            # print(self.std_overlay_idx) # 调试
+            self.overlay = self.get_std_overlay(self.std_overlay_idx)
+
+            # 画布绘制标准掩膜帧
+            draw.draw_overlay_on_canvas(self.canvas, self.overlay)
+
+            # 画布绘制标准点和实时点，以及箭头
+            draw.draw_points_with_arrow(self.canvas, self.std_points, self.realtime_points, self.condition_dict)
 
             """显示"""
             # 显示合成画面
