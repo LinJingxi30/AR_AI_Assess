@@ -107,9 +107,9 @@ def get_alpha_glow_border(image_path, color_threshold, bg_opacity=0.5, color_glo
     # 定义卷积核
     kernel = np.ones((5, 5), np.uint8)
     # 腐蚀n次
-    output_image = cv2.erode(output_image, kernel, iterations=1)  # 减少腐蚀次数（降低腐蚀次数，提高细节）
+    output_image = cv2.erode(output_image, kernel, iterations=5)  # 减少腐蚀次数（降低腐蚀次数，提高细节）
     # 膨胀n次
-    output_image = cv2.dilate(output_image, kernel, iterations=1)  # 增加膨胀次数
+    output_image = cv2.dilate(output_image, kernel, iterations=2)  # 增加膨胀次数
 
     # 转为灰度图像并二值化
     gray_output = cv2.cvtColor(output_image, cv2.COLOR_BGR2GRAY)

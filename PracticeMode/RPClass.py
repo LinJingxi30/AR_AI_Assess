@@ -16,6 +16,7 @@ std_masked_frames_dir = Path(MEDIA_PIPE_ROOT) / "StdProcess/masked_sampled_std_f
 std_sampled_json_dir = Path(MEDIA_PIPE_ROOT) / "StdProcess/sampled_std_frames.json"  # 抽样后的 JSON 文件路径
 std_masked_frames_save_dir = Path(MEDIA_PIPE_ROOT) / "StdProcess/masked_sampled_std_frames"  # 抽样后、遮罩后帧保存路径
 
+
 # 窗口参数
 win_width, win_height = WIN_SIZE
 original_std_size = (win_width, win_height)  # 将标准视频分辨率调整为窗口大小
@@ -53,8 +54,10 @@ class RealtimePractice:
             overlay = cv2.imread(frame_path, cv2.IMREAD_UNCHANGED)
             if overlay is not None:
                 overlay = cv2.resize(overlay, original_std_size)
-            self.std_sampled_masked_frames.append(overlay)
+                self.std_sampled_masked_frames.append(overlay)
+        # print(self.std_sampled_masked_frames)   # 调试
         # print(f"标准遮罩集长度{len(self.std_sampled_masked_frames)}")   # 调试
+
 
     def cap_init(self):
         """初始化摄像头"""
@@ -181,7 +184,7 @@ class RealtimePractice:
         # self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
         # self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
         # self.cap.set(cv2.CAP_PROP_FPS, 15)  # 降低帧率
-        
+
         while self.cap.isOpened():
             """相机采集帧"""
             # 读取实时帧
@@ -220,7 +223,6 @@ class RealtimePractice:
             self.realtime_points = self.get_realtime_points(sketList)
 
             # self.condition布尔字典key对应 POSE_LANDMARKS 中的英文key名
-            
             self.condition_dict, self.condition_overall = self.update_conditioning(self.std_points, self.realtime_points, self.distance_threshold)
             
             """更新"""
