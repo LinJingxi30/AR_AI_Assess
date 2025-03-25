@@ -17,6 +17,7 @@ std_video_fps = 30  # 标准视频帧率
 
 # 标准原视频路径
 std_video = PATHS["std_video"]  # 标准原视频路径
+# std_video_cut = PATHS["std_video_cut"]  # 标准原视频裁剪路径
 
 # 帧路径
 std_frames_save_dir = PATHS["std_frames_save_dir"]  # 完整流帧保存路径
@@ -42,7 +43,8 @@ def StandardGenerate(sampleThreshold=THRESHOLD["sample"], overlayThreshold=THRES
                             std_sket_center_pos, 
                             std_sket_scale,
                             frame_type="origin",  # origin / draww 
-                            display_sket=False, 
+                            media_pipe_draw=False,   # 使用官方绘图
+                            display_sket=False,     # 展示 origin / draww 帧
                             draw_config=BLACK_SKET_CONFIG, 
                             save_frames=True, 
                             win_size=WIN_SIZE)
@@ -75,6 +77,8 @@ def StandardGenerate(sampleThreshold=THRESHOLD["sample"], overlayThreshold=THRES
                                bg_opacity=THRESHOLD["bg_opacity"], 
                                color_glow=THRESHOLD["color_glow"], 
                                thickness=THRESHOLD["glow_thickness"])
+    
+    # TODO:: 筛选函数，删除指定图片以及对应json行
 
     # 把采样帧 JSON 文件拷贝到遮罩后的文件夹
     dest_json_path = Path(std_masked_frames_save_dir) / Path(sampled_json_dir).name

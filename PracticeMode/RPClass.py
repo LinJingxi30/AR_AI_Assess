@@ -63,14 +63,19 @@ class RealtimePractice:
     def get_std_points(self):
         if self.json_line_idx < len(self.std_sampled_json_dict):
             frame_data = self.std_sampled_json_dict[self.json_line_idx]
-            poses = np.array(frame_data["poses"]).reshape(33, 3)
-            self.std_points = [
-                (
-                    max(0, min(win_width - 1, int(poses[landmark][0] * (win_width / original_std_size[0])))),
-                    max(0, min(win_height - 1, int(poses[landmark][1] * (win_height / original_std_size[1]))))
-                )
-                for landmark in POSE_LANDMARKS.values()
-            ]
+            pose_list = frame_data["poses"]
+            if len(pose_list) == 33 * 3:
+                poses = np.array(pose_list).reshape(33, 3)
+                self.std_points = [
+                    (
+                        max(0, min(win_width - 1, int(poses[landmark][0] * (win_width / original_std_size[0])))),
+                        max(0, min(win_height - 1, int(poses[landmark][1] * (win_height / original_std_size[1]))))
+                    )
+                    for landmark in POSE_LANDMARKS.values()
+                ]
+            else:
+                # 数据长度不对，跳过或做其他处理
+                pass
         return self.std_points
     
 
@@ -124,7 +129,11 @@ class RealtimePractice:
         if condition:
             if self.json_line_idx < len(self.std_sampled_json_dict) - 1:
                 self.json_line_idx += 1
-                self.std_overlay_idx = self.std_sampled_json_dict[self.json_line_idx]["frame_idx"] + 1
+                new_idx = self.std_sampled_json_dict[self.json_line_idx]["frame_idx"]  # 不再 +1
+                if new_idx < len(self.std_sampled_masked_frames):
+                    self.std_overlay_idx = new_idx
+                else:
+                    self.std_overlay_idx = len(self.std_sampled_masked_frames) - 1
             else:
                 # todo:: 完成所有动作序列，跳转到...
                 pass
@@ -174,9 +183,10 @@ class RealtimePractice:
             # self.condition布尔字典key对应 POSE_LANDMARKS 中的英文key名
             # 只做条件判定，返回bool值，也内置修改self.condition字典值（这里写赋值是为了易读）
             self.condition_dict, self.condition_overall = self.update_conditioning(self.std_points, self.realtime_points, self.distance_threshold)
-
+            
             # 更新掩膜索引、点索引
             self.json_line_idx, self.std_overlay_idx = self.idx_update(self.condition_overall)
+            # self.json_line_idx, self.std_overlay_idx = self.idx_update(True)  # 调试
 
             # 根据掩膜索引获取标准掩膜帧
             self.overlay = self.get_std_overlay(self.std_overlay_idx)

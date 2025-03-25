@@ -22,6 +22,7 @@ def get_std_json_images(std_video,
                         std_frames_save_dir, 
                         std_sket_center_pos, 
                         std_sket_scale, 
+                        media_pipe_draw=False,
                         display_sket=False, 
                         frame_type="origin",    # origin / draww 
                         draw_config=DRAW_SKET_OVERALL_CONFIG, 
@@ -58,6 +59,7 @@ def get_std_json_images(std_video,
 
     # 获取视频帧率
     std_video_fps = cap.get(cv2.CAP_PROP_FPS)
+    win_width, win_height = win_size
 
     # 主循环：逐帧处理
     while cap.isOpened():
@@ -65,8 +67,11 @@ def get_std_json_images(std_video,
         if not success:
             break   # 读取完毕跳出
 
+        # 把视频帧缩放到窗口大小
+        image = cv2.resize(image, (win_width, win_height))
+
         # cvzone处理
-        image = detector.findPose(image, draw=False)  # 检测骨架
+        image = detector.findPose(image, draw=media_pipe_draw)  # 检测骨架
         sketList, bndboxInfo = detector.findPosition(image, draw=False)  # 获取骨架坐标
         if not sketList:
             print("未检测到骨架！")
@@ -91,7 +96,6 @@ def get_std_json_images(std_video,
             print("开始展示标准视频骨架检测...")
 
         # 创建白色画布
-        win_width, win_height = win_size
         canvas = np.ones((win_height, win_width, 3), dtype=np.uint8) * 255
 
         """"""
@@ -131,6 +135,10 @@ def get_std_json_images(std_video,
             # 处理poses格式
             flat_sketList = [item for sublist in sketList for item in
                              sublist]  # 2D(33*3) [[x1,y1,z1][x2,y2,z2]...[...]] -> 1D [x1, y1, z1, x2, y2, z2, ...]
+            # 忽略长度不为 33 * 3 = 99 的flat
+            if len(flat_sketList) != 99:
+                print("关键点不足！")
+                continue
 
             # 获取视频相对时间（单位 ms）作为时间戳
             video_time_ms = cap.get(cv2.CAP_PROP_POS_MSEC)
