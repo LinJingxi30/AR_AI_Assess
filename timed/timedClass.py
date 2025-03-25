@@ -7,8 +7,11 @@ import numpy as np
 from cvzone.PoseModule import PoseDetector
 from Config.common_data import WIN_SIZE, COLOR
 from ProcessKit import Json2PreviewClass as j2pc
+
 import draw
-from config import POSE_LANDMARKS
+from config import *
+from pygame.locals import *
+from pygame import mixer
 
 
 # 路径配置 Path(MEDIA_PIPE_ROOT) / "相对根目录路径"
@@ -38,9 +41,16 @@ class RealtimePractice:
         self.cap = cv2.VideoCapture(0)
         self.load_std_data()
         self.cap_init()
+        self.init_audio()
         self.json_line_idx = 0      # 标准点
         self.std_overlay_idx = 0    # 掩膜
-        
+    
+    
+    def init_audio():
+        """初始化音频系统"""
+        global SOUNDS
+        SOUNDS = {name: mixer.Sound(file) for name, file in SOUND_FILES.items()}
+
 
     def load_std_data(self):
         """加载标准数据"""
@@ -181,10 +191,8 @@ class RealtimePractice:
 
     def main_loop(self):
         """主循环"""
-        # 降低摄像头分辨率
-        # self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
-        # self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
-        # self.cap.set(cv2.CAP_PROP_FPS, 15)  # 降低帧率
+        # 初始化系统
+        init_audio()
 
         while self.cap.isOpened():
             """相机采集帧"""
@@ -214,8 +222,8 @@ class RealtimePractice:
             
             """更新"""
             # 更新掩膜索引、点索引
-            #self.json_line_idx, self.std_overlay_idx = self.idx_update(self.condition_overall)
-            self.json_line_idx, self.std_overlay_idx = self.idx_update(True)  # 调试
+            self.json_line_idx, self.std_overlay_idx = self.idx_update(self.condition_overall)
+            # self.json_line_idx, self.std_overlay_idx = self.idx_update(True)  # 调试
             # print(f"掩膜帧索引：{self.std_overlay_idx}")  # 调试
             # print(f"标准点帧索引：{self.json_line_idx}")  # 调试
 
