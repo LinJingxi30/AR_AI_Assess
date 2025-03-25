@@ -14,8 +14,8 @@ WIN_OCCUPY_RATIO = 0.7
 scale = win_height * WIN_OCCUPY_RATIO / 400  # 标准骨架缩放比例 percenth = winh * 0.8, s = percenth / poseh = winh * 0.8/ poseh  
 
 THRESHOLD = {
-    "sample": 2000,  # 采样阈值
-    "overlay": 255,   # 遮罩阈值
+    "sample": 3000,  # 采样阈值
+    "overlay": 50,   # 遮罩阈值
     "color_glow": COLOR["lightyellow"],  # 轮廓边缘发光颜色
     "bg_opacity": 0.8,  # 背景透明度
     "glow_thickness": 10 * scale2,  # 发光边缘的厚度
@@ -39,7 +39,7 @@ BLACK_SKET_CONFIG = {
 
 
 PATHS = {
-    "std_video": Path(MEDIA_PIPE_ROOT) / "Static/video/part2.mp4",  # 标准视频路径
+    "std_video": Path(MEDIA_PIPE_ROOT) / "Static/video/新太极.mp4",  # 标准视频路径
     "std_frames_save_dir": Path(MEDIA_PIPE_ROOT) / "StdProcess/full_std_frames",  # 完整流帧保存路径
     "sampled_frames_save_dir": Path(MEDIA_PIPE_ROOT) / "StdProcess/sampled_std_frames",  # 抽样后帧保存路径
     "std_masked_frames_save_dir": Path(MEDIA_PIPE_ROOT) / "StdProcess/masked_sampled_std_frames",  # 抽样后、遮罩后帧保存路径

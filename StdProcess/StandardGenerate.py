@@ -40,8 +40,9 @@ def StandardGenerate(sampleThreshold=THRESHOLD["sample"], overlayThreshold=THRES
     v2j.get_std_json_images(std_video, 
                             std_json_dir, std_frames_save_dir, 
                             std_sket_center_pos, 
-                            std_sket_scale, 
-                            display_sket=True, 
+                            std_sket_scale,
+                            frame_type="origin",  # origin / draww 
+                            display_sket=False, 
                             draw_config=BLACK_SKET_CONFIG, 
                             save_frames=True, 
                             win_size=WIN_SIZE)

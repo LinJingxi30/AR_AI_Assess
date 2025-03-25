@@ -190,8 +190,8 @@ class RealtimePractice:
             # 获取当前窗口尺寸（x, y, width, height）
             x, y, w, h = cv2.getWindowImageRect(window_name)
             # 将画布按照窗口尺寸拉伸
-            resized_canvas = cv2.resize(self.canvas, (w, h))
-            cv2.imshow(window_name, resized_canvas)
+            # resized_canvas = cv2.resize(self.canvas, (w, h))
+            cv2.imshow(window_name, self.canvas)
 
             # 按键控制
             key = cv2.waitKey(1)

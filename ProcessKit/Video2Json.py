@@ -17,7 +17,17 @@ from Config.common_data import WIN_SIZE, DRAW_SKET_OVERALL_CONFIG, clear_directo
 
 
 
-def get_std_json_images(std_video, std_json_dir, std_frames_save_dir, std_sket_center_pos, std_sket_scale, display_sket=False, draw_config=DRAW_SKET_OVERALL_CONFIG, save_frames=False, win_size=WIN_SIZE):
+def get_std_json_images(std_video, 
+                        std_json_dir, 
+                        std_frames_save_dir, 
+                        std_sket_center_pos, 
+                        std_sket_scale, 
+                        display_sket=False, 
+                        frame_type="origin",    # origin / draww 
+                        draw_config=DRAW_SKET_OVERALL_CONFIG, 
+                        save_frames=False,
+                        win_size=WIN_SIZE):
+    
     # 初始化摄像头：使用标准视频
     cap = cv2.VideoCapture(std_video)
     if not cap.isOpened():
@@ -56,20 +66,25 @@ def get_std_json_images(std_video, std_json_dir, std_frames_save_dir, std_sket_c
             break   # 读取完毕跳出
 
         # cvzone处理
-        image = detector.findPose(image)
-        sketList, bndboxInfo = detector.findPosition(image)
+        image = detector.findPose(image, draw=False)  # 检测骨架
+        sketList, bndboxInfo = detector.findPosition(image, draw=False)  # 获取骨架坐标
+        if not sketList:
+            print("未检测到骨架！")
+            # break
+            continue
 
         # 滤波处理
         # sketList = Filter(sketList, sketList, sketList, len(sketList), Q=0.001, R=0.0015, lpf_param=0.1)
 
-        # 先缩放
-        j2pc.get_scaled_coords(sketList, scale=std_sket_scale)  # 先缩放
+        if frame_type == "draw":
+            # 先缩放
+            j2pc.get_scaled_coords(sketList, scale=std_sket_scale)  # 先缩放
 
-        # 以脚为中心点，处理坐标
-        sketList = ccp.coord_relativize(sketList, use_ground=True)
+            # 以脚为中心点，处理坐标
+            sketList = ccp.coord_relativize(sketList, use_ground=True)
 
-        # 将整个骨架以中心为基准移动到指定位置
-        sketList = ccp.move_coords_by_center_to_pos(sketList, to_position=std_sket_center_pos, use_ground=True)
+            # 将整个骨架以中心为基准移动到指定位置
+            sketList = ccp.move_coords_by_center_to_pos(sketList, to_position=std_sket_center_pos, use_ground=True)
 
         # 只打印一次
         if current_idx == 0:
@@ -79,29 +94,33 @@ def get_std_json_images(std_video, std_json_dir, std_frames_save_dir, std_sket_c
         win_width, win_height = win_size
         canvas = np.ones((win_height, win_width, 3), dtype=np.uint8) * 255
 
-        # 绘制骨架
-        if sketList:
-            Draw.draw_skeleton(canvas, sketList, custom_config=draw_config)
-        else:
-            print("未检测到骨架！")
+        """"""
+        if frame_type == "draw":
+            # 绘制骨架
+            if sketList:
+                Draw.draw_skeleton(canvas, sketList, custom_config=draw_config)
+            else:
+                print("未检测到骨架！")
+        elif frame_type == "origin":
+            # 绘制原始视频帧
+            canvas = cv2.resize(image, (win_width, win_height))
 
         """可选：展示标准视频骨架检测"""
         if display_sket:
             # 显示
             cv2.imshow('Pose Estimination of Standard Video', canvas)
-
-        """可选：保存帧"""
-        if save_frames:
-            output_path = os.path.join(std_frames_save_dir, f"frame_{current_idx:05d}.png")
-            cv2.imwrite(output_path, canvas)
-            # print(f"Saved: {output_path}")
-
             # 按键控制
             key = cv2.waitKey(int(1000 / std_video_fps))
             if key == 27 or key == ord('q') or key == ord('Q'):
                 break
             elif key == ord(' '):
                 cv2.waitKey(0)
+
+        """可选：保存帧"""
+        if save_frames:
+            output_path = os.path.join(std_frames_save_dir, f"frame_{current_idx:05d}.png")
+            cv2.imwrite(output_path, canvas)
+            # print(f"Saved: {output_path}")
 
         """写入 JSON 文件"""
         if current_idx == 0:
