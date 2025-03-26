@@ -50,6 +50,8 @@ def draw_overlay_on_canvas(canvas, overlay):
             blended = overlay_float[..., :3] * alpha + canvas_float * (1 - alpha)
             # 还原数据类型
             canvas[:] = blended.astype(canvas.dtype)
+    else:
+        print("错误：遮罩为空！")
 
 
 def draw_points_with_arrow(canvas, std_points, real_points, condition_dict):

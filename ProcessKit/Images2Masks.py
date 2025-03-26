@@ -45,7 +45,7 @@ def get_edge(frame, contours, color=COLOR['blue'], thickness=10):
     return result
 
 
-def get_alpha_background(frame, contours, bg_opacity=0.5):
+def get_alpha_background(frame, contours, bg_opacity=0.5, color_glow=COLOR['lightyellow'], thickness=10):
     """获取灰度遮罩mask"""
     # 获取灰度图
     mask_gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
@@ -72,14 +72,17 @@ def get_alpha_background(frame, contours, bg_opacity=0.5):
     # 使用遮罩alpha，把背景图的透明通道对人物进行扣除
     result[..., 3] = alpha   # 将alpha通道替换为我们计算的alpha
 
-    result = get_glow_edge(result, contours)
+    thickness = int(thickness)  # 确保线条粗细为整数
+
+    result = get_glow_edge(result, contours, color=color_glow, thickness=thickness)  # 添加发光边缘
 
     cv2.imwrite("../display/alpha.png", result)
 
     return result
 
 
-def get_alpha_glow_border(image_path, color_threshold):
+def get_alpha_glow_border(image_path, color_threshold, bg_opacity=0.5, color_glow=COLOR['lightyellow'], thickness=10):
+
     # 读取图像
     image = cv2.imread(image_path)
 
@@ -104,9 +107,9 @@ def get_alpha_glow_border(image_path, color_threshold):
     # 定义卷积核
     kernel = np.ones((5, 5), np.uint8)
     # 腐蚀n次
-    output_image = cv2.erode(output_image, kernel, iterations=8)  # 减少腐蚀次数
+    output_image = cv2.erode(output_image, kernel, iterations=5)  # 减少腐蚀次数（降低腐蚀次数，提高细节）
     # 膨胀n次
-    output_image = cv2.dilate(output_image, kernel, iterations=1)  # 增加膨胀次数
+    output_image = cv2.dilate(output_image, kernel, iterations=2)  # 增加膨胀次数
 
     # 转为灰度图像并二值化
     gray_output = cv2.cvtColor(output_image, cv2.COLOR_BGR2GRAY)
@@ -124,41 +127,17 @@ def get_alpha_glow_border(image_path, color_threshold):
     # 绘制平滑的边缘
     for contour in contours:
         # 逼近轮廓以获得平滑的曲线
-        epsilon = 5  # 减少逼近精度
+        epsilon = 5  # 减少逼近精度，提高细节
         approx = cv2.approxPolyDP(contour, epsilon, True)
         cv2.drawContours(edge_image, [approx], -1, (255, 255, 255), thickness=5)
 
-    background_alpha = get_alpha_background(image, contours)
-
-    # 显示结果
-    # plt.figure(figsize=(10, 5))
-    # plt.subplot(1, 4, 1)
-    # plt.title('Original Image')
-    # plt.imshow(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
-    # plt.axis('off')
-    #
-    # plt.subplot(1, 4, 2)
-    # plt.title('Processed Image')
-    # plt.imshow(cv2.cvtColor(output_image, cv2.COLOR_BGR2RGB))
-    # plt.axis('off')
-    #
-    # plt.subplot(1, 4, 3)
-    # plt.title('Smoothed Edge Image')
-    # plt.imshow(cv2.cvtColor(edge_image, cv2.COLOR_BGR2RGB))
-    # plt.axis('off')
-    #
-    # plt.subplot(1, 4, 4)
-    # plt.title('Edge Glow Image')
-    # plt.imshow(cv2.cvtColor(edge_glow_img, cv2.COLOR_BGR2RGB))
-    # plt.axis('off')
-
-    # plt.tight_layout()
-    # plt.show()
+    # 绘制轮廓边缘
+    background_alpha = get_alpha_background(image, contours, bg_opacity=bg_opacity, color_glow=color_glow, thickness=thickness)
 
     return background_alpha  # 返回透明挖孔背景图像
 
 
-def get_folder_masked_imgs(from_dir, save_dir, display_masked_img=False):
+def get_folder_masked_imgs(from_dir, save_dir, display_masked_img=False, overlayThreshold=155, bg_opacity=0.5, color_glow=COLOR['lightyellow'], thickness=10):
     print("开始获取抽样遮罩标准帧...")
     # 确保保存目录存在
     os.makedirs(save_dir, exist_ok=True)
@@ -172,7 +151,7 @@ def get_folder_masked_imgs(from_dir, save_dir, display_masked_img=False):
             image = cv2.imread(image_path)
 
             # 处理图像
-            alpha_mask = get_alpha_glow_border(image_path, color_threshold=155)
+            alpha_mask = get_alpha_glow_border(image_path, color_threshold=overlayThreshold, bg_opacity=bg_opacity, color_glow=color_glow, thickness=thickness)
 
             """可选：显示处理后的图像"""
             if display_masked_img:

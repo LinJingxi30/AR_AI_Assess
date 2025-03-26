@@ -35,9 +35,14 @@ display/
 # 标准视频生成的帧文件和 JSON 文件
 StdProcess/**
 # 标准视频生成脚本
-!StdProcess/StandardGenerate.py
+!StdProcess/**/*.py
 
 node_modules/
 
 TODO
 
+Static/video/C0068.MP4
+Static/video/C0069.MP4
+Static/video/C0070.MP4
+Static/video/C0073.MP4
+Static/video/C0075.MP4

@@ -6,7 +6,10 @@ import os
 
 
 # 统一窗口大小
-win_width, win_height = 1680, 1050
+# win_width, win_height = 1920, 1080
+# win_width, win_height = 1600, 900
+win_width, win_height = 1280, 720
+# win_width, win_height = 640, 480
 WIN_SIZE = (win_width, win_height)
 
 
@@ -38,7 +41,101 @@ COLOR = {
     "lightyellow": (137, 207, 240),     # rgb(240, 207, 137)
     "pink": (255, 0, 255),              # rgb(255, 0, 255)
     "yellow": (0, 255, 255)             # rgb(255, 255, 0)
-}           
+}
+
+
+STD_POSE_KEYPOINTS = {
+    "头部": 0,
+    
+    "左肩": 11,
+    "右肩": 12,
+    
+    "左肘": 13,
+    "右肘": 14,
+    
+    "左手掌": 15,
+    "右手掌": 16,
+
+    "左食指": 17,
+    "右食指": 18,
+
+    "左小指": 19,
+    "右小指": 20,
+    
+    "左髋": 23,
+    "右髋": 24,
+    
+    "左膝": 25,
+    "右膝": 26,
+
+    "左脚踝": 27,
+    "右脚踝": 28,
+    
+    "左脚跟": 29,
+    "右脚跟": 30,
+    
+    "左脚尖": 31,
+    "右脚尖": 32,
+
+}
+
+
+STD_FILL_CONNECTIONS = {
+    "躯干": ("左肩", "右肩", "左髋", "右髋"),
+}
+
+
+STD_POSE_CONNECTIONS = {
+    "脖子": ("头部", "脖子根"),
+
+    "肩膀": ("左肩","右肩"),
+
+    "左大臂": ("左肩", "左肘"),
+    "右大臂": ("右肩", "右肘"),
+
+    "左小臂": ("左肘", "左手掌"),
+    "右小臂": ("右肘", "右手掌"),
+
+    "左手": ("左手掌", "左手心"),
+    "右手": ("右手掌", "右手心"),
+
+    "左躯干": ("左肩", "左髋"),
+    "右躯干": ("右肩", "右髋"),
+
+    "臀部": ("左髋", "右髋"),
+
+    "左大腿": ("左髋", "左膝"),
+    "右大腿": ("右髋", "右膝"),
+
+    "左小腿": ("左膝", "左脚跟"),
+    "右小腿": ("右膝", "右脚跟"),
+
+    "左脚背": ("左脚踝", "左脚尖"),
+    "右脚背": ("右脚踝", "右脚尖"),
+
+    "左跟腱": ("左脚跟", "左脚踝"),
+    "右跟腱": ("右脚跟", "右脚踝"),
+
+    "左脚底": ("左脚跟", "左脚尖"),
+    "右脚底": ("右脚跟", "右脚尖"),
+}
+
+
+
+# 一个默认的骨架绘制配置
+DRAW_SKET_OVERALL_CONFIG = {
+    "color_head": COLOR["lightyellow"],
+    "color_fill": COLOR["lightyellow"],
+    "color_point": COLOR["black"],
+    "color_line": COLOR["babyblue"],
+    "radius": 22,
+    "radius_head": 64,
+    "thickness": 45,
+    "key_points": STD_POSE_KEYPOINTS,
+    "connections": STD_POSE_CONNECTIONS,
+    "fill_connections": STD_FILL_CONNECTIONS,
+}
+
 
 def clear_directory(directory):
     """

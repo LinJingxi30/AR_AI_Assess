@@ -32,7 +32,7 @@ def get_img_from_json(json_dir,
         std_dir = direct_copy_from_std_frame_dir
         # 直接从标准帧目录复制图片
         for frame in tqdm(frames, total=len(frames), desc="直接从标准图片集内拷贝抽样帧"):
-            frame_idx = frame['frame_idx'] + 1
+            frame_idx = frame['frame_idx']
             std_img = os.path.join(std_dir, f"frame_{frame_idx:05d}.png")
             if not os.path.exists(std_img):
                 raise FileNotFoundError("没有找到抽样帧，请将v2j.get_std_json的save_frames设为True")
