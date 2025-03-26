@@ -2,6 +2,21 @@
 # @Author :
 # @Time : 2025/3/19 12:26
 # @Content :
+import pygame
+
+# 音频配置
+SOUND_FILES = {
+    "perfect": "gameAssets/sounds/perfect2.wav",
+    "great": "gameAssets/sounds/great2.wav",
+    "good": "gameAssets/sounds/good2.wav"
+}
+
+# 字体配置
+FONT_CONFIG = {
+    "feedback": pygame.font.Font("gameAssets/fonts/impact2.otf", 72),
+    "score": pygame.font.Font("gameAssets/fonts/arial_bold2.otf", 36),
+    "title": pygame.font.Font("gameAssets/fonts/Windhavi.otf", 36)
+}
 
 VISUAL_CONFIG = {
     "arrow": {
@@ -17,6 +32,11 @@ VISUAL_CONFIG = {
         "steps": 5,  # 减少 steps 以提高性能
         "std_color": (255, 191, 0),     # BGR标准点颜色   rgb(0, 191, 255)
         "real_color": (72, 209, 204)    # BGR实时点颜色   rgb(204, 209, 72)
+    },
+    "feedback_colors": {
+        "perfect": (0, 255, 0),
+        "great": (255, 215, 0),
+        "good": (255, 69, 0)
     }
 }
 
