@@ -214,8 +214,8 @@ class RealtimePractice:
             
             """更新"""
             # 更新掩膜索引、点索引
-            #self.json_line_idx, self.std_overlay_idx = self.idx_update(self.condition_overall)
-            self.json_line_idx, self.std_overlay_idx = self.idx_update(True)  # 调试
+            self.json_line_idx, self.std_overlay_idx = self.idx_update(self.condition_overall)
+            # self.json_line_idx, self.std_overlay_idx = self.idx_update(True)  # 调试
             # print(f"掩膜帧索引：{self.std_overlay_idx}")  # 调试
             # print(f"标准点帧索引：{self.json_line_idx}")  # 调试
 

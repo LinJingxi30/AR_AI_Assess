@@ -9,7 +9,8 @@ from Config.common_data import WIN_SIZE, COLOR
 from ProcessKit import Json2PreviewClass as j2pc
 
 import draw
-from config import *
+from config import POSE_LANDMARKS, SOUND_FILES, FONT_CONFIG, VISUAL_CONFIG
+import pygame
 from pygame.locals import *
 from pygame import mixer
 
@@ -37,6 +38,7 @@ class RealtimePractice:
         self.overlay = None
         self.distance_threshold = distance_threshold
         self.condition_dict = {landmark: False for landmark in POSE_LANDMARKS.keys()}
+        self.score_dict = {name: 0 for name in SOUND_FILES.keys()}
         self.condition_overall = False
         self.cap = cv2.VideoCapture(0)
         self.load_std_data()
@@ -44,6 +46,9 @@ class RealtimePractice:
         self.init_audio()
         self.json_line_idx = 0      # 标准点
         self.std_overlay_idx = 0    # 掩膜
+
+        self.screen = pygame.display.set_mode(WIN_SIZE, DOUBLEBUF)
+        self.clock = pygame.time.Clock()
     
     
     def init_audio():
@@ -140,6 +145,7 @@ class RealtimePractice:
         返回 1.bool值字典；2.整体bool值 
         （也内置修改self.condition字典值，main_loop写赋值是为了易读）
         """
+        total_distance = 0
         if not self.std_points or not self.realtime_points:
             all_points_matched = False
             for key in self.condition_dict.keys():
@@ -150,12 +156,14 @@ class RealtimePractice:
             for key, (std, real) in zip(POSE_LANDMARKS.keys(), zip(std_points, realtime_points)):
                 # 计算距离
                 distance = np.linalg.norm(np.array(std) - np.array(real))
-
+                total_distance += distance
+                # 判定
                 if distance > distance_threshold:
                     self.condition_dict[key] = False
                     all_points_matched = False
                 else:
                     self.condition_dict[key] = True
+            match_score = 1.0 - (total_distance / max_possible_distance) if max_possible_distance > 0 else 1.0
 
         return self.condition_dict, all_points_matched
     
@@ -187,14 +195,31 @@ class RealtimePractice:
         imageSket = self.pose_detector.findPose(image, draw=False)
         sketList, _ = self.pose_detector.findPosition(imageSket, draw=False)
         return sketList
-    
+
 
     def main_loop(self):
         """主循环"""
-        # 初始化系统
-        init_audio()
+        pygame.display.set_caption("Motion Coach Pro")
+        # 加载背景音乐
+        mixer.music.load("gameAssets/sounds/timed_bgm.mp3")
+        mixer.music.set_volume(0.3)
+        mixer.music.play(-1)
+        # 初始化计时变量
+        start_ticks = pygame.time.get_ticks()
+        pose_start_ticks = None
 
-        while self.cap.isOpened():
+        running = True
+        while running:
+            # 处理事件
+            for event in pygame.event.get():
+                if event.type == QUIT or (event.type == KEYDOWN and event.key == K_ESCAPE):
+                    running = False
+
+            # 计算剩余时间
+            current_ticks = pygame.time.get_ticks()
+            elapsed_seconds = (current_ticks - start_ticks) // 1000
+            remaining_time = max(0, 60 - elapsed_seconds)
+            
             """相机采集帧"""
             # 读取实时帧
             success, image = self.cap.read()
