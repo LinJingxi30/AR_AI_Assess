@@ -1,13 +1,39 @@
-import mediapipe as mp
 import cv2
+import sys
+import base64
+from cvzone.PoseModule import PoseDetector
+from PracticeMode.RPClass import RealtimePractice
 
-mp_hands = mp.solutions.hands.Hands()
-cap = cv2.VideoCapture(1)
-while cap.isOpened():
-    success, img = cap.read()
-    results = mp_hands.process(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
-    if results.multi_hand_landmarks:
-        for hand_landmarks in results.multi_hand_landmarks:
-            mp.solutions.drawing_utils.draw_landmarks(img, hand_landmarks, mp.solutions.hands.HAND_CONNECTIONS)
-    cv2.imshow("Hands", img)
-    cv2.waitKey(1)
+def main():
+    # 打开默认摄像头
+    cap = cv2.VideoCapture(0)
+    detector = PoseDetector()
+    rp=RealtimePractice()
+    
+
+    if not cap.isOpened():
+        print("无法打开摄像头", file=sys.stderr)
+        return
+
+    while True:
+        # 读取一帧
+        ret, frame = cap.read()
+        frame = detector.findPose(frame)
+
+        if not ret:
+            print("无法读取帧", file=sys.stderr)
+            break
+
+        # 将帧编码为 JPEG 格式
+        _, buffer = cv2.imencode('.jpg', frame)
+
+        # 将编码后的帧转换为 Base64 并输出
+        sys.stdout.buffer.write(buffer)
+        sys.stdout.flush()
+
+    # 释放资源
+    cap.release()
+    print("摄像头已关闭", file=sys.stderr)
+
+if __name__ == "__main__":
+    main()

@@ -106,7 +106,7 @@ def process_frame(_frame):
     lmList, bboxInfo = detector.findPosition(_frame)
     # canvas = np.zeros((win_height, win_width, 3), dtype=np.uint8)
     canvas = np.ones((win_height, win_width, 3), dtype=np.uint8) * 255
-    if lmList:
+    if False:
         # img = draw(frame, lmList, point_radius=12, line_width=11)
         lmList = coord_relativize(lmList, use_ground=True)
         frame = {"poses":np.reshape(lmList, -1)}
@@ -199,4 +199,4 @@ async def video_control(request: VideoControlRequest):
 app.mount("/", StaticFiles(directory="Static"), name="Static")
 
 if __name__ == "__main__":
-    uvicorn.run("BackendCapServer:app", host="0.0.0.0", port=8000, reload=False)
+    uvicorn.run(app, host="0.0.0.0", port=8000, reload=False)

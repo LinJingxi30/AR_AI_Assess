@@ -37,5 +37,7 @@ StdProcess/**
 # 标准视频生成脚本
 !StdProcess/StandardGenerate.py
 
+node_modules/
+
 TODO
 
