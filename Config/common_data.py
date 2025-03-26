@@ -29,6 +29,7 @@ POSE_CONNECTIONS = [
     (26, 28),  # 右膝 -> 右脚
 ]
 
+
 # 颜色 BGR
 # ! 注意：OpenCV 默认使用 BGR 格式，非 RGB
 COLOR = {   

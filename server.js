@@ -14,7 +14,7 @@ app.use(express.static('Static'));
 app.use(express.json());
 
 // 定义 Python 脚本路径
-const PYTHON_SCRIPT_PATH = 'PracticeMode/RPClass.py';
+const PYTHON_SCRIPT_PATH = 'Test/test.py';
 
 let pythonProcess; // 保存 Python 进程实例
 
@@ -25,11 +25,11 @@ app.post('/start_capture', (req, res) => {
     }
 
     // 启动 Python 脚本
-    pythonProcess = spawn('./venv/Scripts/python.exe', [PYTHON_SCRIPT_PATH]);
+    pythonProcess = spawn('E:/AI_Softwares/anaconda3/envs/pipe310/python.exe', [PYTHON_SCRIPT_PATH]);
 
     // 从 Python 脚本接收数据
     pythonProcess.stdout.on('data', (data) => {
-        // console.log(`Python脚本输出: ${data}`);
+         console.log(`Python脚本输出: ${data}`);
         io.emit('frame', data.toString('base64')); // 假设画面数据是二进制格式
     });
 

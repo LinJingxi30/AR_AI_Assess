@@ -1,14 +1,13 @@
 import cv2
 import sys
 import base64
+
 from cvzone.PoseModule import PoseDetector
-from PracticeMode.RPClass import RealtimePractice
 
 def main():
     # 打开默认摄像头
     cap = cv2.VideoCapture(0)
     detector = PoseDetector()
-    rp=RealtimePractice()
     
 
     if not cap.isOpened():
