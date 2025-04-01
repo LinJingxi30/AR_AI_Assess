@@ -25,7 +25,7 @@ app.post('/start_capture', (req, res) => {
     }
 
     // 启动 Python 脚本
-    pythonProcess = spawn('E:/AI_Softwares/anaconda3/envs/pipe310/python.exe', [PYTHON_SCRIPT_PATH]);
+    pythonProcess = spawn('python3', [PYTHON_SCRIPT_PATH]);
 
     // 从 Python 脚本接收数据
     pythonProcess.stdout.on('data', (data) => {
