@@ -33,11 +33,7 @@
       let baseURL = protocol + "//" + host;
       const connectionsTable = document.getElementById("connections-table");
 
-      const socket = io(baseURL, {
-        reconnection: true,
-        reconnectionAttempts: 5,
-        query: { idPrefix: "dashboard-" },
-      });
+      const socket = io(baseURL, { reconnection: true, reconnectionAttempts: 5 });
 
       // 默认加入 admin 房间
       socket.emit("join_room", { room: "admin" });

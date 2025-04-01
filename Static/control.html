@@ -28,9 +28,6 @@
           停止捕捉
         </button>
       </div>
-      <div class="flex justify-center mb-6">
-        <p id="room-info" class="text-lg font-bold">当前房间: 未加入</p>
-      </div>
       <div class="flex justify-center">
         <p id="process-status" class="text-lg font-bold">子进程状态: 未启动</p>
       </div>
@@ -41,13 +38,8 @@
       let baseURL = protocol + "//" + host;
       const actionSelect = document.getElementById("action-select");
       const processStatus = document.getElementById("process-status");
-      const roomInfo = document.getElementById("room-info");
 
-      const socket = io(baseURL, {
-        reconnection: true,
-        reconnectionAttempts: 5,
-        query: { idPrefix: "control-" },
-      });
+      const socket = io(baseURL, { reconnection: true, reconnectionAttempts: 5 });
 
       socket.on("process_status", (status) => {
         processStatus.textContent = `子进程状态: ${status}`;
@@ -65,11 +57,6 @@
         console.log("Socket.IO 重连成功");
       });
 
-      // 显示当前房间
-      socket.on("room_info", (room) => {
-        roomInfo.textContent = `当前房间: ${room}`;
-      });
-
       function startCapture() {
         const selectedAction = actionSelect.value;
         if (selectedAction === "default") {
@@ -82,9 +69,6 @@
       function stopCapture() {
         socket.emit("stop_capture");
       }
-
-      // 请求当前房间信息
-      socket.emit("get_room_info");
     </script>
   </body>
 </html>

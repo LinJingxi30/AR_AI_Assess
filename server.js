@@ -101,39 +101,30 @@ app.post('/update_room', (req, res) => {
 
 // Socket.IO 连接处理
 io.on('connection', (socket) => {
-    const idPrefix = socket.handshake.query.idPrefix || 'default-';
-    const fullId = `${idPrefix}${socket.id}`;
-    console.log(`A user connected: ${fullId}`);
-
-    const defaultRoom = fullId; // 默认房间为完整 ID
-    connections.set(fullId, { room: defaultRoom });
+    console.log(`A user connected: ${socket.id}`);
+    const defaultRoom = socket.id; // 默认房间为自身 ID
+    connections.set(socket.id, { room: defaultRoom });
     socket.join(defaultRoom);
 
     broadcastConnections(); // 广播更新
 
     // 处理加入房间的请求
     socket.on('join_room', ({ room }) => {
-        const currentRoom = connections.get(fullId)?.room;
+        const currentRoom = connections.get(socket.id)?.room;
         if (currentRoom) {
             socket.leave(currentRoom); // 离开当前房间
         }
-        connections.get(fullId).room = room;
+        connections.get(socket.id).room = room;
         socket.join(room);
-        console.log(`Socket ${fullId} joined room: ${room}`);
+        console.log(`Socket ${socket.id} joined room: ${room}`);
         broadcastConnections(); // 广播更新
-    });
-
-    // 返回当前房间信息
-    socket.on('get_room_info', () => {
-        const room = connections.get(fullId)?.room || '未加入';
-        socket.emit('room_info', room);
     });
 
     // 处理开始捕捉的请求
     socket.on('start_capture', ({ action }) => {
-        const room = connections.get(fullId)?.room;
+        const room = connections.get(socket.id)?.room;
         if (!room) return;
-        console.log(`Socket ${fullId} requested to start capture in room: ${room}`);
+        console.log(`Socket ${socket.id} requested to start capture in room: ${room}`);
         if (pythonProcesses.has(room)) {
             broadcastProcessStatus(room, '已启动');
             return;
@@ -164,7 +155,7 @@ io.on('connection', (socket) => {
 
     // 处理停止捕捉的请求
     socket.on('stop_capture', () => {
-        const room = connections.get(fullId)?.room;
+        const room = connections.get(socket.id)?.room;
         if (!room || !pythonProcesses.has(room)) return;
 
         const pythonProcess = pythonProcesses.get(room);
@@ -175,8 +166,8 @@ io.on('connection', (socket) => {
     });
 
     socket.on('disconnect', () => {
-        console.log(`A user disconnected: ${fullId}`);
-        connections.delete(fullId);
+        console.log(`A user disconnected: ${socket.id}`);
+        connections.delete(socket.id);
         broadcastConnections(); // 广播更新
     });
 });

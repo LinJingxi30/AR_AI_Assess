@@ -15,11 +15,7 @@
       let baseURL = protocol + "//" + host;
 
       const liveFeed = document.getElementById("live-feed");
-      const socket = io(baseURL, {
-        reconnection: true,
-        reconnectionAttempts: 5,
-        query: { idPrefix: "display-" },
-      });
+      const socket = io(baseURL, { reconnection: true, reconnectionAttempts: 5 });
 
       socket.on("frame", (data) => {
         liveFeed.src = `data:image/jpeg;base64,${data}`;
