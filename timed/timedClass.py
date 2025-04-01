@@ -336,7 +336,7 @@ class TimedChallengeMode:
             arr = pygame.surfarray.array3d(self.screen)   # shape: (width, height, 3)
             arr = np.swapaxes(arr, 0, 1)                  # shape: (height, width, 3)
             _,buffer = cv2.imencode('.jpg', arr)  # 编码为 PNG 格式
-            sys.stdout.buffer.write(buffer)  # 将编码后的数据写入标准输出流
+            sys.stdout.buffer.write(buffer.tobytes())  # 将编码后的数据写入标准输出流
             sys.stdout.flush()  # 刷新输出流
 
             # 序列化（例如 Base64 字符串）

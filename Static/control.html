@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>控制面板</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
+  </head>
+  <body class="bg-gray-100 text-gray-800">
+    <header class="bg-blue-600 text-white py-4 text-center">
+      <h1 class="text-2xl font-bold">控制面板</h1>
+    </header>
+    <div class="container mx-auto p-4">
+      <div class="flex justify-center mb-6">
+        <select id="action-select" class="border border-gray-300 rounded px-4 py-2">
+          <option value="default">选择动作</option>
+          <option value="action1">动作1</option>
+          <option value="action2">动作2</option>
+          <option value="action3">动作3</option>
+        </select>
+      </div>
+      <div class="flex justify-center gap-4 mb-6">
+        <button onclick="startCapture()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+          开始捕捉
+        </button>
+        <button onclick="stopCapture()" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
+          停止捕捉
+        </button>
+      </div>
+      <div class="flex justify-center mb-6">
+        <p id="room-info" class="text-lg font-bold">当前房间: 未加入</p>
+      </div>
+      <div class="flex justify-center">
+        <p id="process-status" class="text-lg font-bold">子进程状态: 未启动</p>
+      </div>
+    </div>
+
+    <script>
+      let { protocol, host } = window.location;
+      let baseURL = protocol + "//" + host;
+      const actionSelect = document.getElementById("action-select");
+      const processStatus = document.getElementById("process-status");
+      const roomInfo = document.getElementById("room-info");
+
+      const socket = io(baseURL, {
+        reconnection: true,
+        reconnectionAttempts: 5,
+        query: { idPrefix: "control-" },
+      });
+
+      socket.on("process_status", (status) => {
+        processStatus.textContent = `子进程状态: ${status}`;
+      });
+
+      socket.on("connect_error", (error) => {
+        console.error("Socket.IO 连接错误:", error);
+      });
+
+      socket.on("disconnect", () => {
+        console.warn("Socket.IO 断开连接，尝试重连...");
+      });
+
+      socket.on("reconnect", () => {
+        console.log("Socket.IO 重连成功");
+      });
+
+      // 显示当前房间
+      socket.on("room_info", (room) => {
+        roomInfo.textContent = `当前房间: ${room}`;
+      });
+
+      function startCapture() {
+        const selectedAction = actionSelect.value;
+        if (selectedAction === "default") {
+          alert("请选择一个动作！");
+          return;
+        }
+        socket.emit("start_capture", { action: selectedAction });
+      }
+
+      function stopCapture() {
+        socket.emit("stop_capture");
+      }
+
+      // 请求当前房间信息
+      socket.emit("get_room_info");
+    </script>
+  </body>
+</html>

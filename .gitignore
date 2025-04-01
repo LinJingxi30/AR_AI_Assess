@@ -37,6 +37,12 @@ StdProcess/**
 # 标准视频生成脚本
 !StdProcess/**/*.py
 
+# 标准视频生成的结果文件
+StdSportsResults/
+
+# nodejs依赖
+node_modules/
+
 TODO
 
 Static/video/C0068.MP4

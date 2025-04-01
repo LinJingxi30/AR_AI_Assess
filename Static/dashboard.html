@@ -4,80 +4,90 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>设备监控</title>
-    <style>
-      .video-container {
-        display: flex;
-        justify-content: space-around;
-        align-items: center;
-        margin-top: 20px;
-      }
-      .video-container video,
-      .video-container img {
-        width: 48%;
-        height: auto;
-        border: 1px solid black;
-      }
-      #controls {
-        margin-top: 20px;
-        text-align: center;
-      }
-    </style>
+    <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
   </head>
-  <body>
-    <h1>设备监控</h1>
-    <div id="controls">
-      <button onclick="startCapture()">开始捕捉</button>
-      <button onclick="stopCapture()">停止捕捉</button>
-    </div>
-    <div class="video-container">
-      <video id="standard-video" controls>
-        <source src="./Taichi.mp4" type="video/mp4" />
-        您的浏览器不支持视频标签。
-      </video>
-      
+  <body class="bg-gray-100 text-gray-800">
+    <header class="bg-blue-600 text-white py-4 text-center">
+      <h1 class="text-2xl font-bold">设备监控</h1>
+    </header>
+    <div class="container mx-auto p-4">
+      <div class="mb-6">
+        <h2 class="text-xl font-bold mb-4">连接信息</h2>
+        <table class="table-auto w-full border-collapse border border-gray-300">
+          <thead>
+            <tr class="bg-gray-200">
+              <th class="border border-gray-300 px-4 py-2">Socket ID</th>
+              <th class="border border-gray-300 px-4 py-2">房间</th>
+              <th class="border border-gray-300 px-4 py-2">操作</th>
+            </tr>
+          </thead>
+          <tbody id="connections-table"></tbody>
+        </table>
+      </div>
     </div>
 
     <script>
-      let {protocol,host} = window.location;
-      let baseURL = protocol+"//"+host;
-      const standardVideo = document.getElementById("standard-video");
+      let { protocol, host } = window.location;
+      let baseURL = protocol + "//" + host;
+      const connectionsTable = document.getElementById("connections-table");
 
-      function startCapture() {
+      const socket = io(baseURL, {
+        reconnection: true,
+        reconnectionAttempts: 5,
+        query: { idPrefix: "dashboard-" },
+      });
+
+      // 默认加入 admin 房间
+      socket.emit("join_room", { room: "admin" });
+
+      socket.on("frame", (data) => {
+        console.log("接收到视频帧数据");
+      });
+
+      socket.on("connect_error", (error) => {
+        console.error("Socket.IO 连接错误:", error);
+      });
+
+      socket.on("disconnect", () => {
+        console.warn("Socket.IO 断开连接，尝试重连...");
+      });
+
+      socket.on("reconnect", () => {
+        console.log("Socket.IO 重连成功");
+        socket.emit("join_room", { room: "admin" });
+      });
+
+      // 实时更新连接信息
+      socket.on("update_connections", (connections) => {
+        connectionsTable.innerHTML = connections
+          .map(
+            (conn) => `
+            <tr>
+              <td class="border border-gray-300 px-4 py-2">${conn.id}</td>
+              <td class="border border-gray-300 px-4 py-2">
+                <input type="text" value="${conn.room}" data-id="${conn.id}" class="room-input border border-gray-300 rounded px-2 py-1">
+              </td>
+              <td class="border border-gray-300 px-4 py-2">
+                <button onclick="updateRoom('${conn.id}')" class="bg-green-600 text-white px-2 py-1 rounded hover:bg-green-700">更新</button>
+              </td>
+            </tr>
+          `
+          )
+          .join("");
+      });
+
+      function updateRoom(socketId) {
+        const input = document.querySelector(`input[data-id="${socketId}"]`);
+        const newRoom = input.value;
         axios
-          .post(baseURL + "/start_capture")
+          .post(baseURL + "/update_room", { id: socketId, room: newRoom })
           .then((response) => {
-            standardVideo.play();
-            console.log(response.data);
+            alert("房间更新成功！");
           })
           .catch((error) => console.error("Error:", error));
       }
-
-      function stopCapture() {
-        axios
-          .post(baseURL + "/stop_capture")
-          .then((response) => {
-            standardVideo.pause();
-            console.log(response.data);
-          })
-          .catch((error) => console.error("Error:", error));
-      }
-
-
-      standardVideo.addEventListener("play", () => {
-        axios
-          .post(baseURL + "/video_control", {
-            action: "play",
-            currentTime: standardVideo.currentTime,
-          })
-          .catch((error) => console.error("Error:", error));
-      });
-
-      standardVideo.addEventListener("pause", () => {
-        axios
-          .post(baseURL + "/video_control", { action: "pause" })
-          .catch((error) => console.error("Error:", error));
-      });
     </script>
   </body>
 </html>

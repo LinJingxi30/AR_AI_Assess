@@ -27,7 +27,7 @@ def main():
         _, buffer = cv2.imencode('.jpg', frame)
 
         # 将编码后的帧转换为 Base64 并输出
-        sys.stdout.buffer.write(buffer)
+        sys.stdout.buffer.write(buffer.tobytes())
         sys.stdout.flush()
 
     # 释放资源

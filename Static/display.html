@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>实时画面显示</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-black flex justify-center items-center h-screen">
+    <img id="live-feed" alt="实时画面" class="max-w-full max-h-full object-contain" />
+
+    <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
+    <script>
+      let { protocol, host } = window.location;
+      let baseURL = protocol + "//" + host;
+
+      const liveFeed = document.getElementById("live-feed");
+      const socket = io(baseURL, {
+        reconnection: true,
+        reconnectionAttempts: 5,
+        query: { idPrefix: "display-" },
+      });
+
+      socket.on("frame", (data) => {
+        liveFeed.src = `data:image/jpeg;base64,${data}`;
+        data = null;
+      });
+
+      socket.on("connect_error", (error) => {
+        console.error("Socket.IO 连接错误:", error);
+      });
+
+      socket.on("disconnect", () => {
+        console.warn("Socket.IO 断开连接，尝试重连...");
+        liveFeed.src = "";
+      });
+
+      socket.on("reconnect", () => {
+        console.log("Socket.IO 重连成功");
+      });
+    </script>
+  </body>
+</html>
