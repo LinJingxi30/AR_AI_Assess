@@ -36,12 +36,6 @@ display/
 StdProcess/**
 # 标准视频生成脚本
 !StdProcess/**/*.py
-# 标准视频生成的结果文件
-StdSportsResults/TaiChi
-StdSportsResults/Aerobics
-StdSportsResults/Yoga
-
-node_modules/
 
 TODO
 

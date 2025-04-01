@@ -54,4 +54,4 @@ def extract_frames(video_path, output_dir, target_fps=24):
 
 # 使用示例
 if __name__ == "__main__":
-    extract_frames("input.mp4", "output_frames", 24)
+    extract_frames("./movie_002.mp4", "output0", 24)
