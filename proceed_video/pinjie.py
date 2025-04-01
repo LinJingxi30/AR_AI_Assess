@@ -54,6 +54,6 @@ def images_to_video(image_folder, output_path, fps=30):
 # 使用示例
 if __name__ == "__main__":
     image_folder = "out_person_transparent"  # 替换为你的图片文件夹路径
-    output_video = "video1.mp4"     # 输出视频文件名
+    output_video = "fin_.mp4"     # 输出视频文件名
     fps = 24                             # 每秒帧数，可调整
     images_to_video(image_folder, output_video, fps)
