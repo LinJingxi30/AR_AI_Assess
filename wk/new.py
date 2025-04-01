@@ -305,7 +305,7 @@ def main():
                 motion_detector.add_score()  # 增加得分
 
         background_image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-        animation_frame = animation.update_and_draw(background_image_rgb, current_time, motion_detector.score)
+        animation_frame = animation.update_and_draw(background_image_rgb, current_time, motion_detector.score)  # BGR
         cv2.imshow("Hand Tracking and Animation", animation_frame)
 
         key = cv2.waitKey(1)

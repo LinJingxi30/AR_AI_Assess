@@ -5,9 +5,9 @@
 import sys
 from pathlib import Path
 MEDIA_PIPE_ROOT = Path(__file__).resolve().parent.parent
-sys.path.append(str(MEDIA_PIPE_ROOT))
+sys.path.append(str(MEDIA_PIPE_ROOT))   # 包搜索路径添加
 import os
-os.chdir(MEDIA_PIPE_ROOT)
+os.chdir(MEDIA_PIPE_ROOT)               # 设置当前工作目录为项目根目录
 
 import pygame
 pygame.init()

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import sys
 from pathlib import Path
 MEDIA_PIPE_ROOT = Path(__file__).resolve().parent.parent
@@ -9,8 +8,8 @@ import numpy as np
 from pygame.locals import *
 from cvzone.PoseModule import PoseDetector
 from Config.common_data import WIN_SIZE
-from .config import *
-from . import draw
+from config import *
+import draw
 
 
 def get_sport_type():
@@ -87,6 +86,12 @@ def get_sport_type():
 
         # 将处理好的图像缩放到 WIN_SIZE 再显示
         display_frame = cv2.resize(frame, WIN_SIZE)
+
+        """发送至前端"""
+        _,buffer = cv2.imencode('.jpg', display_frame)  # 编码为 JPG 格式
+        sys.stdout.buffer.write(buffer)  # 将编码后的数据写入标准输出流
+        sys.stdout.flush()  # 刷新输出流
+
         cv2.imshow("选择区域", display_frame)
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
@@ -95,6 +100,78 @@ def get_sport_type():
     cv2.destroyWindow("选择区域")
     return chosen_str
 
+WIN_WIDTH, h = WIN_SIZE
+
+class StarterClass:
+    def __init__(self):
+        self.detector = PoseDetector()
+        # 状态变量
+        self.running = True
+        self.chosen = None
+        self.chosen_str = None
+        self.out_frame = None
+
+        """配置区"""
+        self.points = [(int(WIN_WIDTH * 0.25), 200), (int(WIN_WIDTH * 0.50), 200), (int(WIN_WIDTH * 0.75), 200)]    # 选择点位置横坐标
+        self.radius_threshold = 20  # 选中半径阈值
+
+
+    def update(self, frame):
+        if self.running:
+            """处理单帧：检测手势、绘制选择UI，若选中则赋值 self.chosen"""
+            # 翻转frame
+            frame = cv2.flip(frame, 1)
+
+            # 进行姿态检测
+            frame = self.detector.findPose(frame, draw=False)
+            lmList, _ = self.detector.findPosition(frame, draw=False)
+
+            # 绘制三个选择点
+            for i, pt in enumerate(self.points):
+                draw.draw_gradient_point(frame, pt, 
+                                        VISUAL_CONFIG["gradient"]["std_color"],
+                                        VISUAL_CONFIG["gradient"]["max_radius"],
+                                        VISUAL_CONFIG["gradient"]["steps"])
+                cv2.putText(frame, str(i+1), (pt[0]-10, pt[1]-10),
+                            cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255), 2)
+
+            # 检查右手位置，绘制右手心跟踪点
+            if lmList is not None:
+                lwrist = lmList[15]  # 右手关键点
+                lwrist_pt = (int(lwrist[0]), int(lwrist[1]))
+                draw.draw_gradient_point(frame, lwrist_pt, 
+                                        VISUAL_CONFIG["gradient"]["real_color"],
+                                        VISUAL_CONFIG["gradient"]["max_radius"] // 2,
+                                        VISUAL_CONFIG["gradient"]["steps"] // 2)
+                
+                # 检查右手是否进入任意一个选择点区域
+                for i, pt in enumerate(self.points):
+                    distance = np.linalg.norm(np.array(lwrist_pt) - np.array(pt))
+                    if distance < self.radius_threshold:
+                        self.chosen = i + 1  # 1, 2, 3
+                        break
+            else:
+                self.chosen = None
+
+            if self.chosen is not None:
+                self.running = False  # 选中后停止更新
+                if self.chosen == 1:
+                    self.chosen_str = "太极"
+                elif self.chosen == 2:
+                    self.chosen_str = "健美操"
+                else:
+                    self.chosen_str = "瑜伽"
+
+            # 将处理好的图像缩放到 WIN_SIZE
+            self.out_frame = cv2.resize(frame, WIN_SIZE)
+
+            return self.chosen_str, self.out_frame
+
+
+    def get_output_frame(self):
+        return self.out_frame
+
+
 if __name__ == "__main__":
-    # print(get_sport_type()) # 调试
-    pass
+    print(get_sport_type()) # 调试
+    # pass

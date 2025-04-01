@@ -36,6 +36,8 @@ display/
 StdProcess/**
 # 标准视频生成脚本
 !StdProcess/**/*.py
+node_modules/
+StdSportsResults/
 
 # 标准视频生成的结果文件
 StdSportsResults/
