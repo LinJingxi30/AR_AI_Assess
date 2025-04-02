@@ -11,6 +11,7 @@ import os
 win_width, win_height = 1280, 720
 # win_width, win_height = 640, 480
 WIN_SIZE = (win_width, win_height)
+FPS = 10
 
 
 # 定义关节连接关系（示例，根据实际数据结构调整）

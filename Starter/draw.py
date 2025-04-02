@@ -11,7 +11,7 @@ draw_arrows_on_path: 在路径上绘制多个动态箭头
 
 import cv2
 import numpy as np
-from .config import *
+from Starter.config import *
 from Config.common_data import COLOR, WIN_SIZE
 
 

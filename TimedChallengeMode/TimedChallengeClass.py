@@ -7,7 +7,7 @@ sys.path.append(str(MEDIA_PIPE_ROOT))
 import cv2
 import numpy as np
 from cvzone.PoseModule import PoseDetector
-from Config.common_data import WIN_SIZE
+from Config.common_data import FPS, WIN_SIZE
 from Config.paths import SPORTS_TYPE_PATH
 from ProcessKit import Json2PreviewClass as j2pc
 import time
@@ -18,7 +18,8 @@ from TimedChallengeMode.fbsys import FeedbackSystem
 from pygame.locals import *
 from pygame import mixer
 
-from Starter.Starter import get_sport_type
+from Starter.SportSelector import get_sport_type
+from ProcessKit import Draw
 
 # 窗口参数
 WIN_WIDTH, WIN_HEIGHT = WIN_SIZE
@@ -435,7 +436,8 @@ class TimedChallengeMode:
             # 刷新显示
             pygame.display.flip()
             self.mode_clock.tick(FRAME_RATE)
-            arr = pygame.surfarray.array3d(self.screen)   # shape: (width, height, 3)
+            surface = pygame.transform.scale(self.screen, (WIN_WIDTH, WIN_HEIGHT))  # 强制缩放
+            arr = pygame.surfarray.array3d(surface)   # shape: (width, height, 3)
             arr = np.swapaxes(arr, 0, 1)                  # shape: (height, width, 3)
     
         return arr
@@ -443,19 +445,54 @@ class TimedChallengeMode:
 
 if __name__ == "__main__":
     """运动种类选择，内含发送"""
-    sport = get_sport_type()    #! 后面这里参数控制不同的运动集
+    sport = get_sport_type(sport_str = ["TaiChi", "Aerobics", "Yoga"])
     sport = "太极"  # 临时
 
     mode = TimedChallengeMode(sport_type=sport, challenge_time=60)
 
+    cnt = 1
     while mode.running:
         frame = mode.main_update()
+        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
         """发送"""
-        _, buffer = cv2.imencode('.jpg', frame)
-        sys.stdout.buffer.write(buffer)
+        # 降低帧率 1/2
+        # if cnt == 2:
+        #     cnt = 1
+        #     continue
+        # cnt += 1
+        
+        # 所有cv2.imencode调用增加压缩参数
+        _, buffer = cv2.imencode('.jpg', frame, [
+            int(cv2.IMWRITE_JPEG_QUALITY), 75,  # 质量系数
+            int(cv2.IMWRITE_JPEG_OPTIMIZE), 1    # 启用Huffman优化
+        ])
+        sys.stdout.buffer.write(buffer.tobytes())
         sys.stdout.flush()
 
+    final_score = mode.feedback_sys.total_score
     print_green_text = lambda text: print(f"\033[92m{text}\033[0m", file=sys.stderr)
-    print_green_text(f"限时挑战模式 总得分：{mode.feedback_sys.total_score}")
+    print_green_text(f"限时挑战模式 总得分：{final_score}")
+    # 清理资源
+    mode.cap.release()
+    mixer.music.stop()
+    pygame.quit()
 
+    """结算"""
+    clock = pygame.time.Clock()
+    while True:
+        frame = Draw.draw_game_over(score=final_score)
+        """发送三"""
+        _, buffer = cv2.imencode('.jpg', frame, [
+            int(cv2.IMWRITE_JPEG_QUALITY), 75,  # 质量系数
+            int(cv2.IMWRITE_JPEG_OPTIMIZE), 1  # 启用Huffman优化
+        ])
+        sys.stdout.buffer.write(buffer.tobytes())
+        sys.stdout.flush()
+
+        cv2.imshow("Game Over", frame)
+        if cv2.waitKey(50) & 0xFF == 27:
+            break
+        clock.tick(1)   # 1fps
+    cv2.destroyAllWindows()
+        

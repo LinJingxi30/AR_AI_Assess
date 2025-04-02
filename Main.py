@@ -3,7 +3,7 @@ import sys
 import cv2
 from Config.common_data import WIN_SIZE
 from TimedChallengeMode.TimedChallengeClass import TimedChallengeMode
-from Starter.Starter import StarterClass, get_sport_type
+from Starter.SportSelector import StarterClass, get_sport_type
 import numpy as np
 
 
