@@ -126,6 +126,6 @@ if __name__ == "__main__":
             int(cv2.IMWRITE_JPEG_QUALITY), 75,  # 质量系数
             int(cv2.IMWRITE_JPEG_OPTIMIZE), 1    # 启用Huffman优化
         ])
-        sys.stdout.buffer.write(buffer)  # 将编码后的数据写入标准输出流
+        sys.stdout.buffer.write(buffer.tobytes())  # 将编码后的数据写入标准输出流
         sys.stdout.flush()  # 刷新输出流
     

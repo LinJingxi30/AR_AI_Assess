@@ -16,7 +16,7 @@ app.use(express.json());
 
 // 定义 Python 解释器路径和脚本路径
 const PYTHON_INTERPRETER = process.env.PYTHON_INTERPRETER || 'python3';
-const PYTHON_SCRIPT_PATH = 'Main.py';
+const PYTHON_SCRIPT_PATH = 'TimedChallengeMode/TimedChallengeClass.py';
 
 let pythonProcess; // 保存 Python 进程实例
 const pythonProcesses = new Map(); // 存储每个房间的 Python 子进程
@@ -104,9 +104,24 @@ io.on('connection', (socket) => {
         pythonProcesses.set(room, pythonProcess);
 
         broadcastProcessStatus(room, '启动中');
-
+        let chunks = []
         pythonProcess.stdout.on('data', (data) => {
-            io.to(room).emit('frame', data);
+            const uintArray = new Uint8Array(data);
+            // 检查 JPEG 文件头
+            if (uintArray[0] === 0xFF && uintArray[1] === 0xD8) {
+                console.log("检测到 JPEG 文件头，开始合并数据块");
+
+                // 合并当前的 chunks 数组并发送
+                if (chunks.length > 0) {
+                    const completeImage = Buffer.concat(chunks);
+                    io.to(room).emit('frame', completeImage);
+                    // 清空数组以便接收新的图像
+                    chunks = [];
+                }
+            }
+
+            // 将数据块推入数组
+            chunks.push(data);
         });
 
         pythonProcess.stderr.on('data', (data) => {
