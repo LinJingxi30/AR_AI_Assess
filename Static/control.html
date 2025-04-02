@@ -38,11 +38,23 @@
       let baseURL = protocol + "//" + host;
       const actionSelect = document.getElementById("action-select");
       const processStatus = document.getElementById("process-status");
-
       const socket = io(baseURL, { reconnection: true, reconnectionAttempts: 5 });
+      let roomID ;
+
+      socket.on('connect', () => {
+        // 默认加入 和id相同名字的 房间
+        roomID = sessionStorage.getItem("roomID") || socket.id
+        socket.emit("join_room", { room: roomID });
+      });
 
       socket.on("process_status", (status) => {
         processStatus.textContent = `子进程状态: ${status}`;
+      });
+
+      socket.on("update_room", (room) => {
+        roomID = room;
+        sessionStorage.setItem("roomID", roomID);
+        console.log(`房间已更新: ${roomID}`);
       });
 
       socket.on("connect_error", (error) => {
@@ -63,11 +75,11 @@
           alert("请选择一个动作！");
           return;
         }
-        socket.emit("start_capture", { action: selectedAction });
+        socket.emit("start_capture", { action: selectedAction, roomID });
       }
 
       function stopCapture() {
-        socket.emit("stop_capture");
+        socket.emit("stop_capture", { roomID });
       }
     </script>
   </body>

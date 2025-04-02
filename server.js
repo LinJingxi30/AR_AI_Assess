@@ -23,6 +23,35 @@ const pythonProcesses = new Map(); // 存储每个房间的 Python 子进程
 
 const connections = new Map(); // 存储连接信息
 
+// 获取所有连接信息
+app.get('/connections', (req, res) => {
+    const connectionList = Array.from(connections.entries()).map(([id, info]) => ({
+        id,
+        room: info.room,
+    }));
+    res.json({ connections: connectionList });
+});
+
+// 更新连接的房间并通知对应的 socket
+app.post('/update_room', (req, res) => {
+    const { id, room } = req.body;
+    if (!connections.has(id)) {
+        return res.status(404).json({ error: 'Socket ID not found' });
+    }
+    const socket = io.sockets.sockets.get(id);
+    if (!socket) {
+        return res.status(404).json({ error: 'Socket not connected' });
+    }
+    const currentRoom = connections.get(id).room;
+    if (currentRoom) {
+        socket.leave(currentRoom); // 离开当前房间
+    }
+    connections.get(id).room = room;
+    socket.join(room); // 加入新房间
+    socket.emit('update_room', room); // 通知对应的 socket
+    res.json({ success: true });
+});
+
 // 广播连接信息到 admin 房间
 function broadcastConnections() {
     const connectionList = Array.from(connections.entries()).map(([id, info]) => ({
@@ -37,67 +66,6 @@ function broadcastProcessStatus(room, status) {
     io.to(room).emit('process_status', status);
 }
 
-// 添加 POST 路由
-app.post('/start_capture', (req, res) => {
-    if (pythonProcess) {
-        return res.status(400).json({ status: 'error', message: 'Capture already started' });
-    }
-
-    // 启动 Python 脚本
-    pythonProcess = spawn(PYTHON_INTERPRETER, [PYTHON_SCRIPT_PATH]);
-
-    // 从 Python 脚本接收数据
-    pythonProcess.stdout.on('data', (data) => {
-        //  console.log(`Python脚本输出: ${data}`);
-        io.emit('frame', data.toString('base64')); // 假设画面数据是二进制格式
-    });
-
-    // 处理错误
-    pythonProcess.stderr.on('data', (data) => {
-        console.error(`Python脚本错误: ${data}`);
-    });
-
-    // Python 脚本结束时
-    pythonProcess.on('close', (code) => {
-        console.log(`Python脚本退出，代码: ${code}`);
-        pythonProcess = null; // 清除进程实例
-        io.emit('capture_stopped', { message: 'Capture process has stopped', code }); // 广播通知
-    });
-
-    res.json({ status: 'success', message: 'Capture started' });
-});
-
-app.post('/stop_capture', (req, res) => {
-    if (!pythonProcess) {
-        return res.status(400).json({ status: 'error', message: 'No capture to stop' });
-    }
-
-    // 停止 Python 脚本
-    pythonProcess.kill();
-    pythonProcess = null;
-
-    res.json({ status: 'success', message: 'Capture stopped' });
-});
-
-// 获取所有连接信息
-app.get('/connections', (req, res) => {
-    const connectionList = Array.from(connections.entries()).map(([id, info]) => ({
-        id,
-        room: info.room,
-    }));
-    res.json({ connections: connectionList });
-});
-
-// 更新连接的房间
-app.post('/update_room', (req, res) => {
-    const { id, room } = req.body;
-    if (!connections.has(id)) {
-        return res.status(404).json({ error: 'Socket ID not found' });
-    }
-    connections.get(id).room = room;
-    io.sockets.sockets.get(id)?.join(room); // 加入新房间
-    res.json({ success: true });
-});
 
 // Socket.IO 连接处理
 io.on('connection', (socket) => {
@@ -117,6 +85,7 @@ io.on('connection', (socket) => {
         connections.get(socket.id).room = room;
         socket.join(room);
         console.log(`Socket ${socket.id} joined room: ${room}`);
+
         broadcastConnections(); // 广播更新
     });
 
@@ -137,7 +106,7 @@ io.on('connection', (socket) => {
         broadcastProcessStatus(room, '启动中');
 
         pythonProcess.stdout.on('data', (data) => {
-            io.to(room).emit('frame', data.toString('base64'));
+            io.to(room).emit('frame', data);
         });
 
         pythonProcess.stderr.on('data', (data) => {

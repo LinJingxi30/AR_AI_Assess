@@ -13,12 +13,42 @@
     <script>
       let { protocol, host } = window.location;
       let baseURL = protocol + "//" + host;
+      let lastUrl;
 
       const liveFeed = document.getElementById("live-feed");
-      const socket = io(baseURL, { reconnection: true, reconnectionAttempts: 5 });
+      const socket = io(baseURL, { 
+        reconnection: true, 
+        reconnectionAttempts: 5,
+      });
+      let roomID ;
+
+      socket.on('connect', () => {
+        // 默认加入 和id相同名字的 房间
+        roomID = sessionStorage.getItem("roomID") || socket.id
+        socket.emit("join_room", { room: roomID });
+      });
+
+      socket.on("update_room", (room) => {
+        roomID = room;
+        sessionStorage.setItem("roomID", roomID);
+        console.log(`房间已更新: ${roomID}`);
+      });
 
       socket.on("frame", (data) => {
-        liveFeed.src = `data:image/jpeg;base64,${data}`;
+        if (data) {
+          if (lastUrl) {
+            URL.revokeObjectURL(lastUrl); // 释放之前的URL
+          }
+          // 创建一个Blob对象并生成URL
+          const blob = new Blob([data], { type: "image/jpeg" });
+          lastUrl = URL.createObjectURL(blob);
+
+          // 设置img元素的src属性为Blob URL
+          liveFeed.src = lastUrl;
+        } else {
+          console.error("接收到空数据");
+        }
+        // liveFeed.src = 'data:image/jpeg;base64,' + data;
         data = null;
       });
 
@@ -29,10 +59,19 @@
       socket.on("disconnect", () => {
         console.warn("Socket.IO 断开连接，尝试重连...");
         liveFeed.src = "";
+        frameQueue = [];
+        isProcessing = false;
       });
 
       socket.on("reconnect", () => {
         console.log("Socket.IO 重连成功");
+      });
+
+      // 清理资源
+      window.addEventListener('beforeunload', () => {
+        clearInterval(fpsInterval);
+        socket.disconnect();
+        frameQueue = [];
       });
     </script>
   </body>

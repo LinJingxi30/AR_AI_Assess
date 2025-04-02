@@ -107,7 +107,7 @@ class MainApp:
 
 
 if __name__ == "__main__":
-
+    
     # 前端接口
     mode = "EndlessChallengeMode"
 
@@ -122,7 +122,10 @@ if __name__ == "__main__":
     while running_mode.running:
         frame = running_mode.main_update()
         """模式统一发送"""
-        _,buffer = cv2.imencode('.jpg', frame)  # 编码为 JPG 格式
+        _, buffer = cv2.imencode('.jpg', frame, [
+            int(cv2.IMWRITE_JPEG_QUALITY), 75,  # 质量系数
+            int(cv2.IMWRITE_JPEG_OPTIMIZE), 1    # 启用Huffman优化
+        ])
         sys.stdout.buffer.write(buffer)  # 将编码后的数据写入标准输出流
         sys.stdout.flush()  # 刷新输出流
     

@@ -14,7 +14,54 @@
   }
   ```
 
-### 2. `capture_stopped`
+### 2. `join_room`
+- **描述**: 加入指定的房间
+- **事件类型**: `emit`
+- **数据格式**:
+  ```json
+  {
+    "room": "房间ID"
+  }
+  ```
+
+### 3. `update_room`
+- **描述**: 接收房间更新通知
+- **事件类型**: `on`
+- **数据格式**:
+  ```json
+  "新房间ID"
+  ```
+
+### 4. `process_status`
+- **描述**: 接收进程状态更新
+- **事件类型**: `on`
+- **数据格式**:
+  ```json
+  "进程状态描述"
+  ```
+
+### 5. `start_capture`
+- **描述**: 开始捕捉动作
+- **事件类型**: `emit`
+- **数据格式**:
+  ```json
+  {
+    "action": "动作类型",
+    "roomID": "房间ID"
+  }
+  ```
+
+### 6. `stop_capture`
+- **描述**: 停止捕捉
+- **事件类型**: `emit`
+- **数据格式**:
+  ```json
+  {
+    "roomID": "房间ID"
+  }
+  ```
+
+### 7. `capture_stopped`
 - **描述**: 当 Python 脚本结束时广播通知。
 - **事件类型**: `emit`
 - **数据格式**:
@@ -25,61 +72,44 @@
   }
   ```
 
-### 3. `custom`
-- **描述**: 接收客户端自定义消息并广播给所有客户端。
-- **事件类型**: `on` 和 `emit`
-- **数据格式**:
-  ```json
-  {
-    "event": "custom",
-    "data": "<custom_message>"
-  }
-  ```
-
 ---
 
 ## HTTP API
 
-### 1. `POST /start_capture`
-- **描述**: 启动 Python 脚本以开始捕捉。
+### 1. `GET /connections`
+- **描述**: 获取所有连接信息
+- **响应格式**:
+  ```json
+  {
+    "connections": [
+      {
+        "id": "socketId",
+        "room": "roomId"
+      }
+    ]
+  }
+  ```
+
+### 2. `POST /update_room`
+- **描述**: 更新指定连接的房间
 - **请求体**:
   ```json
   {
-    "action": "<selected_action>"
+    "id": "socketId",
+    "room": "newRoomId"
   }
   ```
 - **响应**:
   - 成功:
     ```json
     {
-      "status": "success",
-      "message": "Capture started"
+      "success": true
     }
     ```
   - 失败:
     ```json
     {
-      "status": "error",
-      "message": "Capture already started"
-    }
-    ```
-
-### 2. `POST /stop_capture`
-- **描述**: 停止 Python 脚本。
-- **请求体**: 无
-- **响应**:
-  - 成功:
-    ```json
-    {
-      "status": "success",
-      "message": "Capture stopped"
-    }
-    ```
-  - 失败:
-    ```json
-    {
-      "status": "error",
-      "message": "No capture to stop"
+      "error": "错误信息"
     }
     ```
 
