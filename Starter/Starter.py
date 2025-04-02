@@ -8,8 +8,8 @@ import numpy as np
 from pygame.locals import *
 from cvzone.PoseModule import PoseDetector
 from Config.common_data import WIN_SIZE
-from config import *
-import draw
+from .config import *
+from.draw import *
 
 
 def get_sport_type():
@@ -47,7 +47,7 @@ def get_sport_type():
         # 在原始尺寸图像上绘制三个选择点
         for i, pt in enumerate(points):
             # cv2.circle(frame, pt, radius, (0, 0, 255), -1)  # 红色圆点
-            draw.draw_gradient_point(frame, pt, VISUAL_CONFIG["gradient"]["std_color"],
+            draw_gradient_point(frame, pt, VISUAL_CONFIG["gradient"]["std_color"],
                             VISUAL_CONFIG["gradient"]["max_radius"],
                             VISUAL_CONFIG["gradient"]["steps"])
             cv2.putText(frame, str(i+1), (pt[0]-10, pt[1]-10),
@@ -65,7 +65,7 @@ def get_sport_type():
             lwrist_pt = (int(lwrist[0]), int(lwrist[1]))
             # 绘制检测到的左右手位置
             # cv2.circle(frame, lwrist_pt, 10, (0,255,0), -1)
-            draw.draw_gradient_point(frame, lwrist_pt, 
+            draw_gradient_point(frame, lwrist_pt, 
                                      VISUAL_CONFIG["gradient"]["real_color"],
                                      VISUAL_CONFIG["gradient"]["max_radius"] // 2,
                                      VISUAL_CONFIG["gradient"]["steps"] // 2)
@@ -128,7 +128,7 @@ class StarterClass:
 
             # 绘制三个选择点
             for i, pt in enumerate(self.points):
-                draw.draw_gradient_point(frame, pt, 
+                draw_gradient_point(frame, pt, 
                                         VISUAL_CONFIG["gradient"]["std_color"],
                                         VISUAL_CONFIG["gradient"]["max_radius"],
                                         VISUAL_CONFIG["gradient"]["steps"])
@@ -139,7 +139,7 @@ class StarterClass:
             if lmList is not None:
                 lwrist = lmList[15]  # 右手关键点
                 lwrist_pt = (int(lwrist[0]), int(lwrist[1]))
-                draw.draw_gradient_point(frame, lwrist_pt, 
+                draw_gradient_point(frame, lwrist_pt, 
                                         VISUAL_CONFIG["gradient"]["real_color"],
                                         VISUAL_CONFIG["gradient"]["max_radius"] // 2,
                                         VISUAL_CONFIG["gradient"]["steps"] // 2)
