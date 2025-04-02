@@ -36,15 +36,15 @@
 
       socket.on("frame", (data) => {
         if (data) {
-          if (lastUrl) {
-            URL.revokeObjectURL(lastUrl); // 释放之前的URL
-          }
+<!--          if (lastUrl) {-->
+<!--            URL.revokeObjectURL(lastUrl); // 释放之前的URL-->
+<!--          }-->
           // 创建一个Blob对象并生成URL
           const blob = new Blob([data], { type: "image/jpeg" });
-          lastUrl = URL.createObjectURL(blob);
+          const url = URL.createObjectURL(blob);
 
           // 设置img元素的src属性为Blob URL
-          liveFeed.src = lastUrl;
+          liveFeed.src = url;
         } else {
           console.error("接收到空数据");
         }
