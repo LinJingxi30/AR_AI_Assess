@@ -5,14 +5,21 @@ sys.path.append(str(MEDIA_PIPE_ROOT))
 
 import cv2
 import numpy as np
+import pygame
 from pygame.locals import *
 from cvzone.PoseModule import PoseDetector
-from Config.common_data import WIN_SIZE
-from .config import *
-from.draw import *
+from Config.common_data import WIN_SIZE, FPS
+import Starter.config as this_config
+from Starter.draw import *
+
+# 防止同名解析混淆
+THIS_VIS_CONFIG = this_config.VISUAL_CONFIG
 
 
-def get_sport_type():
+WIN_WIDTH, WIN_HEIGHT = WIN_SIZE
+
+
+def get_sport_type(sport_str = ["TaiChi", "Aerobics", "Yoga"]):
     """
     在屏幕上横向显示三个红色圆点，并等待右手触摸其中一个点，
     一旦检测到左右手（关键点索引15，16）进入某个圆点的范围，就返回对应的数字（1、2或3）。
@@ -21,37 +28,35 @@ def get_sport_type():
     # 初始化摄像头和姿态检测器
     cap = cv2.VideoCapture(0)
     detector = PoseDetector()
-    
-    # 先读取一帧，确定图像尺寸
-    ret, frame = cap.read()
-    if not ret:
-        print("无法读取摄像头帧")
-        return None
-    frame = cv2.flip(frame, 1)  # 镜像翻转
-    h, w = frame.shape[:2]
-    
+    clock = pygame.time.Clock()
+
     # 定义三个点的横向位置（比如在宽度的1/4, 1/2, 3/4处），纵坐标固定在200像素处
-    points = [(int(w * 0.25), 200), (int(w * 0.50), 200), (int(w * 0.75), 200)]
-    radius = 20  # 每个点的半径
+    points = [(int(WIN_WIDTH * 0.25), int(WIN_HEIGHT * 0.5)), (int(WIN_WIDTH * 0.50), int(WIN_HEIGHT * 0.5)), (int(WIN_WIDTH * 0.75), int(WIN_HEIGHT * 0.5))]
+    radius = THIS_VIS_CONFIG["gradient"]["max_radius"]  # 每个点的半径
+    touch_threshold = THIS_VIS_CONFIG["gradient"]["touch_threshold"]
     
     chosen = None
-    print("请用右手触摸屏幕上的一个点以选择（按 'q' 退出）...")
     
     # 为确保显示窗口大小固定，使用 cv2.resize 进行显示前的缩放
     while chosen is None:
         ret, frame = cap.read()
         if not ret:
             continue
+        frame = cv2.resize(frame, WIN_SIZE)
         frame = cv2.flip(frame, 1)  # 镜像翻转
         
         # 在原始尺寸图像上绘制三个选择点
         for i, pt in enumerate(points):
             # cv2.circle(frame, pt, radius, (0, 0, 255), -1)  # 红色圆点
-            draw_gradient_point(frame, pt, VISUAL_CONFIG["gradient"]["std_color"],
-                            VISUAL_CONFIG["gradient"]["max_radius"],
-                            VISUAL_CONFIG["gradient"]["steps"])
-            cv2.putText(frame, str(i+1), (pt[0]-10, pt[1]-10),
+            draw_gradient_point(frame, pt, THIS_VIS_CONFIG["gradient"]["std_color"],
+                                # THIS_VIS_CONFIG["gradient"]["max_radius"],
+                                radius,
+                                THIS_VIS_CONFIG["gradient"]["steps"])
+            # cv2.putText(frame, str(i+1), (pt[0]-7, pt[1]+10),
+            #             cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255), 2)            
+            cv2.putText(frame, sport_str[i], (pt[0]-35, pt[1]+10),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255), 2)
+            
         
         # 进行姿态检测
         frame = detector.findPose(frame, draw=False)
@@ -60,20 +65,16 @@ def get_sport_type():
         # 检查右手位置（假设右手关键点索引为16）
         if lmList is not None and len(lmList) > 16:
             lwrist = lmList[15]  # 左手关键点
-            # rwrist = lmList[16]  # 右手关键点
-            # lwrist_pt = (int(lwrist[0]), int(lwrist[1]))
             lwrist_pt = (int(lwrist[0]), int(lwrist[1]))
-            # 绘制检测到的左右手位置
-            # cv2.circle(frame, lwrist_pt, 10, (0,255,0), -1)
             draw_gradient_point(frame, lwrist_pt, 
-                                     VISUAL_CONFIG["gradient"]["real_color"],
-                                     VISUAL_CONFIG["gradient"]["max_radius"] // 2,
-                                     VISUAL_CONFIG["gradient"]["steps"] // 2)
+                                THIS_VIS_CONFIG["gradient"]["real_color"],
+                                THIS_VIS_CONFIG["gradient"]["max_radius"] // 2,
+                                THIS_VIS_CONFIG["gradient"]["steps"] // 2)
             
             # 检查右手是否进入任意一个选择点区域
             for i, pt in enumerate(points):
                 distance = np.linalg.norm(np.array(lwrist_pt) - np.array(pt))
-                if distance < radius:
+                if distance < touch_threshold:
                     chosen = i + 1
                     break
 
@@ -92,15 +93,17 @@ def get_sport_type():
         sys.stdout.buffer.write(buffer)  # 将编码后的数据写入标准输出流
         sys.stdout.flush()  # 刷新输出流
 
-        cv2.imshow("选择区域", display_frame)
-        if cv2.waitKey(1) & 0xFF == ord('q'):
+        cv2.imshow("Select Sport", display_frame)
+        key = cv2.waitKey(1) & 0xFF
+        if key == ord('q') or key == 27:
             break
 
+        clock.tick(FPS)
+
     cap.release()
-    cv2.destroyWindow("选择区域")
+    cv2.destroyAllWindows()
     return chosen_str
 
-WIN_WIDTH, h = WIN_SIZE
 
 class StarterClass:
     def __init__(self):
@@ -129,9 +132,9 @@ class StarterClass:
             # 绘制三个选择点
             for i, pt in enumerate(self.points):
                 draw_gradient_point(frame, pt, 
-                                        VISUAL_CONFIG["gradient"]["std_color"],
-                                        VISUAL_CONFIG["gradient"]["max_radius"],
-                                        VISUAL_CONFIG["gradient"]["steps"])
+                                        THIS_VIS_CONFIG["gradient"]["std_color"],
+                                        THIS_VIS_CONFIG["gradient"]["max_radius"],
+                                        THIS_VIS_CONFIG["gradient"]["steps"])
                 cv2.putText(frame, str(i+1), (pt[0]-10, pt[1]-10),
                             cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255), 2)
 
@@ -140,9 +143,9 @@ class StarterClass:
                 lwrist = lmList[15]  # 右手关键点
                 lwrist_pt = (int(lwrist[0]), int(lwrist[1]))
                 draw_gradient_point(frame, lwrist_pt, 
-                                        VISUAL_CONFIG["gradient"]["real_color"],
-                                        VISUAL_CONFIG["gradient"]["max_radius"] // 2,
-                                        VISUAL_CONFIG["gradient"]["steps"] // 2)
+                                        THIS_VIS_CONFIG["gradient"]["real_color"],
+                                        THIS_VIS_CONFIG["gradient"]["max_radius"] // 2,
+                                        THIS_VIS_CONFIG["gradient"]["steps"] // 2)
                 
                 # 检查右手是否进入任意一个选择点区域
                 for i, pt in enumerate(self.points):

@@ -35,9 +35,10 @@ VISUAL_CONFIG = {
         "checkmark_size": 15
     },
     "gradient": {
-        "max_radius": 30,
+        "max_radius": 80,
+        "touch_threshold": 50,
         "steps": 5,  # 减少 steps 以提高性能
-        "std_color": (255, 191, 0),     # BGR标准点颜色   rgb(0, 191, 255)
+        "std_color": (0, 165, 255),     # BGR标准点颜色   rgb(255,165,0)
         "real_color": (72, 209, 204)    # BGR实时点颜色   rgb(204, 209, 72)
     },
     "feedback_colors": {

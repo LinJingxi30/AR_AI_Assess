@@ -1,6 +1,18 @@
 import cv2, numpy as np
-from Config.common_data import DRAW_SKET_OVERALL_CONFIG, COLOR
 
+import sys, os
+from pathlib import Path
+MEDIA_PIPE_ROOT = Path(__file__).resolve().parent.parent
+sys.path.append(str(MEDIA_PIPE_ROOT))
+os.chdir(str(MEDIA_PIPE_ROOT))
+
+from Config.common_data import DRAW_SKET_OVERALL_CONFIG, COLOR, WIN_SIZE
+import matplotlib.pyplot as plt
+from matplotlib.font_manager import FontProperties
+from matplotlib.backends.backend_agg import FigureCanvasAgg
+
+FONT_PATH = "gameAssets/fonts/arial_bold2.otf"
+END_SCREEN_IMAGE_PATH = "gameAssets/images/gameover.png"
 
 def convert_frame_to_list(frame):    # to 3*33
     if frame is not None:
@@ -97,6 +109,38 @@ def draw_fill_connections(canvas, sketDict, connections, color_fill=COLOR["black
     return canvas
 
 
+def draw_game_over(img_dir=END_SCREEN_IMAGE_PATH, score=0, font=FontProperties(fname=FONT_PATH)):
+    """绘制游戏结束画面"""
+    WIN_WIDTH, WIN_HEIGHT = WIN_SIZE
+    fig, axes = plt.subplots(figsize=(WIN_WIDTH/100, WIN_HEIGHT/100), dpi=100)  # 按实际窗口尺寸设置
+    canvas = FigureCanvasAgg(fig)
+    axes.axis('off')  # 关闭坐标轴
+    axes.set_xlim(0, 1)
+    # 去白边
+    plt.subplots_adjust(left=0, right=1, top=1, bottom=0)
+    
+    end_screen_img = cv2.imread(img_dir)
+    # 加载并显示结束画面背景
+    if end_screen_img is not None:
+        end_screen_img = cv2.resize(end_screen_img, WIN_SIZE)
+        end_screen_img = cv2.cvtColor(end_screen_img, cv2.COLOR_BGR2RGB)
+        end_screen_img = cv2.resize(end_screen_img, WIN_SIZE)
+        axes.imshow(end_screen_img, extent=[0, 1, 0, 1], aspect='auto')
+    else:
+        # print(f"无法加载结束画面图片: {END_SCREEN_IMAGE_PATH}")
+        axes.set_facecolor('black')  # 加载失败时使用黑色背景
+
+    # 显示最终得分
+    final_score_text = f"Final Score ; {score}"
+    axes.text(0.5, 0.5, final_score_text, ha='center', va='center',
+                     bbox=dict(facecolor='black', alpha=0.8, edgecolor='white', boxstyle='round,pad=0.5'),
+                     fontsize=40, fontweight='bold', color='cyan', fontproperties=font)
+    # 转为cv2格式
+    canvas.draw()
+    img = np.array(canvas.buffer_rgba())
+    img = cv2.cvtColor(img, cv2.COLOR_RGBA2BGR)
+    return img
+
 def draw_skeleton(canvas, sket, custom_config=DRAW_SKET_OVERALL_CONFIG):
     # 解析配置
     color_head = custom_config["color_head"]
@@ -126,3 +170,14 @@ def draw_skeleton(canvas, sket, custom_config=DRAW_SKET_OVERALL_CONFIG):
     canvas = draw_key_points(canvas, sketDict, color_point=color_point, color_head=color_head, radius=radius, radius_head=radius_head)
 
     return canvas
+
+
+if __name__ == "__main__":
+    while True:
+        frame = draw_game_over(score=666)
+
+        cv2.imshow("Game Over", frame)
+        if cv2.waitKey(50) & 0xFF == 27:
+            break
+    cv2.destroyAllWindows()
+    

@@ -6,9 +6,9 @@ sys.path.append(str(MEDIA_PIPE_ROOT))
 import cv2
 import numpy as np
 from cvzone.PoseModule import PoseDetector
-from Config.common_data import WIN_SIZE
+from Config.common_data import FPS, WIN_SIZE
 from Config.paths import SPORTS_TYPE_PATH
-from ProcessKit import Json2PreviewClass as j2pc
+from ProcessKit import Draw, Json2PreviewClass as j2pc
 import time
 
 from EndlessChallengeMode import draw
@@ -17,7 +17,7 @@ from EndlessChallengeMode.fbsys import FeedbackSystem
 from pygame.locals import *
 from pygame import mixer
 
-from Starter.Starter import get_sport_type
+from Starter.SportSelector import get_sport_type
 
 
 # 窗口参数
@@ -26,7 +26,7 @@ FRAME_RATE = 60
 
 
 class EndlessChallengeMode:
-    def __init__(self, distance_threshold=50, sport_type="太极", round_duration=30):
+    def __init__(self, distance_threshold=50, sport_type="太极", round_duration=TIMER_CONFIG["round_duration"]):
         self.sport_type = sport_type
         self.std_sampled_json_dir = None
         self.std_masked_frames_dir = None
@@ -60,9 +60,10 @@ class EndlessChallengeMode:
         self.pose_start_timing_flag = True
         self.pose_start_time = 0.0
         self.mode_clock = pygame.time.Clock()
+        self.round_duration = round_duration
         self.round_start_time = time.time()
         self.round_elapsed_time = 0.0   # 回合已走时间（仅为整齐，可以求差得出，不用定义类成员）
-        self.round_remaining_time = round_duration # TIMER_CONFIG["round_duration"]  # 初始化为默认回合时长
+        self.round_remaining_time = self.round_duration # TIMER_CONFIG["round_duration"]  # 初始化为默认回合时长
         self.lastround_ended_flag = False
 
         # 初始化 Pygame 变量： 窗口、音频、反馈系统
@@ -263,7 +264,8 @@ class EndlessChallengeMode:
             self.round_start_time = current_time    # 重置回合开始时间
 
         self.round_elapsed_time = current_time - self.round_start_time                              # 计算回合已用时间
-        self.round_remaining_time = TIMER_CONFIG["round_duration"] - self.round_elapsed_time        # 计算回合剩余时间（可能为负数）
+        self.round_remaining_time = self.round_duration - self.round_elapsed_time        # 计算回合剩余时间（可能为负数）
+        # self.round_remaining_time = TIMER_CONFIG["round_duration"] - self.round_elapsed_time        # 计算回合剩余时间（可能为负数）
 
         if self.round_remaining_time < 0:  # 判定回合耗时超限
             # 强制结束回合
@@ -368,7 +370,7 @@ class EndlessChallengeMode:
             pygame.draw.rect(self.screen, (50, 50, 50), bar_bg_rect)
 
             # 绘制进度条
-            progress_width = int(TIMER_CONFIG["bar_width"] * (self.round_remaining_time / TIMER_CONFIG["round_duration"]))
+            progress_width = int(TIMER_CONFIG["bar_width"] * (self.round_remaining_time / self.round_duration))
             progress_rect = pygame.Rect(
                 WIN_WIDTH - TIMER_CONFIG["bar_width"] - 20 + (TIMER_CONFIG["bar_width"] - progress_width),
                 20,
@@ -401,19 +403,53 @@ class EndlessChallengeMode:
 
 if __name__ == "__main__":
     """运动种类选择，内含发送"""
-    sport = get_sport_type()    #! 后面这里参数控制不同的运动集
+    sport = get_sport_type(sport_str = ["TaiChi", "Aerobics", "Yoga"])
     sport = "太极"  # 临时
 
-    mode = EndlessChallengeMode(sport_type=sport, )
+    mode = EndlessChallengeMode(sport_type=sport, round_duration=15)
 
+    cnt = 1
     while mode.running:
         frame = mode.main_update()
+        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
         """发送"""
-        _, buffer = cv2.imencode('.jpg', frame)
-        sys.stdout.buffer.write(buffer)
+        # 降低帧率 1/2
+        # if cnt == 2:
+        #     cnt = 1
+        #     continue
+        # cnt += 1
+        
+        # 所有cv2.imencode调用增加压缩参数
+        _, buffer = cv2.imencode('.jpg', frame, [
+            int(cv2.IMWRITE_JPEG_QUALITY), 75,  # 质量系数
+            int(cv2.IMWRITE_JPEG_OPTIMIZE), 1    # 启用Huffman优化
+        ])
+        sys.stdout.buffer.write(buffer.tobytes())
         sys.stdout.flush()
 
-    # 输出文字信息到标准错误流（stderr），避免与二进制数据混合
+    final_score = mode.feedback_sys.total_score
     print_green_text = lambda text: print(f"\033[92m{text}\033[0m", file=sys.stderr)
-    print_green_text(f"无尽挑战模式 总得分：{mode.feedback_sys.total_score}")
+    print_green_text(f"限时挑战模式 总得分：{final_score}")
+    # 清理资源
+    mode.cap.release()
+    mixer.music.stop()
+    pygame.quit()
+
+    """结算"""
+    clock = pygame.time.Clock()
+    while True:
+        frame = Draw.draw_game_over(score=final_score)
+        """发送三"""
+        _, buffer = cv2.imencode('.jpg', frame, [
+            int(cv2.IMWRITE_JPEG_QUALITY), 75,  # 质量系数
+            int(cv2.IMWRITE_JPEG_OPTIMIZE), 1  # 启用Huffman优化
+        ])
+        sys.stdout.buffer.write(buffer.tobytes())
+        sys.stdout.flush()
+
+        cv2.imshow("Game Over", frame)
+        if cv2.waitKey(50) & 0xFF == 27:
+            break
+        clock.tick(1)   # 1fps
+    cv2.destroyAllWindows()
