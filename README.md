@@ -42,8 +42,10 @@ ProcessKit/
 -->
     
 ## 前端
+### 启动
+安装nodejs(version>18.0)后运行`npm install`安装依赖；运行`npm run start`启动服务器在8000端口；在浏览器输入本机ip:8000进入系统
 - static下为静态资源html,css,js,json,mp4等
-- mul.html为眼睛Client展示
-- dashboard.html为控制台
-- backendCapServer.py服务运行在8000端口，可以直接通过localhost:8000/mul.html访问
+- dashboard.html为socketio接入情况的控制台，同时可以设置房间分组
+- control.html为选择动作和控制python程序与结束的控制器
+- display.html为AR眼镜端全屏展示页面
 
