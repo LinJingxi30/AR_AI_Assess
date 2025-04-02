@@ -18,6 +18,22 @@ app.use(express.json());
 const PYTHON_INTERPRETER = process.env.PYTHON_INTERPRETER || 'python3';
 const PYTHON_SCRIPT_PATH = 'Main.py';
 
+// 定义不同主模式和子模式对应的 Python 脚本
+const PYTHON_SCRIPTS = {
+    train: {
+        "真人": "RealPracticeMode/RealPracticeClass.py",
+        "虚拟人物": ".VirtualPracticeMode/.VirtualPracticeClass.py"
+    },
+    challenge: {
+        "限时": "TimedchallengeMode/TimedchallengeClass.py",
+        "无尽": "EndlessChallengeMode/EndlessChallengeClass.py"
+    },
+    fitness: {
+        "单人": "1pFitnessMode/1pFitnessClass.py",
+        "多人": "2pFitnessMode/2pFitnessClass.py"
+    }
+};
+
 let pythonProcess; // 保存 Python 进程实例
 const pythonProcesses = new Map(); // 存储每个房间的 Python 子进程
 
@@ -66,7 +82,6 @@ function broadcastProcessStatus(room, status) {
     io.to(room).emit('process_status', status);
 }
 
-
 // Socket.IO 连接处理
 io.on('connection', (socket) => {
     console.log(`A user connected: ${socket.id}`);
@@ -90,22 +105,30 @@ io.on('connection', (socket) => {
     });
 
     // 处理开始捕捉的请求
-    socket.on('start_capture', ({ action }) => {
+    socket.on('start_capture', ({ mainMode, subMode }) => {
         const room = connections.get(socket.id)?.room;
         if (!room) return;
-        console.log(`Socket ${socket.id} requested to start capture in room: ${room}`);
+
+        console.log(`Socket ${socket.id} requested to start capture in room: ${room}, mainMode: ${mainMode}, subMode: ${subMode}`);
+        
         if (pythonProcesses.has(room)) {
             broadcastProcessStatus(room, '已启动');
             return;
         }
 
-        // const pythonProcess = spawn(PYTHON_INTERPRETER, [PYTHON_SCRIPT_PATH, action]);
-        const pythonProcess = spawn(PYTHON_INTERPRETER, [PYTHON_SCRIPT_PATH]);
+        const scriptPath = PYTHON_SCRIPTS[mainMode]?.[subMode];
+        if (!scriptPath) {
+            console.error(`未找到对应的脚本: mainMode=${mainMode}, subMode=${subMode}`);
+            return;
+        }
+
+        const pythonProcess = spawn(PYTHON_INTERPRETER, [scriptPath]);
         pythonProcesses.set(room, pythonProcess);
 
         broadcastProcessStatus(room, '启动中');
 
         pythonProcess.stdout.on('data', (data) => {
+            // console.log(data.length);
             io.to(room).emit('frame', data);
         });
 

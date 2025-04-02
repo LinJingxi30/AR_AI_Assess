@@ -12,12 +12,15 @@
       <h1 class="text-2xl font-bold">控制面板</h1>
     </header>
     <div class="container mx-auto p-4">
-      <div class="flex justify-center mb-6">
-        <select id="action-select" class="border border-gray-300 rounded px-4 py-2">
-          <option value="default">选择动作</option>
-          <option value="action1">动作1</option>
-          <option value="action2">动作2</option>
-          <option value="action3">动作3</option>
+      <div class="flex justify-center gap-4 mb-6">
+        <select id="main-mode-select" class="border border-gray-300 rounded px-4 py-2" onchange="updateSubModes()">
+          <option value="">选择中心主题</option>
+          <option value="train">训练</option>
+          <option value="challenge">挑战</option>
+          <option value="fitness">健身</option>
+        </select>
+        <select id="sub-mode-select" class="border border-gray-300 rounded px-4 py-2" disabled>
+          <option value="">请先选择中心主题</option>
         </select>
       </div>
       <div class="flex justify-center gap-4 mb-6">
@@ -36,14 +39,21 @@
     <script>
       let { protocol, host } = window.location;
       let baseURL = protocol + "//" + host;
-      const actionSelect = document.getElementById("action-select");
+      const mainModeSelect = document.getElementById("main-mode-select");
+      const subModeSelect = document.getElementById("sub-mode-select");
       const processStatus = document.getElementById("process-status");
       const socket = io(baseURL, { reconnection: true, reconnectionAttempts: 5 });
-      let roomID ;
+      let roomID;
+
+      const modeMap = {
+        train: ["真人", "虚拟人物"],
+        challenge: ["限时", "无尽"],
+        fitness: ["单人", "多人"]
+      };
 
       socket.on('connect', () => {
         // 默认加入 和id相同名字的 房间
-        roomID = sessionStorage.getItem("roomID") || socket.id
+        roomID = sessionStorage.getItem("roomID") || socket.id;
         socket.emit("join_room", { room: roomID });
       });
 
@@ -69,13 +79,25 @@
         console.log("Socket.IO 重连成功");
       });
 
+      function updateSubModes() {
+        const mainMode = mainModeSelect.value;
+        const subModes = modeMap[mainMode] || [];
+        
+        subModeSelect.innerHTML = subModes.length
+          ? subModes.map(subMode => `<option value="${subMode}">${subMode}</option>`).join('')
+          : '<option value="">请先选择中心主题</option>';
+        
+        subModeSelect.disabled = !subModes.length;
+      }
+
       function startCapture() {
-        const selectedAction = actionSelect.value;
-        if (selectedAction === "default") {
-          alert("请选择一个动作！");
+        const mainMode = mainModeSelect.value;
+        const subMode = subModeSelect.value;
+        if (!mainMode || !subMode) {
+          alert("请选择中心主题和子模式！");
           return;
         }
-        socket.emit("start_capture", { action: selectedAction, roomID });
+        socket.emit("start_capture", { mainMode, subMode, roomID });
       }
 
       function stopCapture() {
