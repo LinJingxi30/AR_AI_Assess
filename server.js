@@ -21,8 +21,8 @@ const PYTHON_SCRIPT_PATH = 'TimedChallengeMode/TimedChallengeClass.py';
 // 定义不同主模式和子模式对应的 Python 脚本
 const PYTHON_SCRIPTS = {
     train: {
-        "真人": "RealPracticeMode/RealPracticeClass.py",
-        "虚拟人物": "VirtualPracticeMode/VirtualPracticeClass.py"
+        "真人": "RealPractice.py",
+        "虚拟人物": "VirtualPractice.py"
     },
     challenge: {
         "限时": "TimedchallengeMode/TimedchallengeClass.py",

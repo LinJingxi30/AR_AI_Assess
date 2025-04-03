@@ -28,7 +28,7 @@ class Direction(Enum):
     RIGHT = 4
 
 class PoseAnimationGame:
-    def __init__(self, sport_type):
+    def __init__(self, sport_type, timer_duration=40):
         self.sport_type = sport_type
         self.detector = PoseDetector()
         self.window_size = 7
@@ -46,7 +46,7 @@ class PoseAnimationGame:
         try:
             self.custom_font = FontProperties(fname=FONT_PATH)
         except:
-            print(f"Font loading failed: {FONT_PATH}, using default font")
+            print(f"Font loading failed: {FONT_PATH}, using default font", file=sys.stderr)
             self.custom_font = FontProperties()
 
         self.score_font = {
@@ -83,7 +83,7 @@ class PoseAnimationGame:
 
         # 倒计时相关
         self.start_time = time.time()
-        self.duration = 60  # 60秒倒计时
+        self.duration = timer_duration  # 60秒倒计时
         self.game_over = False
 
     def _get_direction(self, start, end):
@@ -346,6 +346,7 @@ class PoseAnimationGame:
 
         self._update_circles(current_time)
         background_image_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+
         return self._draw_frame(background_image_rgb, current_time, left_hand, right_hand)
 
 
@@ -391,14 +392,14 @@ if __name__ == "__main__":
     sport_type = get_sport_type(sport_str = ["Battle Ropes", "Dumbbel", "Kettlebell"])
 
     if sport_type is None:
-        print("未选择运动类型，程序退出")
+        print("未选择运动类型，程序退出", file=sys.stderr)
         pygame.mixer.music.stop()
         exit()
 
     cap = cv2.VideoCapture(0)
-    game = PoseAnimationGame(sport_type)
+    game = PoseAnimationGame(sport_type, timer_duration=30)
 
-    while True:
+    while not game.game_over:
         success, frame = cap.read()
         if not success:
             continue
@@ -438,3 +439,4 @@ if __name__ == "__main__":
             break
         clock.tick(1)   # 1fps
     cv2.destroyAllWindows()
+

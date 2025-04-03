@@ -104,7 +104,7 @@ class SplitScreenAnimation:
         try:
             self.custom_font = FontProperties(fname=FONT_PATH)
         except:
-            print(f"字体加载失败: {FONT_PATH}, 使用默认字体")
+            print(f"字体加载失败: {FONT_PATH}, 使用默认字体", file=sys.stderr)
             self.custom_font = FontProperties()
         self.score_font = {'fontsize': 36, 'fontweight': 'bold', 'color': 'white', 'fontproperties': self.custom_font}
         self.background_box = {'facecolor': 'black', 'alpha': 0.7, 'pad': 10, 'boxstyle': 'round,pad=0.3'}
@@ -264,7 +264,7 @@ def draw_game_over(img_dir=END_SCREEN_IMAGE_PATH, score=0, font=FontProperties(f
     return img
 
 # 主程序：双人模式——左右画面分别采集右手（均使用关键点索引16），左右拼接显示
-def main():
+def main(time_duration=30):
     cv2.namedWindow("Hand Tracking and Animation", cv2.WINDOW_NORMAL)
     cv2.resizeWindow("Hand Tracking and Animation", WIN_SIZE[0], WIN_SIZE[1])
     
@@ -283,8 +283,15 @@ def main():
     animation_right = SplitScreenAnimation(is_left_side=False)
     motion_detector = HandMotionDetector()
     
+    start_time = time.time()
+
     while True:
         current_time = time.time()
+
+        time_spend = current_time - start_time
+        if time_spend >= time_duration:
+            break
+
         ret, frame = cap.read()
         if not ret:
             continue
@@ -317,13 +324,13 @@ def main():
         _, right_action = motion_detector.update(None, right_hand)
         
         if left_action:
-            print(f"左侧检测到动作: {left_action}")
+            print(f"左侧检测到动作: {left_action}", file=sys.stderr)
             if animation_left._mark_gesture_detected(True, left_action):
                 motion_detector.add_score(True)
                 success_sound.set_volume(SOUND_VOLUME)
                 success_sound.play()
         if right_action:
-            print(f"右侧检测到动作: {right_action}")
+            print(f"右侧检测到动作: {right_action}", file=sys.stderr)
             if animation_right._mark_gesture_detected(False, right_action):
                 motion_detector.add_score(False)
                 success_sound.set_volume(SOUND_VOLUME)
@@ -341,8 +348,13 @@ def main():
         mid_x = combined_frame.shape[1] // 2
         cv2.line(combined_frame, (mid_x, 0), (mid_x, combined_frame.shape[0]), (255, 255, 255), 3)
 
+        # 显示剩余时间
+        remain_time = int(time_duration - time_spend)
+        cv2.putText(combined_frame, f"remain time: {remain_time}s", (combined_frame.shape[1]//2 - 100, 30),
+                    cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2, cv2.LINE_AA)
+
         """发送"""
-        frame = cv2.cvtColor(combined_frame, cv2.COLOR_BGR2RGB)
+        # frame = cv2.cvtColor(combined_frame, cv2.COLOR_BGR2RGB)
         _, buffer = cv2.imencode('.jpg', frame, [
             int(cv2.IMWRITE_JPEG_QUALITY), 75,  # 质量系数
             int(cv2.IMWRITE_JPEG_OPTIMIZE), 1    # 启用Huffman优化
