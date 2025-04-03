@@ -5,9 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>实时画面显示</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+    <style>
+     
+    </style>
   </head>
   <body class="bg-black flex justify-center items-center h-screen">
     <img id="live-feed" alt="实时画面" class="max-w-full max-h-full object-contain" />
+
+    <div id="chart-container" class="absolute top-4 right-4 bg-transparent p-4 rounded shadow-lg">
+      <canvas id="health-chart" width="400" height="200"></canvas>
+    </div>
 
     <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
     <script>
@@ -24,8 +33,10 @@
 
       socket.on('connect', () => {
         // 默认加入 和id相同名字的 房间
-        roomID = sessionStorage.getItem("roomID") || socket.id
-        socket.emit("join_room", { room: roomID });
+        if (sessionStorage.getItem("roomID")) {
+          roomID = sessionStorage.getItem("roomID");
+          socket.emit("join_room", { room: roomID });
+        }
       });
 
       socket.on("update_room", (room) => {
@@ -72,6 +83,125 @@
         clearInterval(fpsInterval);
         socket.disconnect();
         frameQueue = [];
+      });
+
+      // 初始化Chart.js
+      const ctx = document.getElementById('health-chart').getContext('2d');
+      const healthChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: [], // 时间戳
+          datasets: [
+            {
+              label: '心率',
+              data: [],
+              borderColor: 'red',
+              borderWidth: 2,
+              fill: false,
+              yAxisID: 'y', // 绑定到左侧纵轴
+            },
+            {
+              label: '血氧',
+              data: [],
+              borderColor: 'blue',
+              borderWidth: 2,
+              fill: false,
+              yAxisID: 'y1', // 绑定到右侧纵轴
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          animation: false,
+          scales: {
+            x: {
+              title: {
+                display: true,
+                text: '时间',
+                color: 'white', // 设置字体颜色为白色
+              },
+              ticks: {
+                color: 'white', // 设置刻度字体颜色为白色
+              },
+            },
+            y: {
+              title: {
+                display: true,
+                text: '心率',
+                color: 'white', // 设置字体颜色为白色
+              },
+              ticks: {
+                color: 'white', // 设置刻度字体颜色为白色
+              },
+              position: 'left', // 左侧纵轴
+            },
+            y1: {
+              title: {
+                display: true,
+                text: '血氧',
+                color: 'white', // 设置字体颜色为白色
+              },
+              ticks: {
+                color: 'white', // 设置刻度字体颜色为白色
+              },
+              position: 'right', // 右侧纵轴
+              grid: {
+                drawOnChartArea: false, // 不绘制网格线
+              },
+            },
+          },
+          plugins: {
+            legend: {
+              labels: {
+                color: 'white', // 设置图例字体颜色为白色
+              },
+            },
+          },
+        },
+      });
+
+      // 连接到MQTT服务器
+      const mqttClient = mqtt.connect('wss://ws.chainpray.top/mqtt'); // 替换为实际的MQTT服务器地址
+      mqttClient.on('connect', () => {
+        console.log('已连接到MQTT服务器');
+        mqttClient.subscribe('health/data'); // 订阅单一主题
+      });
+
+      let startTime;
+
+      mqttClient.on('message', (topic, message) => {
+        if (!startTime) {
+          startTime = Date.now(); // 记录开始时间
+        }
+        // 解析接收到的JSON消息
+        const data = JSON.parse(message.toString());
+        const elapsedSeconds = ((Date.now() - startTime) / 1000).toFixed(2);
+        console.log(`接收到消息: ${topic} - `, data);
+
+        healthChart.data.labels.push(elapsedSeconds);
+        if (data.heart_rate !== undefined) 
+          healthChart.data.datasets[0].data.push(data.heart_rate);
+        if (data.blood_oxygen !== undefined)   
+          healthChart.data.datasets[1].data.push(data.blood_oxygen);
+
+        // 限制数据点数量
+        if (healthChart.data.labels.length > 15) {
+          healthChart.data.labels.shift();
+          healthChart.data.datasets[0].data.shift();
+          healthChart.data.datasets[1].data.shift();
+        }
+
+        healthChart.update();
+      });
+
+      mqttClient.on('error', (error) => {
+        console.error('MQTT连接错误:', error);
+      });
+
+      // 清理资源
+      window.addEventListener('beforeunload', () => {
+        mqttClient.end();
       });
     </script>
   </body>

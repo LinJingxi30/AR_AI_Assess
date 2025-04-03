@@ -85,7 +85,8 @@ function broadcastProcessStatus(room, status) {
 // Socket.IO 连接处理
 io.on('connection', (socket) => {
     console.log(`A user connected: ${socket.id}`);
-    const defaultRoom = socket.id; // 默认房间为自身 ID
+    // const defaultRoom = socket.id; // 默认房间为自身 ID
+    const defaultRoom = "room"; 
     connections.set(socket.id, { room: defaultRoom });
     socket.join(defaultRoom);
 

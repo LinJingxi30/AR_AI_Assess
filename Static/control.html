@@ -63,10 +63,11 @@
 
       socket.on('connect', () => {
         // 默认加入 和id相同名字的 房间
-        roomID = sessionStorage.getItem("roomID") || socket.id;
-        socket.emit("join_room", { room: roomID });
+        if (sessionStorage.getItem("roomID")) {
+          roomID = sessionStorage.getItem("roomID");
+          socket.emit("join_room", { room: roomID });
+        }
       });
-
       socket.on("process_status", (status) => {
         processStatus.textContent = `子进程状态: ${status}`;
       });

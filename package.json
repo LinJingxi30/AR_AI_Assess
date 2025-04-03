@@ -2,7 +2,9 @@
   "dependencies": {
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
+    "mathjs": "^14.4.0",
     "mdns-js": "^1.0.3",
+    "mqtt": "^5.10.4",
     "socket.io": "^4.8.1"
   },
   "scripts": {

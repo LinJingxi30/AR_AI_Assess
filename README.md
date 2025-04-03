@@ -48,4 +48,5 @@ ProcessKit/
 - dashboard.html为socketio接入情况的控制台，同时可以设置房间分组
 - control.html为选择动作和控制python程序与结束的控制器
 - display.html为AR眼镜端全屏展示页面
+- 控制器和展示端需要在一个Room内才能启动python程序
 
