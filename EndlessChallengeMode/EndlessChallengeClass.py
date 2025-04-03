@@ -439,7 +439,7 @@ if __name__ == "__main__":
     """结算"""
     clock = pygame.time.Clock()
     while True:
-        frame = Draw.draw_game_over(score=final_score)
+        frame = Draw.draw_game_over(score=final_score, img_dir="gameAssets\images\challenge_end.png")
         """发送三"""
         _, buffer = cv2.imencode('.jpg', frame, [
             int(cv2.IMWRITE_JPEG_QUALITY), 75,  # 质量系数

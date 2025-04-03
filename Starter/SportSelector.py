@@ -79,11 +79,11 @@ def get_sport_type(sport_str = ["TaiChi", "Aerobics", "Yoga"]):
                     break
 
         if chosen == 1:
-            chosen_str = "太极"
+            chosen_str = sport_str[0]
         elif chosen == 2:
-            chosen_str = "健美操"
+            chosen_str = sport_str[1]
         else:
-            chosen_str = "瑜伽"
+            chosen_str = sport_str[2]
 
         # 将处理好的图像缩放到 WIN_SIZE 再显示
         display_frame = cv2.resize(frame, WIN_SIZE)

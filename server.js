@@ -22,15 +22,16 @@ const PYTHON_SCRIPT_PATH = 'TimedChallengeMode/TimedChallengeClass.py';
 const PYTHON_SCRIPTS = {
     train: {
         "真人": "RealPracticeMode/RealPracticeClass.py",
-        "虚拟人物": ".VirtualPracticeMode/.VirtualPracticeClass.py"
+        "虚拟人物": "VirtualPracticeMode/VirtualPracticeClass.py"
     },
     challenge: {
         "限时": "TimedchallengeMode/TimedchallengeClass.py",
         "无尽": "EndlessChallengeMode/EndlessChallengeClass.py"
     },
     fitness: {
-        "单人": "1pFitnessMode/1pFitnessClass.py",
-        "多人": "2pFitnessMode/2pFitnessClass.py"
+        // "单人": "1pFitnessMode/1pFitnessClass.py",
+        "单人": "1pFitness.py",
+        "多人": "2pFitness.py"
     }
 };
 
