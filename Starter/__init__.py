@@ -1,3 +1,3 @@
-from config import *
-from draw import *
-from Starter import *
+from .config import *
+from .draw import *
+from .SportSelector import *
