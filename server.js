@@ -133,7 +133,7 @@ io.on('connection', (socket) => {
             const uintArray = new Uint8Array(data);
             // 检查 JPEG 文件头
             if (uintArray[0] === 0xFF && uintArray[1] === 0xD8) {
-                console.log("检测到 JPEG 文件头，开始合并数据块");
+                // console.log("检测到 JPEG 文件头，开始合并数据块");
 
                 // 合并当前的 chunks 数组并发送
                 if (chunks.length > 0) {
