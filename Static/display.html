@@ -4,16 +4,16 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>实时画面显示</title>
-    <script src="js/tailwindcss.js"></script>
-    <script src="js/mqtt.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
     <script src="js/chart.js"></script>
+    <script src="js/mqtt.min.js"></script>
     <style>
      
     </style>
   </head>
-  <body class="bg-black flex justify-center items-center h-screen">
+  <body class="bg-white flex justify-center items-center h-screen">
     <!-- 新增蒙版层 -->
-    <div class="fixed inset-0 bg-[url('images/bk2.png')] bg-cover opacity-50 z-10"></div>
+    <div class="fixed inset-0 bg-[url('images/bk2.png')] bg-cover opacity-80 z-10"></div>
 
     <img id="live-feed" alt="实时画面" class="max-w-full max-h-full object-contain" />
 
