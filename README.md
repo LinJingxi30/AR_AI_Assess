@@ -1,4 +1,20 @@
-# 3D pose 
+# 3D pose
+## 打包流程
+### python
+使用嵌入式python打包后分发，避免用户安装python环境
+- 首先从[官网下载](https://www.python.org/downloads/windows/)对应版本的embbeddable package
+- 解压到项目文件夹下/python中，修改/python下一个后缀是`.pth`的文件，将import site前的#删除（这行代码用来导入依赖的）
+- 下面来安装pip可执行文件来安装依赖，先新建get-pip.py,将[这个网页内容](https://bootstrap.pypa.io/get-pip.py)写入，然后打开命令行到python目录中运行`python.exe get-pip.py`，安装完成后出现Lib和Scripts文件夹
+- 命令行进入项目文件夹，运行`python/Scripts/pip.exe install -r requirements.txt`安装依赖
+- 然后保证项目文件夹中没有.env文件，nodejs会优先使用嵌入python作为解释器
+### nodejs
+- 运行npm run build开始打包，注意需要先打包Python环境
+使用pkg打包，输出目录为dist，assets为Static,pyhon和env三个文件夹所有文件
+
+# **执行pack.bat可以一键 构建嵌入式python并安装依赖+nodejs打包 最终在dist/下获得exe文件**
+
+
+
 ### config文件夹
 - `common_data.py` 为通用（公用）数据文件，比如骨架连接关系，避免重复定义的代码段
 
@@ -23,7 +39,7 @@ ProcessKit/
 └── Video2Json.py
 ```
 
-<!--
+<!-- 
 ## 绘制预览区
 - 已经封装成库 j2pc/Json2PreviewClass.py (json to preview class version)
 - **使用示例 `j2pcExample.py`**
@@ -38,8 +54,8 @@ ProcessKit/
 - `CoordsGenerator`: 骨架步进平移坐标生成器
 - `PreviewCoordsGenerator`: 预览坐标生成器（包含上面这个CoordsGenerator类）
 ### TODO
-- 时间戳强制同步未实现
--->
+- 时间戳强制同步未实现 -->
+
     
 ## 前端
 ### 启动
