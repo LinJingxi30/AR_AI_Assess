@@ -48,6 +48,10 @@ python/
 # nodejs依赖
 node_modules/
 
+# nodejs编译产物
+dist/
+build/
+
 # 测试文件
 Test/
 

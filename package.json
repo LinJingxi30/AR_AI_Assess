@@ -1,4 +1,6 @@
 {
+  "name": "3apose-app",  
+  "version": "1.0.0",  
   "dependencies": {
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
@@ -10,10 +12,13 @@
   },
   "scripts": {
     "start": "node server.js",
-    "build": "pkg . --out-path=dist"
+    "build": "pkg . --out-path=dist/"
   },
   "pkg": {
-    "assets": ["Static/**/*", "config.json"], 
-    "targets": ["node18-win-x64", "node18-linux-x64", "node18-macos-x64"]
-  }
+    "assets": [
+      "Static/**/*"
+    ],
+    "targets": ["node18-win-x64"]
+  },
+  "bin": "./server.js"
 }

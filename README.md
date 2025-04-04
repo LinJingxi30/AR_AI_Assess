@@ -58,3 +58,4 @@ ProcessKit/
 - 下面来安装pip可执行文件来安装依赖，先新建get-pip.py,将[这个网页内容](https://bootstrap.pypa.io/get-pip.py)写入，然后打开命令行到python目录中运行`python.exe get-pip.py`，安装完成后出现Lib和Scripts文件夹
 - 命令行进入项目文件夹，运行`python/Scripts/pip.exe install -r requirements.txt`安装依赖
 - 然后保证项目文件夹中没有.env文件，nodejs会优先使用嵌入python作为解释器
+**执行pack.bat可以直接构建嵌入式python并安装依赖**

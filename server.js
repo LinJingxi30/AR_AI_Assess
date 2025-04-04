@@ -3,13 +3,14 @@ const http = require('http');
 const { Server } = require('socket.io');
 const { spawn } = require('child_process');
 require('dotenv').config(); // 加载环境变量
+const path = require('path');
 
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
 // 设置静态文件目录
-app.use(express.static('Static'));
+app.use(express.static(path.join(__dirname,'Static')));
 
 // 使用中间件解析请求体
 app.use(express.json());
