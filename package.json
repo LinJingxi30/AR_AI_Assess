@@ -5,7 +5,8 @@
     "mathjs": "^14.4.0",
     "mdns-js": "^1.0.3",
     "mqtt": "^5.10.4",
-    "socket.io": "^4.8.1"
+    "socket.io": "^4.8.1",
+    "stun": "^2.1.0"
   },
   "scripts": {
     "start": "node server.js"
