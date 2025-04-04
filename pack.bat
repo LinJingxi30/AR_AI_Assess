@@ -16,7 +16,7 @@ set "COLOR_RESET=%ESC%[0m"
 REM ---------- 配置变量 ----------
 set "PROJECT_ROOT=%~dp0"
 set "PYTHON_EMBED_URL=https://www.python.org/ftp/python/3.10.11/python-3.10.11-embed-amd64.zip"
-set "PYTHON_DIR=%PROJECT_ROOT%python"
+set "PYTHON_DIR=%PROJECT_ROOT%env"
 set "GET_PIP_URL=https://bootstrap.pypa.io/get-pip.py"
 
 REM ---------- 步骤1: 下载并解压嵌入式Python ----------

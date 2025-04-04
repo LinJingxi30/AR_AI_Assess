@@ -16,7 +16,7 @@ app.use(express.static(path.join(__dirname,'Static')));
 app.use(express.json());
 
 // 定义 Python 解释器路径和脚本路径
-const PYTHON_INTERPRETER = process.env.PYTHON_INTERPRETER || './python/python.exe'; // 默认使用当前目录下的 python.exe
+const PYTHON_INTERPRETER =  (__dirname,process.env.PYTHON_INTERPRETER || 'env/python.exe'); // 默认使用当前目录下的 python.exe
 
 // 定义不同主模式和子模式对应的 Python 脚本
 const PYTHON_SCRIPTS = {
@@ -35,7 +35,6 @@ const PYTHON_SCRIPTS = {
     }
 };
 
-let pythonProcess; // 保存 Python 进程实例
 const pythonProcesses = new Map(); // 存储每个房间的 Python 子进程
 
 const connections = new Map(); // 存储连接信息
@@ -118,7 +117,7 @@ io.on('connection', (socket) => {
             return;
         }
 
-        const scriptPath = PYTHON_SCRIPTS[mainMode]?.[subMode];
+        const scriptPath = path.join(__dirname,'python',PYTHON_SCRIPTS[mainMode]?.[subMode]);
         if (!scriptPath) {
             console.error(`未找到对应的脚本: mainMode=${mainMode}, subMode=${subMode}`);
             return;

@@ -16,7 +16,8 @@
   },
   "pkg": {
     "assets": [
-      "Static/**/*"
+      "Static/**/*",
+      "python/**/*"
     ],
     "targets": ["node18-win-x64"]
   },
