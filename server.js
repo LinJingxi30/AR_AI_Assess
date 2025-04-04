@@ -15,8 +15,7 @@ app.use(express.static('Static'));
 app.use(express.json());
 
 // 定义 Python 解释器路径和脚本路径
-const PYTHON_INTERPRETER = process.env.PYTHON_INTERPRETER || 'python3';
-const PYTHON_SCRIPT_PATH = 'TimedChallengeMode/TimedChallengeClass.py';
+const PYTHON_INTERPRETER = process.env.PYTHON_INTERPRETER || './python/python.exe'; // 默认使用当前目录下的 python.exe
 
 // 定义不同主模式和子模式对应的 Python 脚本
 const PYTHON_SCRIPTS = {

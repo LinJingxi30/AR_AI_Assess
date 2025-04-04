@@ -1,11 +1,15 @@
 # -*- coding: utf-8 -*-
 import sys
-from pathlib import Path
-import cv2
-import numpy as np
 import os
+
+# 获取当前脚本的绝对路径（RealPractice.py 的路径）
+current_script_path = os.path.abspath(__file__)
+# 获取项目根目录（media_pipe 目录）
+project_root = os.path.dirname(current_script_path)
+# 将项目根目录添加到 Python 模块搜索路径
+sys.path.append(project_root)
+import cv2
 import time
-from cvzone.PoseModule import PoseDetector
 from Starter.SportSelector import get_sport_type
 
 import pygame

@@ -42,6 +42,9 @@ StdSportsResults/
 # 标准视频生成的结果文件
 StdSportsResults/
 
+# 嵌入式python
+python/
+
 # nodejs依赖
 node_modules/
 

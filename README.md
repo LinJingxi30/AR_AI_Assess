@@ -23,7 +23,7 @@ ProcessKit/
 └── Video2Json.py
 ```
 
-<!--
+<!-- 
 ## 绘制预览区
 - 已经封装成库 j2pc/Json2PreviewClass.py (json to preview class version)
 - **使用示例 `j2pcExample.py`**
@@ -38,8 +38,8 @@ ProcessKit/
 - `CoordsGenerator`: 骨架步进平移坐标生成器
 - `PreviewCoordsGenerator`: 预览坐标生成器（包含上面这个CoordsGenerator类）
 ### TODO
-- 时间戳强制同步未实现
--->
+- 时间戳强制同步未实现 -->
+
     
 ## 前端
 ### 启动
@@ -50,3 +50,11 @@ ProcessKit/
 - display.html为AR眼镜端全屏展示页面
 - 控制器和展示端需要在一个Room内才能启动python程序
 
+## 打包流程
+###python
+使用嵌入式python打包后分发，避免用户安装python环境
+- 首先从[官网下载](https://www.python.org/downloads/windows/)对应版本的embbeddable package
+- 解压到项目文件夹下/python中，修改/python下一个后缀是`.pth`的文件，将import site前的#删除（这行代码用来导入依赖的）
+- 下面来安装pip可执行文件来安装依赖，先新建get-pip.py,将[这个网页内容](https://bootstrap.pypa.io/get-pip.py)写入，然后打开命令行到python目录中运行`python.exe get-pip.py`，安装完成后出现Lib和Scripts文件夹
+- 命令行进入项目文件夹，运行`python/Scripts/pip.exe install -r requirements.txt`安装依赖
+- 然后保证项目文件夹中没有.env文件，nodejs会优先使用嵌入python作为解释器
