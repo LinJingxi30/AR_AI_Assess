@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import sys
 import os
+import numpy as np
 
 # 获取当前脚本的绝对路径（RealPractice.py 的路径）
 current_script_path = os.path.abspath(__file__)
@@ -10,13 +11,17 @@ project_root = os.path.dirname(current_script_path)
 sys.path.append(project_root)
 import cv2
 import time
+from cvzone.PoseModule import PoseDetector
+
+from ProcessKit import Draw
 from Starter.SportSelector import get_sport_type
-
+from Config.common_data import WIN_SIZE
 import pygame
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_agg import FigureCanvasAgg
+from matplotlib.font_manager import FontProperties
 
-from VirtualPractice import draw_game_over
 
-WIN_SIZE = (640, 480)
 VISUAL_CONFIG = {
     "gradient": {
         "std_color": (0, 0, 255),  # 红色
@@ -26,6 +31,40 @@ VISUAL_CONFIG = {
     }
 }
 
+END_SCREEN_IMAGE_PATH = r"gameAssets\images\practice_end2.png"
+FONT_PATH = r"gameAssets\\fonts\\arial_bold2.otf"
+
+def draw_game_over(img_dir=END_SCREEN_IMAGE_PATH, score=0, font=FontProperties(fname=FONT_PATH)):
+    """绘制游戏结束画面"""
+    WIN_WIDTH, WIN_HEIGHT = WIN_SIZE
+    fig, axes = plt.subplots(figsize=(WIN_WIDTH/100, WIN_HEIGHT/100), dpi=100)  # 按实际窗口尺寸设置
+    canvas = FigureCanvasAgg(fig)
+    axes.axis('off')  # 关闭坐标轴
+    axes.set_xlim(0, 1)
+    # 去白边
+    plt.subplots_adjust(left=0, right=1, top=1, bottom=0)
+
+    end_screen_img = cv2.imread(img_dir)
+    # 加载并显示结束画面背景
+    if end_screen_img is not None:
+        end_screen_img = cv2.resize(end_screen_img, WIN_SIZE)
+        end_screen_img = cv2.cvtColor(end_screen_img, cv2.COLOR_BGR2RGB)
+        end_screen_img = cv2.resize(end_screen_img, WIN_SIZE)
+        axes.imshow(end_screen_img, extent=[0, 1, 0, 1], aspect='auto')
+    else:
+        # print(f"无法加载结束画面图片: {END_SCREEN_IMAGE_PATH}")
+        axes.set_facecolor('black')  # 加载失败时使用黑色背景
+
+    # 显示最终得分
+    # final_score_text = f"Final Score ; {score}"
+    # axes.text(0.5, 0.5, final_score_text, ha='center', va='center',
+    #                  bbox=dict(facecolor='black', alpha=0.8, edgecolor='white', boxstyle='round,pad=0.5'),
+    #                  fontsize=40, fontweight='bold', color='cyan', fontproperties=font)
+    # 转为cv2格式
+    canvas.draw()
+    img = np.array(canvas.buffer_rgba())
+    img = cv2.cvtColor(img, cv2.COLOR_RGBA2BGR)
+    return img
 
 def draw_gradient_point(frame, center, color, max_radius, steps):
     for r in range(max_radius, 0, -int(max_radius / steps)):
@@ -84,7 +123,9 @@ def main():
 
     overlay_image = load_and_resize_image(os.path.join(image_folder, image_files[0]))
 
-    clock = pygame.time.Clock() 
+    clock = pygame.time.Clock()
+
+    pose_detector = PoseDetector()
 
     while True:
         clock.tick(15)  # 帧率控制
@@ -95,6 +136,12 @@ def main():
 
         frame = cv2.flip(frame, 1)
         h, w = frame.shape[:2]
+
+        # mp 官方绘制
+        frame = pose_detector.findPose(frame, draw=False)
+        sketList, _ = pose_detector.findPosition(frame, draw=False)
+
+        Draw.draw_skeleton111(frame, sket=sketList, custom_config=Draw.alpha_DRAW_SKET_OVERALL_CONFIG)
 
         # 更新叠加图片
         if image_files and time.time() - last_switch_time >= switch_interval:

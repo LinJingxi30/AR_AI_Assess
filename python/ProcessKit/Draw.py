@@ -2,11 +2,14 @@ import cv2, numpy as np
 
 import sys, os
 from pathlib import Path
+
+from cvzone.PoseModule import PoseDetector
+
 MEDIA_PIPE_ROOT = Path(__file__).resolve().parent.parent
 sys.path.append(str(MEDIA_PIPE_ROOT))
 os.chdir(str(MEDIA_PIPE_ROOT))
 
-from Config.common_data import DRAW_SKET_OVERALL_CONFIG, COLOR, WIN_SIZE
+from Config.common_data import DRAW_SKET_OVERALL_CONFIG, COLOR, WIN_SIZE, alpha_DRAW_SKET_OVERALL_CONFIG
 import matplotlib.pyplot as plt
 from matplotlib.font_manager import FontProperties
 from matplotlib.backends.backend_agg import FigureCanvasAgg
@@ -29,9 +32,13 @@ def convert_frame_to_list(frame):    # to 3*33
 
 def get_body_part_coord_dict(sketList, keypoints): # from 3*33 to dict
     sketDict = {}
-    if list is not None:
+    if not len(sketList):
+        pass
+    else:
         for keyname, keypoint in keypoints.items():
             """样式：sketDict["头部"] = [100, 132] """
+            #print(keypoint,file=sys.stderr)
+            # print(sketList) # 测试
             sketDict[keyname] = sketList[keypoint][0:2]  # 部位对应坐标，仅取2d (x, y)
         """自定义部位"""
         sketDict["脖子根"] = (int((sketDict["左肩"][0] + sketDict["右肩"][0]) / 2),
@@ -46,13 +53,27 @@ def get_body_part_coord_dict(sketList, keypoints): # from 3*33 to dict
     return sketDict
 
 
-def draw_connections(canvas, sketDict, connections, color_line, thickness=24):
-    if connections and sketDict is not None:
+def draw_connections(canvas, sketDict, connections, color_line, thickness=24, alpha=0.5, use_alpha=False):
+    if not connections or not sketDict:
+        pass
+    else:
         thickness = int(thickness)  # 确保线条粗细为整数
         for connection in connections.values():     # "脖子": ("头部", "脖子根")
             start_point = tuple(map(int, sketDict[connection[0]]))   # sp = sketDict["头部"]
             end_point = tuple(map(int, sketDict[connection[1]]))     # ep = sketDict["脖子根"]
-            cv2.line(canvas, start_point, end_point, color_line, thickness)
+            if use_alpha:
+                # 传进的canvas 已经是 BGRA 格式
+                canvas_size = canvas.shape[:2]
+                alpha_line = np.zeros((canvas_size[0], canvas_size[1], 4), dtype=np.uint8)  # 4 通道图像（BGRA）
+                cv2.line(alpha_line, start_point, end_point, color_line, thickness)
+                alpha_line[:, :, 3] = int(255 * alpha)
+                # cv2.addWeighted(canvas, alpha, alpha_line, 1 - alpha, 0, canvas)
+                # 将透明线条叠加到画布上
+                for c in range(0, 3):  # 遍历 BGR 通道
+                    canvas[:, :, c] = canvas[:, :, c] * (1 - alpha_line[:, :, 3] / 255.0) + \
+                                      alpha_line[:, :, c] * (alpha_line[:, :, 3] / 255.0)
+            else:
+                cv2.line(canvas, start_point, end_point, color_line, thickness)
     return canvas
 
 
@@ -61,17 +82,17 @@ def draw_head(canvas, coord, color, radius=64, eye_color=COLOR["white"], mouth_c
     # 画头部，转换坐标为整数类型
     int_coord = tuple(map(int, coord))
     cv2.circle(canvas, int_coord, radius, color, -1)  # -1表示填充圆形
-    # 画眼睛
-    eye_radius = int(radius / 4)
-    left_eye = (int(coord[0] - eye_radius), int(coord[1] - eye_radius))
-    right_eye = (int(coord[0] + eye_radius), int(coord[1] - eye_radius))
-    cv2.circle(canvas, left_eye, eye_radius, eye_color, -1)  # 左眼
-    cv2.circle(canvas, right_eye, eye_radius, eye_color, -1)  # 右眼
-    # 画嘴巴
-    mouth_width = int(radius / 2)
-    mouth_height = int(radius / 4)
-    mouth_center = (int(coord[0]), int(coord[1] + mouth_height))
-    cv2.ellipse(canvas, mouth_center, (mouth_width, mouth_height), 0, 0, 180, mouth_color, -1)  # 嘴巴
+    # # 画眼睛
+    # eye_radius = int(radius / 4)
+    # left_eye = (int(coord[0] - eye_radius), int(coord[1] - eye_radius))
+    # right_eye = (int(coord[0] + eye_radius), int(coord[1] - eye_radius))
+    # cv2.circle(canvas, left_eye, eye_radius, eye_color, -1)  # 左眼
+    # cv2.circle(canvas, right_eye, eye_radius, eye_color, -1)  # 右眼
+    # # 画嘴巴
+    # mouth_width = int(radius / 2)
+    # mouth_height = int(radius / 4)
+    # mouth_center = (int(coord[0]), int(coord[1] + mouth_height))
+    # cv2.ellipse(canvas, mouth_center, (mouth_width, mouth_height), 0, 0, 180, mouth_color, -1)  # 嘴巴
 
     return canvas
 
@@ -95,7 +116,9 @@ def draw_key_points(canvas, sketDict, color_point=COLOR["black"], color_head=COL
 
 
 def draw_fill_connections(canvas, sketDict, connections, color_fill=COLOR["black"]):
-    if connections and sketDict is not None:
+    if not connections or not sketDict:
+        pass
+    else:
         # 遍历待填充块
         for connected_area in connections.values(): # "躯干"
             # 获取连接部位的坐标集
@@ -141,6 +164,7 @@ def draw_game_over(img_dir=END_SCREEN_IMAGE_PATH, score=0, font=FontProperties(f
     img = cv2.cvtColor(img, cv2.COLOR_RGBA2BGR)
     return img
 
+
 def draw_skeleton(canvas, sket, custom_config=DRAW_SKET_OVERALL_CONFIG):
     # 解析配置
     color_head = custom_config["color_head"]
@@ -153,7 +177,7 @@ def draw_skeleton(canvas, sket, custom_config=DRAW_SKET_OVERALL_CONFIG):
     connections = custom_config["connections"]
     fill_connections = custom_config["fill_connections"]
     key_points = custom_config["key_points"]
-    
+
     # 确保 sket 为 list(3*33)
     sket = convert_frame_to_list(sket)
 
@@ -167,14 +191,94 @@ def draw_skeleton(canvas, sket, custom_config=DRAW_SKET_OVERALL_CONFIG):
     canvas = draw_connections(canvas, sketDict, connections=connections, color_line=color_line, thickness=thickness)
 
     """绘制关键点"""
-    canvas = draw_key_points(canvas, sketDict, color_point=color_point, color_head=color_head, radius=radius, radius_head=radius_head)
+    canvas = draw_key_points(canvas, sketDict, color_point=color_point, color_head=color_head, radius=radius,
+                             radius_head=radius_head)
+
+    return canvas
+
+
+def draw_skeleton111(canvas, sket, custom_config=DRAW_SKET_OVERALL_CONFIG):
+    # 解析配置
+    color_head = custom_config["color_head"]
+    color_point = custom_config["color_point"]
+    color_line = custom_config["color_line"]
+    color_fill = custom_config["color_fill"]
+    radius = custom_config["radius"]
+    radius_head = custom_config["radius_head"]
+    thickness = custom_config["thickness"]
+    connections = custom_config["connections"]
+    fill_connections = custom_config["fill_connections"]
+    key_points = custom_config["key_points"]
+
+    # 确保 sket 为 list(3*33)
+    sket = convert_frame_to_list(sket)
+
+    # 获取部位坐标字典
+    sketDict = get_body_part_coord_dict(sket, keypoints=key_points)
+
+    """绘制填充"""
+    # canvas = draw_fill_connections(canvas, sketDict, connections=fill_connections, color_fill=color_fill)
+
+    """绘制连接线"""
+    canvas = draw_connections(canvas, sketDict, connections=connections, color_line=color_line, thickness=thickness)
+
+    """绘制关键点"""
+    canvas = draw_key_points(canvas, sketDict, color_point=color_point, color_head=color_head, radius=radius,
+                             radius_head=radius_head)
+
+    return canvas
+
+
+def draw_alpha_skeleton(canvas, sket, custom_config=DRAW_SKET_OVERALL_CONFIG, alpha=0.5):
+    # 解析配置
+    color_head = custom_config["color_head"]
+    color_point = custom_config["color_point"]
+    color_line = custom_config["color_line"]
+    color_fill = custom_config["color_fill"]
+    radius = custom_config["radius"]
+    radius_head = custom_config["radius_head"]
+    thickness = custom_config["thickness"]
+    connections = custom_config["connections"]
+    fill_connections = custom_config["fill_connections"]
+    key_points = custom_config["key_points"]
+
+    # 确保 sket 为 list(3*33)
+    sket = convert_frame_to_list(sket)
+
+    # 获取部位坐标字典
+    sketDict = get_body_part_coord_dict(sket, keypoints=key_points)
+
+
+
+    """绘制填充"""
+    canvas = draw_fill_connections(canvas, sketDict, connections=fill_connections, color_fill=color_fill)
+    """绘制关键点"""
+    canvas = draw_key_points(canvas, sketDict, color_point=color_point, color_head=color_head, radius=radius,
+                             radius_head=radius_head)
+    # canvas_alpha = canvas.copy()  # 复制画布用于透明度处理
+    # canvas = cv2.cvtColor(canvas, cv2.COLOR_BGR2BGRA)  # 转换为 BGRA 格式
+
+    """绘制连接线"""
+    canvas = draw_connections(canvas, sketDict, connections=connections, color_line=color_line, thickness=thickness, alpha=alpha, use_alpha=True)
+
+
 
     return canvas
 
 
 if __name__ == "__main__":
+    pose_detector = PoseDetector()
+    cap = cv2.VideoCapture(0)  # 使用摄像头
+
     while True:
-        frame = draw_game_over(score=666)
+        ret, frame = cap.read()
+        frame = cv2.resize(frame, (WIN_SIZE[0], WIN_SIZE[1]))
+
+        frame = cv2.flip(frame, 1)
+        frame = pose_detector.findPose(frame, draw=True)
+        sketList, _ = pose_detector.findPosition(frame, draw=False)
+        draw_skeleton111(frame, sket=sketList, custom_config=alpha_DRAW_SKET_OVERALL_CONFIG)
+        # frame = draw_game_over(score=666)
 
         cv2.imshow("Game Over", frame)
         if cv2.waitKey(50) & 0xFF == 27:

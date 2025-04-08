@@ -138,6 +138,19 @@ DRAW_SKET_OVERALL_CONFIG = {
     "fill_connections": STD_FILL_CONNECTIONS,
 }
 
+alpha_DRAW_SKET_OVERALL_CONFIG = {
+    "color_head": (220, 220, 220),
+    "color_fill": (220, 220, 220),
+    "color_point": (200, 200, 200),
+    "color_line": (220, 220, 220),
+    "radius": 12,
+    "radius_head": 32,
+    "thickness": 10,
+    "key_points": STD_POSE_KEYPOINTS,
+    "connections": STD_POSE_CONNECTIONS,
+    "fill_connections": STD_FILL_CONNECTIONS,
+}
+
 
 def clear_directory(directory):
     """

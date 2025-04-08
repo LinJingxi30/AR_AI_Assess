@@ -423,6 +423,9 @@ if __name__ == "__main__":
     cap.release()
     cv2.destroyAllWindows()
 
+
+    
+
     clock = pygame.time.Clock()
     while True:
         frame = draw_game_over_222(score=score, img_dir="gameAssets\images\\tiaowuji_end.png")

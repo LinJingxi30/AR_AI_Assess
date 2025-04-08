@@ -406,7 +406,7 @@ if __name__ == "__main__":
     sport = get_sport_type(sport_str = ["TaiChi", "Aerobics", "Yoga"])
     sport = "太极"  # 临时
 
-    mode = EndlessChallengeMode(sport_type=sport, round_duration=15)
+    mode = EndlessChallengeMode(sport_type=sport, round_duration=5)
 
     cnt = 1
     while mode.running:

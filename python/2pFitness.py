@@ -355,7 +355,7 @@ def main(time_duration=30):
 
         """发送"""
         # frame = cv2.cvtColor(combined_frame, cv2.COLOR_BGR2RGB)
-        _, buffer = cv2.imencode('.jpg', frame, [
+        _, buffer = cv2.imencode('.jpg', combined_frame, [
             int(cv2.IMWRITE_JPEG_QUALITY), 75,  # 质量系数
             int(cv2.IMWRITE_JPEG_OPTIMIZE), 1    # 启用Huffman优化
         ])
@@ -388,6 +388,10 @@ if __name__ == "__main__":
     clock = pygame.time.Clock()
     # 获取成绩
     scores_str = f"\nPlayer 1: {final_score[0]}pts;\n Player 2: {final_score[1]}pts !"
+    
+
+
+
     while True:
         frame = draw_game_over(score=scores_str, img_dir="gameAssets\images\\tiaowuji_end.png")
         """发送三"""
