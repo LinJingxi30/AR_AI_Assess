@@ -11,22 +11,22 @@ def amplify_wav(input_file, output_file, gain_dB):
     """
     try:
         # 加载音频文件
-        audio = AudioSegment.from_file(input_file, format="wav")
+        audio = AudioSegment.from_file(input_file, format="mp3")
         
         # 增加音量
         amplified_audio = audio + gain_dB
         
         # 导出放大后的音频
-        amplified_audio.export(output_file, format="wav")
+        amplified_audio.export(output_file, format="mp3")
         print(f"放大后的音频已保存到: {output_file}")
     except Exception as e:
         print(f"处理音频时出错: {e}")
 
 if __name__ == "__main__":
     # 输入文件路径
-    input_wav = "perfect.wav"  # 替换为你的输入文件路径
+    input_wav = r"A:\\Projects\\Github_Repositories\\AR_AI_Assess\\python\\gameAssets\\sounds\\SJTUbgm.mp3"  # 替换为你的输入文件路径
     # 输出文件路径
-    output_wav = "perfect2.wav"  # 替换为你的输出文件路径
+    output_wav = "SJTUbgm1.mp3"  # 替换为你的输出文件路径
     # 增益值（分贝）
     gain = 30  # 增加 10 分贝
     

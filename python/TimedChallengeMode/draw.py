@@ -23,7 +23,6 @@ def draw_realtime_cap_only(canvas, cap_frame, use_flip=False):
         return canvas   
     else:
         print("错误：摄像头画面为空！")
-    
 
 
 def draw_overlay_on_canvas(canvas, overlay):
@@ -72,15 +71,15 @@ def draw_points_with_arrow(canvas, std_points, real_points, condition_dict):
 
         # 绘制
         # 绘制标准点
-        draw_gradient_point(canvas, std_pos, VISUAL_CONFIG["gradient"]["std_color"],
-                                 VISUAL_CONFIG["gradient"]["max_radius"],
-                                 VISUAL_CONFIG["gradient"]["steps"])
+        # draw_gradient_point(canvas, std_pos, VISUAL_CONFIG["gradient"]["std_color"],
+        #                          VISUAL_CONFIG["gradient"]["max_radius"],
+        #                          VISUAL_CONFIG["gradient"]["steps"])
         # 绘制实时点
         draw_gradient_point(canvas, real_pos, VISUAL_CONFIG["gradient"]["real_color"],
                                  VISUAL_CONFIG["gradient"]["max_radius"] // 2,
                                  VISUAL_CONFIG["gradient"]["steps"] // 2)
         # 绘制动态箭头路径
-        draw_arrows_on_path(canvas, real_pos, std_pos, arrow_color)
+        # draw_arrows_on_path(canvas, real_pos, std_pos, arrow_color)
 
     return canvas
 
