@@ -299,6 +299,7 @@ class TimedChallengeMode:
     
 
     def idx_update(self, condition=False):
+        # todo:: 标准演示流（在“当前式”内始终播放（条件为True））、标准匹配点（沿用老判据）独立
         """
         更新掩膜帧索引和标准点索引。
         参数: condition (bool): 条件是否满足。
@@ -317,7 +318,7 @@ class TimedChallengeMode:
             # 计算到达目标花费的时间
             time_period = time.time() - self.pose_start_time
 
-            # 判分
+            # 判分 # todo:: 判分逻辑没解耦 + 连续帧点不适合刷屏反馈
             if time_period < 1.5:
                 self.feedback_sys.add_feedback("perfect", 10)
             elif time_period < 2.5:
@@ -422,8 +423,8 @@ class TimedChallengeMode:
             self.json_line_idx, self.std_overlay_idx = self.idx_update(condition=self.condition_overall)
             # time.sleep(4)
             # self.json_line_idx, self.std_overlay_idx = self.idx_update(True)  # 调试
-            print(f"掩膜帧索引：{self.std_overlay_idx}")  # 调试
-            print(f"标准点帧索引：{self.json_line_idx}")  # 调试
+            # print(f"掩膜帧索引：{self.std_overlay_idx}")  # 调试
+            # print(f"标准点帧索引：{self.json_line_idx}")  # 调试
 
             """绘制"""
             # 画布绘制左右翻转的实时画面，这里必须返回接收画布

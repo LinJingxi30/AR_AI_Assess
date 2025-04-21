@@ -25,6 +25,54 @@ def draw_realtime_cap_only(canvas, cap_frame, use_flip=False):
         print("错误：摄像头画面为空！")
 
 
+def draw_overlay_centered(canvas, overlay, center, scale=1.0):
+    """
+    将overlay遮罩图片以center为中心点，按scale缩放后叠加到canvas上。
+    overlay可以有alpha通道，canvas为BGR三通道。
+    只保留在canvas范围内的部分，超出部分自动裁剪。
+    """
+    if overlay is None or center is None:
+        print("错误：遮罩或中心点为空！")
+        return
+
+    # 1. 缩放overlay
+    h, w = overlay.shape[:2]
+    new_w, new_h = int(w * scale), int(h * scale)
+    overlay_resized = cv2.resize(overlay, (new_w, new_h), interpolation=cv2.INTER_LINEAR)
+
+    # 2. 计算放置位置
+    cx, cy = int(center[0]), int(center[1])
+    top_left_x = cx - new_w // 2
+    top_left_y = cy - new_h // 2
+
+    # 3. 计算有效区域（防止越界）
+    canvas_h, canvas_w = canvas.shape[:2]
+    x1 = max(top_left_x, 0)
+    y1 = max(top_left_y, 0)
+    x2 = min(top_left_x + new_w, canvas_w)
+    y2 = min(top_left_y + new_h, canvas_h)
+
+    # 对应overlay区域
+    overlay_x1 = x1 - top_left_x
+    overlay_y1 = y1 - top_left_y
+    overlay_x2 = overlay_x1 + (x2 - x1)
+    overlay_y2 = overlay_y1 + (y2 - y1)
+
+    # 4. 叠加
+    if overlay_resized.shape[2] == 4:
+        # 有alpha通道
+        alpha = overlay_resized[overlay_y1:overlay_y2, overlay_x1:overlay_x2, 3:4] / 255.0
+        overlay_rgb = overlay_resized[overlay_y1:overlay_y2, overlay_x1:overlay_x2, :3].astype(np.float32)
+        canvas_roi = canvas[y1:y2, x1:x2].astype(np.float32)
+        blended = overlay_rgb * alpha + canvas_roi * (1 - alpha)
+        canvas[y1:y2, x1:x2] = blended.astype(canvas.dtype)
+    else:
+        # 无alpha通道，直接覆盖
+        canvas[y1:y2, x1:x2] = overlay_resized[overlay_y1:overlay_y2, overlay_x1:overlay_x2, :3]
+
+    return canvas
+
+
 def draw_overlay_on_canvas(canvas, overlay):
     """将遮罩叠加到画布上"""
     if overlay is not None:
@@ -71,9 +119,9 @@ def draw_points_with_arrow(canvas, std_points, real_points, condition_dict):
 
         # 绘制
         # 绘制标准点
-        # draw_gradient_point(canvas, std_pos, VISUAL_CONFIG["gradient"]["std_color"],
-        #                          VISUAL_CONFIG["gradient"]["max_radius"],
-        #                          VISUAL_CONFIG["gradient"]["steps"])
+        draw_gradient_point(canvas, std_pos, VISUAL_CONFIG["gradient"]["std_color"],
+                                 VISUAL_CONFIG["gradient"]["max_radius"],
+                                 VISUAL_CONFIG["gradient"]["steps"])
         # 绘制实时点
         draw_gradient_point(canvas, real_pos, VISUAL_CONFIG["gradient"]["real_color"],
                                  VISUAL_CONFIG["gradient"]["max_radius"] // 2,

@@ -29,7 +29,7 @@ def move_coords_by_center_to_pos(Pose, to_position, use_ground=True):
     # move_z = to_position[2] - center_pos[2]
     
     # 对每个关节坐标加上移动距离
-    for i in range(33):
+    for i in range(len(Pose)):
         Pose[i][0] += move_x
         Pose[i][1] += move_y
         # Pose[i][2] += move_z
@@ -37,8 +37,15 @@ def move_coords_by_center_to_pos(Pose, to_position, use_ground=True):
     return Pose
 
 
-
 def get_center_pos(finalPose):
+    # 大致在躯干位置
+    # 左髋关节，右髋关节 = 23, 24
+    # 左肩关节，右肩关节 = 11, 12
+    center_pos = (finalPose[23][0] + finalPose[24][0] + finalPose[11][0] + finalPose[12][0]) / 4, \
+                (finalPose[23][1] + finalPose[24][1] + finalPose[11][1] + finalPose[12][1]) / 4
+    return center_pos
+
+def get_center_pos3d(finalPose):
     # 大致在躯干位置
     # 左髋关节，右髋关节 = 23, 24
     # 左肩关节，右肩关节 = 11, 12

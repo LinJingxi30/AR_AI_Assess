@@ -71,7 +71,7 @@ class TimedChallengeMode:
         self.screen = pygame.display.set_mode(WIN_SIZE, DOUBLEBUF | RESIZABLE)
         pygame.display.set_caption("Motion Coach Pro")
         # mixer.music.load("gameAssets/sounds/timed_bgm.mp3")
-        mixer.music.load("gameAssets/sounds/SJTUbgm2.mp3")
+        mixer.music.load("gameAssets/sounds/SJTUbgm.mp3")
         mixer.music.set_volume(0.8)
         mixer.music.play(-1)
         self.feedback_sys = FeedbackSystem()
