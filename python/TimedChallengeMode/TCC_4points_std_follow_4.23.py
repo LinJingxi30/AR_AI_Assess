@@ -15,7 +15,7 @@ from cvzone.PoseModule import PoseDetector
 from Config.common_data import FPS, WIN_SIZE
 from Config.paths import SPORTS_TYPE_PATH
 from ProcessKit import Json2PreviewClass as j2pc, move_coords_by_center_to_pos_set_pts, get_center_pos_from_pts
-
+from functools import lru_cache
 import time
 
 from TimedChallengeMode import draw
@@ -151,12 +151,9 @@ class TimedChallengeMode:
         # for i in range(len(self.std_sampled_json_dict)):
         # 遍历标准掩膜帧文件夹，按实际文件数量加载
         frame_files = sorted([f for f in os.listdir(self.std_masked_frames_dir) if f.endswith('.png')])
-        for frame_file in tqdm(frame_files, desc="加载标准掩膜帧"):
-            frame_path = os.path.join(self.std_masked_frames_dir, frame_file)
-            overlay = cv2.imread(frame_path, cv2.IMREAD_UNCHANGED)
-            if overlay is not None:
-                overlay = cv2.resize(overlay, WIN_SIZE)
-                self.std_sampled_masked_frames.append(overlay)
+        self.std_overlay_files = [
+            os.path.join(self.std_masked_frames_dir, fn) for fn in frame_files
+        ]
         # print(self.std_sampled_masked_frames)   # 调试
         # print(f"标准遮罩集长度{len(self.std_sampled_masked_frames)}")   # 调试
 
@@ -213,20 +210,22 @@ class TimedChallengeMode:
         return self.realtime_points
 
 
+    @lru_cache(maxsize=10)
+    def _load_overlay(self, idx):
+        """内部缓存最近 10 帧 overlay"""
+        path = self.std_overlay_files[idx]
+        img = cv2.imread(path, cv2.IMREAD_UNCHANGED)
+        if img is None: return None
+        return cv2.resize(img, WIN_SIZE)
+
+
     def get_std_overlay(self, std_overlay_idx=None):
-        """
-        获取标准掩膜帧 (overlay)。
-        参数: std_overlay_idx (int): 标准掩膜帧的索引，若未传入，则使用默认的索引。
-        返回: overlay: 读取和调整大小后的标准掩膜帧。
-        """
         if std_overlay_idx is None:
             std_overlay_idx = self.std_overlay_idx
-        # 检查索引范围
-        if std_overlay_idx < 0 or std_overlay_idx >= len(self.std_sampled_masked_frames):
+        if std_overlay_idx < 0 or std_overlay_idx >= len(self.std_overlay_files):
             print("错误：掩膜帧索引超出范围！")
             return None
-        self.overlay = self.std_sampled_masked_frames[std_overlay_idx]
-        return self.overlay
+        return self._load_overlay(std_overlay_idx)
 
 
     def update_conditioning(self, std_points=None, realtime_points=None, distance_threshold=50):
@@ -371,7 +370,6 @@ class TimedChallengeMode:
             # todo:: 滤波
 
             """判定"""
-
 
 
             # 计算实时中心点（四肢中心）
