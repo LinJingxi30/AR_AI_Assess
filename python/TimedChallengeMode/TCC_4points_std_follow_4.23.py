@@ -26,6 +26,8 @@ from pygame import mixer
 
 from Starter.SportSelector import get_sport_type
 from ProcessKit import Draw
+import os
+from tqdm import tqdm
 
 # 窗口参数
 WIN_WIDTH, WIN_HEIGHT = WIN_SIZE
@@ -52,6 +54,14 @@ class TimedChallengeMode:
         self.cap = cv2.VideoCapture(0)
         # self.pose_detector = PoseDetector()
         self.mp_pose = mp.solutions.pose
+        # 调整参数以提升流畅度：降低模型复杂度、降低置信度阈值
+        self.pose = self.mp_pose.Pose(
+            static_image_mode=False,
+            model_complexity=0,  # 0为最快，1/2更精确但慢
+            smooth_landmarks=False,  # 关闭平滑提升速度
+            min_detection_confidence=0.5,  # 降低检测置信度阈值
+            min_tracking_confidence=0.5    # 降低跟踪置信度阈值
+        )
 
         self.distance_threshold = distance_threshold
         self.condition_dict = {landmark: False for landmark in POSE_LANDMARKS.keys()}
@@ -106,24 +116,43 @@ class TimedChallengeMode:
                 # 提取下划线后的数字部分（不含扩展名）
                 frame_idx_str = filename.split('_')[-1].split('.')[0]
                 frame_idx = int(frame_idx_str)
+                scale = 1  # 可以根据需要调整scale
                 data["poses"] = [
-                    *( (0,0,0) for _ in range(14) ),
-                    (data["points"]["left_h"][0], data["points"]["left_h"][1], 0),    # 15
-                    (data["points"]["right_h"][0], data["points"]["right_h"][1], 0),   # 16
-                    *((0,0,0) for _ in range(10)),
-                    (data["points"]["left_f"][0], data["points"]["left_f"][1], 0),    # 27
-                    (data["points"]["right_f"][0], data["points"]["right_f"][1], 0),   # 28
-                    *((0,0,0) for _ in range(5)),
+                    *((0, 0, 0) for _ in range(15)),
+                    (
+                        int(scale * data["points"]["left_h"][0]),
+                        int(scale * data["points"]["left_h"][1]),
+                        0
+                    ),  # 15
+                    (
+                        int(scale * data["points"]["right_h"][0]),
+                        int(scale * data["points"]["right_h"][1]),
+                        0
+                    ),  # 16
+                    *((0, 0, 0) for _ in range(10)),
+                    (
+                        int(scale * data["points"]["left_f"][0]),
+                        int(scale * data["points"]["left_f"][1]),
+                        0
+                    ),  # 27
+                    (
+                        int(scale * data["points"]["right_f"][0]),
+                        int(scale * data["points"]["right_f"][1]),
+                        0
+                    ),  # 28
+                    *((0, 0, 0) for _ in range(4)),
                 ]
-                print(len(data["poses"]))
+                # print(len(data["poses"]))
                 self.std_sampled_json_dict.append({"frame_idx": frame_idx, "poses": data["poses"]})
                 # print(f"frame_idx: {frame_idx}, poses: {data['poses']}")  # 调试
 
         # print(self.std_sampled_json_dict)  # 调试
         # 加载标准采样掩膜帧
-        for i in range(len(self.std_sampled_json_dict)):
-            frame_idx = self.std_sampled_json_dict[i]["frame_idx"]
-            frame_path = f"{self.std_masked_frames_dir}/masked_frame_{frame_idx:05d}.png"
+        # for i in range(len(self.std_sampled_json_dict)):
+        # 遍历标准掩膜帧文件夹，按实际文件数量加载
+        frame_files = sorted([f for f in os.listdir(self.std_masked_frames_dir) if f.endswith('.png')])
+        for frame_file in tqdm(frame_files, desc="加载标准掩膜帧"):
+            frame_path = os.path.join(self.std_masked_frames_dir, frame_file)
             overlay = cv2.imread(frame_path, cv2.IMREAD_UNCHANGED)
             if overlay is not None:
                 overlay = cv2.resize(overlay, WIN_SIZE)
@@ -248,6 +277,9 @@ class TimedChallengeMode:
         参数: condition (bool): 条件是否满足。
         返回: json_line_idx (int): 当前标准点索引；std_overlay_idx (int): 当前掩膜帧索引。
         """
+
+        self.std_overlay_idx += 1   # 掩膜帧索引+1，是指录入集的索引，不含原本json文件的索引值
+
         # 获取开始时刻
         if self.pose_start_timing_flag == True:
             self.pose_start_time = time.time()
@@ -275,7 +307,7 @@ class TimedChallengeMode:
             # 更新帧索引
             if self.json_line_idx < len(self.std_sampled_json_dict) - 1:
                 self.json_line_idx += 1
-                self.std_overlay_idx += 1   # 掩膜帧索引+1，是指录入集的索引，不含原本json文件的索引值
+                # self.std_overlay_idx += 1   # 掩膜帧索引+1，是指录入集的索引，不含原本json文件的索引值
                 # print(f"跳转到第 {self.json_line_idx} 帧")
             else:
                 # todo:: 完成所有动作序列，跳转到...
@@ -284,7 +316,6 @@ class TimedChallengeMode:
         return self.json_line_idx, self.std_overlay_idx
 
 
-    # 改这个函数
     def get_sket_list(self, image, use_flip=False):
         """
         获取骨架列表。
@@ -294,28 +325,17 @@ class TimedChallengeMode:
         if use_flip:
             image = cv2.flip(image, 1)
 
-        # 转换为 RGB 格式
         image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+        results = self.pose.process(image_rgb)
 
-        #! 使用 mediapipe 的 Pose 模块进行骨架检测
-        with self.mp_pose.Pose(
-                static_image_mode=False,
-                model_complexity=0,  # 提高模型复杂度以提升精度
-                smooth_landmarks=True,
-                min_detection_confidence=0.7,  # 提高检测置信度
-                min_tracking_confidence=0.7   # 提高跟踪置信度
-        ) as pose:
-            results = pose.process(image_rgb)
+        sketList = []
+        if results.pose_landmarks:
+            h, w, _ = image.shape
+            for _, lm in enumerate(results.pose_landmarks.landmark):
+                x, y = int(lm.x * w), int(lm.y * h)
+                sketList.append((x, y))
 
-            sketList = []
-            if results.pose_landmarks:
-                h, w, _ = image.shape
-                for _, lm in enumerate(results.pose_landmarks.landmark):
-                    # 将归一化坐标转换为像素坐标
-                    x, y = int(lm.x * w), int(lm.y * h)
-                    sketList.append((x, y))
-
-            return sketList
+        return sketList
     
 
     def main_update(self):
@@ -358,24 +378,28 @@ class TimedChallengeMode:
             if sketList:
                 # print(sketList)
                 cam_width, cam_height = self.cap.get(3), self.cap.get(4)
-                self.realtime_center = list(get_center_pos_from_pts([15, 16, 27, 28],sketList))
+                self.realtime_center = list(get_center_pos_from_pts([11, 12, 23, 24],sketList))
                 self.realtime_center[0] *= (WIN_WIDTH / cam_width)
                 self.realtime_center[1] *= (WIN_HEIGHT / cam_height)
+                # self.realtime_center[1] += 180
                 self.realtime_center = tuple(self.realtime_center)
+
+                std_points_center = (self.realtime_center[0], self.realtime_center[1] + 180)
+                std_video_center = (self.realtime_center[0], self.realtime_center[1])
 
             # 获取实时 LANDMARK 点坐标
             self.realtime_points = self.get_realtime_points(sketList)
 
             # 获取标准 LANDMARK 点坐标 + 完整的标准点坐标（暂时）
             self.std_points, stdList = self.get_std_points()
-
+            print("stdlist", stdList)
             # 将标准点根据实时中心点（躯干）进行平移
             if self.realtime_center:
                 # print("stdlist", stdList)
                 # rtcentertuple = (int(self.realtime_center[0]), int(self.realtime_center[1]))
                 # cv2.circle(self.canvas, rtcentertuple, 25, (0, 255, 0), -1)  # 绘制绿色圆点
                 # print("中心点", rtcentertuple)
-                stdList = move_coords_by_center_to_pos_set_pts(stdList, [0,1,2,3], self.realtime_center)
+                stdList = move_coords_by_center_to_pos_set_pts(stdList, [15, 16, 27, 28], std_points_center)
                 # print("after stdlist", stdList, len(stdList))
 
 
@@ -387,12 +411,12 @@ class TimedChallengeMode:
                         max(0, min(WIN_WIDTH - 1, int(poses[landmark][0]))),
                         max(0, min(WIN_HEIGHT - 1, int(poses[landmark][1])))
                     )
-                    for landmark in POSE_LANDMARKS.values()  
+                    for landmark in POSE_LANDMARKS.values()
                 ]
             else:
                 # 数据长度不对，跳过或做其他处理
                 pass
-
+            print(f"标准点：{self.std_points}")  # 调试
             # self.condition布尔字典key对应 POSE_LANDMARKS 中的英文key名
             # print("test", self.std_points)
             self.condition_dict, self.condition_overall, self.match_score = self.update_conditioning(self.std_points,
@@ -417,7 +441,7 @@ class TimedChallengeMode:
 
             # 画布绘制标准掩膜帧
             if self.realtime_center:
-                draw.draw_overlay_centered(self.canvas, self.overlay, self.realtime_center, scale=0.2)
+                draw.draw_overlay_centered(self.canvas, self.overlay, std_video_center, scale=0.5)
             else:
                 draw.draw_overlay_on_canvas(self.canvas, self.overlay)
 
@@ -427,7 +451,8 @@ class TimedChallengeMode:
             if self.realtime_center:
                 # print("stdlist", stdList)
                 rtcentertuple = (int(self.realtime_center[0]), int(self.realtime_center[1]))
-                cv2.circle(self.canvas, rtcentertuple, 25, (0, 255, 0), -1)  # 绘制绿色圆点
+                print("中心点", rtcentertuple)
+                # cv2.circle(self.canvas, rtcentertuple, 25, (0, 255, 0), -1)  # 绘制绿色圆点
 
             """显示"""
             # 转换到Pygame显示
@@ -448,7 +473,7 @@ class TimedChallengeMode:
 
             # 更新反馈系统（原有逻辑不变）
             self.feedback_sys.update_feedbacks()
-            self.feedback_sys.draw_feedbacks(self.screen)
+            # self.feedback_sys.draw_feedbacks(self.screen)
             self.feedback_sys.draw_score(self.screen)
 
             # 刷新显示

@@ -58,6 +58,11 @@ def draw_overlay_centered(canvas, overlay, center, scale=1.0):
     overlay_x2 = overlay_x1 + (x2 - x1)
     overlay_y2 = overlay_y1 + (y2 - y1)
 
+    # 检查区域是否有效
+    if x2 <= x1 or y2 <= y1 or overlay_x2 <= overlay_x1 or overlay_y2 <= overlay_y1:
+        # 区域无效，直接返回
+        return canvas
+
     # 4. 叠加
     if overlay_resized.shape[2] == 4:
         # 有alpha通道
@@ -100,38 +105,44 @@ def draw_overlay_on_canvas(canvas, overlay):
     else:
         print("错误：遮罩为空！")
 
-
 def draw_points_with_arrow(canvas, std_points, real_points, condition_dict):
-    """绘制标准点和实时点"""
+    """绘制标准点和实时点，每对点使用相同颜色"""
     if not std_points or not real_points:
         return canvas
 
-    for (std, real), name in zip(zip(std_points, real_points), POSE_LANDMARKS.keys()):
-        # 打包坐标元组
+    # 定义每对点的颜色（示例使用红、绿、蓝、黄）
+    PAIR_COLORS = [
+        (255, 0, 0),    # 红色
+        (0, 255, 0),    # 绿色
+        (0, 0, 255),    # 蓝色
+        (255, 255, 0)   # 黄色
+    ]
+
+    for idx, ((std, real), name) in enumerate(zip(zip(std_points, real_points), POSE_LANDMARKS.keys())):
         std_pos = (int(std[0]), int(std[1]))
         real_pos = (int(real[0]), int(real[1]))
 
-        # 绘制标准点
-        if condition_dict.get(name, False): # 从条件字典中获取状态，默认值为 False
+        # 根据配对索引选择颜色
+        pair_color = PAIR_COLORS[idx % len(PAIR_COLORS)]  # 循环使用颜色列表
+
+        # 绘制标准点（使用配对颜色）
+        draw_gradient_point(canvas, std_pos, pair_color,
+                            20,
+                            VISUAL_CONFIG["gradient"]["steps"])
+        
+        # 绘制实时点（使用相同的配对颜色）
+        draw_gradient_point(canvas, real_pos, pair_color,
+                            VISUAL_CONFIG["gradient"]["max_radius"] // 2,
+                            VISUAL_CONFIG["gradient"]["steps"] // 2)
+
+        # 箭头颜色保持原有逻辑
+        if condition_dict.get(name, False):
             arrow_color = VISUAL_CONFIG["arrow"]["achieve_color"]
         else:
             arrow_color = VISUAL_CONFIG["arrow"]["normal_color"]
-
-        # 绘制
-        # 绘制标准点
-        draw_gradient_point(canvas, std_pos, VISUAL_CONFIG["gradient"]["std_color"],
-                                 VISUAL_CONFIG["gradient"]["max_radius"],
-                                 VISUAL_CONFIG["gradient"]["steps"])
-        # 绘制实时点
-        draw_gradient_point(canvas, real_pos, VISUAL_CONFIG["gradient"]["real_color"],
-                                 VISUAL_CONFIG["gradient"]["max_radius"] // 2,
-                                 VISUAL_CONFIG["gradient"]["steps"] // 2)
-        # 绘制动态箭头路径
         # draw_arrows_on_path(canvas, real_pos, std_pos, arrow_color)
 
     return canvas
-
-
 
 
 def draw_points_to_reach(canvas, std_points, real_points, threshold=50):
