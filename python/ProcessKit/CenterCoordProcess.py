@@ -36,6 +36,33 @@ def move_coords_by_center_to_pos(Pose, to_position, use_ground=True):
 
     return Pose
 
+def move_coords_by_center_to_pos_set_pts(Pose, pts, to_position):
+    """
+    """
+
+    # 使用规定点集pts计算中心点
+    center_pos = get_center_pos_from_pts(pts=pts, Pose=Pose)
+    
+    # 计算移动距离
+    move_x = to_position[0] - center_pos[0]
+    move_y = to_position[1] - center_pos[1]
+    # move_z = to_position[2] - center_pos[2]
+    
+    # 对每个关节坐标加上移动距离
+    for i in range(len(Pose)):
+        Pose[i][0] += move_x
+        Pose[i][1] += move_y
+
+    return Pose
+
+
+def get_center_pos_from_pts(pts, Pose):
+    count = len(pts)
+    sum_x = sum(Pose[idx][0] for idx in pts)
+    sum_y = sum(Pose[idx][1] for idx in pts)
+    # sum_z = sum(Pose[idx][2] for idx in pts)
+    return (sum_x / count, sum_y / count)
+
 
 def get_center_pos(finalPose):
     # 大致在躯干位置
