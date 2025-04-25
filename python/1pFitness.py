@@ -28,7 +28,7 @@ class Direction(Enum):
     RIGHT = 4
 
 class PoseAnimationGame:
-    def __init__(self, sport_type, timer_duration=40):
+    def __init__(self, sport_type, timer_duration=120):
         self.sport_type = sport_type
         self.detector = PoseDetector()
         self.window_size = 7
@@ -397,7 +397,7 @@ if __name__ == "__main__":
         exit()
 
     cap = cv2.VideoCapture(0)
-    game = PoseAnimationGame(sport_type, timer_duration=30)
+    game = PoseAnimationGame(sport_type)
 
     while not game.game_over:
         success, frame = cap.read()
@@ -427,7 +427,8 @@ if __name__ == "__main__":
     
 
     clock = pygame.time.Clock()
-    while True:
+    cnt = 0
+    while cnt < 15: # 发送 15 次
         frame = draw_game_over_222(score=score, img_dir="gameAssets\images\\tiaowuji_end.png")
         """发送三"""
         _, buffer = cv2.imencode('.jpg', frame, [
@@ -437,9 +438,10 @@ if __name__ == "__main__":
         sys.stdout.buffer.write(buffer.tobytes())
         sys.stdout.flush()
 
-        cv2.imshow("Game Over", frame)
-        if cv2.waitKey(50) & 0xFF == 27:
-            break
-        clock.tick(1)   # 1fps
+        # cv2.imshow("Game Over", frame)
+        # if cv2.waitKey(50) & 0xFF == 27:
+        #     break
+        clock.tick(10)   # 1fps
+        cnt += 1
     cv2.destroyAllWindows()
 

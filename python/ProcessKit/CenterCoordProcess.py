@@ -59,8 +59,8 @@ def move_coords_by_center_to_pos_set_pts(Pose, pts, to_position):
 
 def get_center_pos_from_pts(pts, Pose):
     count = len(pts)
-    for idx in pts:
-        print("idx:", idx, "Pose[idx]:", Pose[idx])
+    # for idx in pts:
+        # print("idx:", idx, "Pose[idx]:", Pose[idx])
     sum_x = sum(Pose[idx][0] for idx in pts)
     sum_y = sum(Pose[idx][1] for idx in pts)
     # sum_z = sum(Pose[idx][2] for idx in pts)

@@ -13,7 +13,7 @@ import cv2
 import numpy as np
 from cvzone.PoseModule import PoseDetector
 from Config.common_data import FPS, WIN_SIZE
-from Config.paths import SPORTS_TYPE_PATH
+from Config.paths import SPORTS_TYPE_PATH, STD_SPORTS_RESULTS_ROOT
 from ProcessKit import Json2PreviewClass as j2pc, move_coords_by_center_to_pos_set_pts, get_center_pos_from_pts
 from functools import lru_cache
 import time
@@ -97,8 +97,8 @@ class TimedChallengeMode:
             print(f"未找到运动类型: {sport_type}，使用默认类型: 太极")
             sport_type = "太极"
         # 选择对应路径
-        self.std_sampled_json_dir = SPORTS_TYPE_PATH[sport_type] / "sampled_std_frames.json"  # 抽样后的 JSON 文件路径
-        self.std_masked_frames_dir = SPORTS_TYPE_PATH[sport_type] / "masked_sampled_std_frames"  # 抽样后、遮罩后帧保存路径
+        self.std_sampled_json_dir = Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "sampled_std_frames.json"  # 抽样后的 JSON 文件路径
+        self.std_masked_frames_dir = Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "masked_sampled_std_frames"  # 抽样后、遮罩后帧保存路径
 
     
     def load_std_data(self):
@@ -390,7 +390,7 @@ class TimedChallengeMode:
 
             # 获取标准 LANDMARK 点坐标 + 完整的标准点坐标（暂时）
             self.std_points, stdList = self.get_std_points()
-            print("stdlist", stdList)
+            # print("stdlist", stdList)
             # 将标准点根据实时中心点（躯干）进行平移
             if self.realtime_center:
                 # print("stdlist", stdList)
@@ -414,7 +414,7 @@ class TimedChallengeMode:
             else:
                 # 数据长度不对，跳过或做其他处理
                 pass
-            print(f"标准点：{self.std_points}")  # 调试
+            # print(f"标准点：{self.std_points}")  # 调试
             # self.condition布尔字典key对应 POSE_LANDMARKS 中的英文key名
             # print("test", self.std_points)
             self.condition_dict, self.condition_overall, self.match_score = self.update_conditioning(self.std_points,
@@ -449,7 +449,7 @@ class TimedChallengeMode:
             if self.realtime_center:
                 # print("stdlist", stdList)
                 rtcentertuple = (int(self.realtime_center[0]), int(self.realtime_center[1]))
-                print("中心点", rtcentertuple)
+                # print("中心点", rtcentertuple)
                 # cv2.circle(self.canvas, rtcentertuple, 25, (0, 255, 0), -1)  # 绘制绿色圆点
 
             """显示"""
@@ -486,7 +486,7 @@ class TimedChallengeMode:
 
 if __name__ == "__main__":
     """运动种类选择，内含发送"""
-    # sport = get_sport_type(sport_str = ["TaiChi", "Aerobics", "Yoga"])
+    sport = get_sport_type(sport_str = ["TaiChi", "Aerobics", "Yoga"])
     sport = "太极"  # 临时
 
     mode = TimedChallengeMode(sport_type=sport, challenge_time=60000000)
@@ -508,12 +508,12 @@ if __name__ == "__main__":
             int(cv2.IMWRITE_JPEG_QUALITY), 75,  # 质量系数
             int(cv2.IMWRITE_JPEG_OPTIMIZE), 1    # 启用Huffman优化
         ])
-        # sys.stdout.buffer.write(buffer.tobytes())
-        # sys.stdout.flush()
+        sys.stdout.buffer.write(buffer.tobytes())
+        sys.stdout.flush()
 
     final_score = mode.feedback_sys.total_score
-    print_green_text = lambda text: print(f"\033[92m{text}\033[0m", file=sys.stderr)
-    print_green_text(f"限时挑战模式 总得分：{final_score}")
+    # print_green_text = lambda text: print(f"\033[92m{text}\033[0m", file=sys.stderr)
+    # print_green_text(f"限时挑战模式 总得分：{final_score}")
     # 清理资源
     mode.cap.release()
     mixer.music.stop()
@@ -521,19 +521,20 @@ if __name__ == "__main__":
 
     """结算"""
     clock = pygame.time.Clock()
-    while True:
+    cnt = 0
+    while cnt < 15: # 发送 15 次
         frame = Draw.draw_game_over(score=final_score)
         """发送三"""
         _, buffer = cv2.imencode('.jpg', frame, [
             int(cv2.IMWRITE_JPEG_QUALITY), 75,  # 质量系数
             int(cv2.IMWRITE_JPEG_OPTIMIZE), 1  # 启用Huffman优化
         ])
-        # sys.stdout.buffer.write(buffer.tobytes())
-        # sys.stdout.flush()
-
-        cv2.imshow("Game Over", frame)
-        if cv2.waitKey(50) & 0xFF == 27:
-            break
-        clock.tick(1)   # 1fps
+        sys.stdout.buffer.write(buffer.tobytes())
+        sys.stdout.flush()
+        # cv2.imshow("Game Over", frame)
+        # if cv2.waitKey(50) & 0xFF == 27:
+        #     break
+        clock.tick(10)   # 1fps
+        cnt += 1
     cv2.destroyAllWindows()
         

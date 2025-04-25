@@ -13,7 +13,7 @@ MEDIA_PIPE_ROOT = Path(__file__).resolve().parent.parent
 STD_SPORTS_RESULTS_ROOT = Path(MEDIA_PIPE_ROOT) / "StdSportsResults"
 
 SPORTS_TYPE_PATH = {
-    "太极": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi",
+    "太极": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi_4.11",
     "健美操": Path(STD_SPORTS_RESULTS_ROOT) / "Aerobics",
     "瑜伽": Path(STD_SPORTS_RESULTS_ROOT) / "Yoga",
 }

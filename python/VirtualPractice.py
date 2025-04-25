@@ -96,6 +96,7 @@ def main():
     if sport_type is None:
         print("未选择运动类型，程序退出", file=sys.stderr)
         return
+    sport_type = "TaiChi"
 
     # 初始化主循环使用的摄像头
     cap = cv2.VideoCapture(0)
@@ -167,12 +168,12 @@ def main():
                 frame = cv2.cvtColor(frame_bgra, cv2.COLOR_BGRA2BGR)
 
         # 显示运动类型名称
-        cv2.putText(frame, sport_type, (10, 30),
-                    cv2.FONT_HERSHEY_SIMPLEX, 1.5, (255, 255, 255), 2)
+        # cv2.putText(frame, sport_type, (10, 30),
+        #             cv2.FONT_HERSHEY_SIMPLEX, 1.5, (255, 255, 255), 2)
 
         # 如果图片播放完成，退出程序
         if images_played:
-            print(f"{sport_type} 的图片已播放完成，程序退出")
+            # print(f"{sport_type} 的图片已播放完成，程序退出")
             break
 
         # 编码并传输帧
@@ -198,7 +199,8 @@ def main():
 
     """结算"""
     clock = pygame.time.Clock()
-    while True:
+    cnt = 0
+    while cnt < 15: # 发送 15 次
         frame = draw_game_over()
         """发送三"""
         _, buffer = cv2.imencode('.jpg', frame, [
@@ -208,10 +210,11 @@ def main():
         sys.stdout.buffer.write(buffer.tobytes())
         sys.stdout.flush()
 
-        cv2.imshow("Game Over", frame)
-        if cv2.waitKey(50) & 0xFF == 27:
-            break
-        clock.tick(1)   # 1fps
+        # cv2.imshow("Game Over", frame)
+        # if cv2.waitKey(50) & 0xFF == 27:
+        #     break
+        clock.tick(10)   # 1fps
+        cnt += 1
     cv2.destroyAllWindows()
 
 

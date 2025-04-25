@@ -1,6 +1,7 @@
-import json
 import sys
 from pathlib import Path
+
+from anyio import sleep
 
 MEDIA_PIPE_ROOT = Path(__file__).resolve().parent.parent
 sys.path.append(str(MEDIA_PIPE_ROOT))
@@ -10,12 +11,12 @@ import numpy as np
 from cvzone.PoseModule import PoseDetector
 from Config.common_data import FPS, WIN_SIZE
 from Config.paths import SPORTS_TYPE_PATH
-from ProcessKit import Json2PreviewClass as j2pc, get_center_pos
+from ProcessKit import Json2PreviewClass as j2pc
 import time
 
-from SJTUChallengeMode import draw
-from SJTUChallengeMode.config import *
-from SJTUChallengeMode.fbsys import FeedbackSystem
+from OriginTimedChallengeMode import draw
+from OriginTimedChallengeMode.config import *
+from OriginTimedChallengeMode.fbsys import FeedbackSystem
 from pygame.locals import *
 from pygame import mixer
 
@@ -28,7 +29,7 @@ FRAME_RATE = 60
 
 
 class TimedChallengeMode:
-    def __init__(self, distance_threshold=50, sport_type="太极", challenge_time=600000):
+    def __init__(self, distance_threshold=50, sport_type="太极", challenge_time=60):
         self.sport_type = sport_type
         self.std_sampled_json_dir = None
         self.std_masked_frames_dir = None
@@ -41,8 +42,6 @@ class TimedChallengeMode:
         self.json_line_idx = 0      # 标准点
         self.std_overlay_idx = 0    # 掩膜
         self.overlay = None
-
-        self.center = (WIN_WIDTH // 2, WIN_HEIGHT // 2) # 第一次在实时画面中心
 
         self.canvas = np.zeros((WIN_HEIGHT, WIN_WIDTH, 3), dtype=np.uint8)
         self.cap = cv2.VideoCapture(0)
@@ -69,8 +68,9 @@ class TimedChallengeMode:
         # 初始化 Pygame 窗口、音频、反馈系统
         self.screen = pygame.display.set_mode(WIN_SIZE, DOUBLEBUF | RESIZABLE)
         pygame.display.set_caption("Motion Coach Pro")
-        mixer.music.load("gameAssets/sounds/timed_bgm.mp3")
-        mixer.music.set_volume(0.3)
+        # mixer.music.load("gameAssets/sounds/timed_bgm.mp3")
+        mixer.music.load("gameAssets/sounds/SJTUbgm2.mp3")
+        mixer.music.set_volume(0.8)
         mixer.music.play(-1)
         self.feedback_sys = FeedbackSystem()
 
@@ -88,30 +88,15 @@ class TimedChallengeMode:
     def load_std_data(self):
         """加载标准数据"""
         # 加载标准采样数据 JSON 字典
-        # j2pc.get_json_frames(self.std_sampled_json_dict, self.std_sampled_json_dir)
-        with open(self.std_sampled_json_dir, 'r', encoding='utf-8') as f:
-            for line in f:
-                data = json.loads(line)
-                frame_id = int(data["frame_id"])
-                time_ms = float(data["time_ms"])  # 转换为毫秒
-                center_point = data["center_point"]
-                relative_points = data["relative_points"]
-                self.std_sampled_json_dir.append({
-                    "frame_idx": frame_id,
-                    "time": time_ms,
-                    "center_point": center_point,
-                    "relative_points": relative_points
-                })
-
+        j2pc.get_json_frames(self.std_sampled_json_dict, self.std_sampled_json_dir)
         # print(self.std_sampled_json_dict)  # 调试
-
         # 加载标准采样掩膜帧
         for i in range(len(self.std_sampled_json_dict)):
             frame_idx = self.std_sampled_json_dict[i]["frame_idx"]
-            frame_path = f"{self.std_masked_frames_dir}/masked_frame_{frame_idx:05d}.png"   # todo 图片文件名统一
+            frame_path = f"{self.std_masked_frames_dir}/masked_frame_{frame_idx:05d}.png"
             overlay = cv2.imread(frame_path, cv2.IMREAD_UNCHANGED)
             if overlay is not None:
-                # overlay = cv2.resize(overlay, WIN_SIZE)
+                overlay = cv2.resize(overlay, WIN_SIZE)
                 self.std_sampled_masked_frames.append(overlay)
         # print(self.std_sampled_masked_frames)   # 调试
         # print(f"标准遮罩集长度{len(self.std_sampled_masked_frames)}")   # 调试
@@ -132,37 +117,19 @@ class TimedChallengeMode:
         if self.json_line_idx < len(self.std_sampled_json_dict):
             frame_data = self.std_sampled_json_dict[self.json_line_idx]
             # print(frame_data)  # 调试
-            pose_list = frame_data["relative_points"]   # 字典 {"right_hand": {"dx": -123, "dy": -288}, "left_hand": {"dx": -127, "dy": -318}, "left_foot": {"dx": 6, "dy": -28}, "right_foot": {"dx": 2, "dy": -16}}
-
-            # todo 坐标重映射（相对overlay -> 绝对canvas）
-            pose_list["right_hand"]["dx"] += self.center[0]
-            pose_list["right_hand"]["dy"] += self.center[1]
-            pose_list["left_hand"]["dx"] += self.center[0]
-            pose_list["left_hand"]["dy"] += self.center[1]
-            pose_list["left_foot"]["dx"] += self.center[0]
-            pose_list["left_foot"]["dy"] += self.center[1]
-            pose_list["right_foot"]["dx"] += self.center[0]
-            pose_list["right_foot"]["dy"] += self.center[1]
-            # print(pose_list)  # 调试
-
-            self.std_points = [
-                (pose_list["right_hand"]["dx"], pose_list["right_hand"]["dy"]),
-                (pose_list["left_hand"]["dx"], pose_list["left_hand"]["dy"]),
-                (pose_list["left_foot"]["dx"], pose_list["left_foot"]["dy"]),
-                (pose_list["right_foot"]["dx"], pose_list["right_foot"]["dy"]),
-            ]
-            # if len(pose_list) == 33 * 3:
-            #     poses = np.array(pose_list).reshape(33, 3)
-            #     self.std_points = [
-            #         (
-            #             max(0, min(WIN_WIDTH - 1, int(poses[landmark][0]))),
-            #             max(0, min(WIN_HEIGHT - 1, int(poses[landmark][1])))
-            #         )
-            #         for landmark in POSE_LANDMARKS.values()
-            #     ]
-            # else:
-            #     # 数据长度不对，跳过或做其他处理
-            #     pass
+            pose_list = frame_data["poses"]
+            if len(pose_list) == 33 * 3:
+                poses = np.array(pose_list).reshape(33, 3)
+                self.std_points = [
+                    (
+                        max(0, min(WIN_WIDTH - 1, int(poses[landmark][0]))),
+                        max(0, min(WIN_HEIGHT - 1, int(poses[landmark][1])))
+                    )
+                    for landmark in POSE_LANDMARKS.values()
+                ]
+            else:
+                # 数据长度不对，跳过或做其他处理
+                pass
         return self.std_points
 
 
@@ -243,6 +210,9 @@ class TimedChallengeMode:
             # 关闭重置时间标志位
             self.pose_start_timing_flag = False
 
+        if time.time() - self.pose_start_time > 10.0:    # 花费时间大于 10 秒
+            condition = 0.5
+
         if condition > 0.3:
             # 计算到达目标花费的时间
             time_period = time.time() - self.pose_start_time
@@ -264,6 +234,7 @@ class TimedChallengeMode:
                 self.std_overlay_idx += 1   # 掩膜帧索引+1，是指录入集的索引，不含原本json文件的索引值
                 print(f"跳转到第 {self.json_line_idx} 帧")
             else:
+                # todo:: 完成所有动作序列，跳转到...
                 # pass
                 self.running = False
         return self.json_line_idx, self.std_overlay_idx
@@ -280,6 +251,108 @@ class TimedChallengeMode:
         imageSket = self.pose_detector.findPose(image, draw=False)
         sketList, _ = self.pose_detector.findPosition(imageSket, draw=False)
         return sketList
+
+
+    def main_loop(self):
+        """主循环"""
+        while self.running:
+            # 处理事件
+            for event in pygame.event.get():
+                if event.type == QUIT or (event.type == KEYDOWN and event.key == K_ESCAPE):
+                    self.running = False
+
+            # 计算剩余时间
+            current_ticks = pygame.time.get_ticks()
+            elapsed_seconds = (current_ticks - self.start_ticks) // 1000
+            remaining_time = max(0, self.challenge_time - elapsed_seconds)
+            if remaining_time == 0:
+                self.running = False
+            
+            """相机采集帧"""
+            # 读取实时帧
+            success, image = self.cap.read()
+            if not success:
+                continue
+
+            """骨架提取"""
+            # 实时骨架检测
+            image = cv2.flip(image, 1)
+
+            # 实时骨架检测
+            sketList = self.get_sket_list(image, use_flip=False)
+
+            # todo:: 滤波
+
+            """判定"""
+            # 获取标准 LANDMARK 点坐标
+            self.std_points = self.get_std_points()
+
+            # 获取实时 LANDMARK 点坐标
+            self.realtime_points = self.get_realtime_points(sketList)
+
+            # self.condition布尔字典key对应 POSE_LANDMARKS 中的英文key名
+            self.condition_dict, self.condition_overall, self.match_score = self.update_conditioning(self.std_points, self.realtime_points, self.distance_threshold)
+            
+            """更新"""
+            # 更新掩膜索引、点索引
+            self.json_line_idx, self.std_overlay_idx = self.idx_update(condition=self.match_score)
+            # self.json_line_idx, self.std_overlay_idx = self.idx_update(True)  # 调试
+            # print(f"掩膜帧索引：{self.std_overlay_idx}")  # 调试
+            # print(f"标准点帧索引：{self.json_line_idx}")  # 调试
+
+            """绘制"""
+            # 画布绘制左右翻转的实时画面，这里必须返回接收画布
+            self.canvas = draw.draw_realtime_cap_only(self.canvas, image)
+
+            # 根据掩膜索引获取标准掩膜帧
+            # print(self.std_overlay_idx) # 调试
+            self.overlay = self.get_std_overlay(self.std_overlay_idx)
+
+            # 画布绘制标准掩膜帧
+            draw.draw_overlay_on_canvas(self.canvas, self.overlay)
+
+            # 画布绘制标准点和实时点，以及箭头
+            draw.draw_points_with_arrow(self.canvas, self.std_points, self.realtime_points, self.condition_dict)    # 需传入每个选定点的布尔字典，以控制单独的箭头颜色
+            
+            """显示"""
+            # 转换到Pygame显示
+            canvas_rgb = cv2.cvtColor(self.canvas, cv2.COLOR_BGR2RGB)
+            pygame_surface = pygame.surfarray.make_surface(canvas_rgb.swapaxes(0,1))
+            self.screen.blit(pygame_surface, (0, 0))
+
+            # 绘制界面元素
+            # 1. 显示"Timed Mode"标题
+            title_surf = FONT_CONFIG["title"].render("Timed Challenge Mode", True, (255, 255, 255))
+            title_rect = title_surf.get_rect(center=(WIN_WIDTH//2, 30))
+            self.screen.blit(title_surf, title_rect)
+
+            # 2. 显示倒计时
+            time_text = FONT_CONFIG["score"].render(f"Time Left: {remaining_time}", True, (255, 215, 0))
+            time_rect = time_text.get_rect(topright=(WIN_WIDTH - 20, 20))
+            self.screen.blit(time_text, time_rect)
+
+            # 更新反馈系统（原有逻辑不变）
+            self.feedback_sys.update_feedbacks()
+            self.feedback_sys.draw_feedbacks(self.screen)
+            self.feedback_sys.draw_score(self.screen)
+
+            # 刷新显示
+            pygame.display.flip()
+            self.mode_clock.tick(FRAME_RATE)
+
+            """发送"""
+            # 获取当前屏幕像素
+            arr = pygame.surfarray.array3d(self.screen)   # shape: (width, height, 3)
+            arr = np.swapaxes(arr, 0, 1)                  # shape: (height, width, 3)
+            _,buffer = cv2.imencode('.jpg', arr)  # 编码为 JPG 格式
+            sys.stdout.buffer.write(buffer)  # 将编码后的数据写入标准输出流
+            sys.stdout.flush()  # 刷新输出流
+
+        # 清理资源
+        self.cap.release()
+        mixer.music.stop()
+        pygame.quit()
+
 
     def main_update(self):
         if self.running:
@@ -308,10 +381,10 @@ class TimedChallengeMode:
             # 实时骨架检测
             sketList = self.get_sket_list(image, use_flip=False)
 
+            # todo:: 滤波
 
             """判定"""
             # 获取标准 LANDMARK 点坐标
-            # 先重新定好四个标准点（self.std_points）的位置 from json（是相对于overlay中心的坐标）
             self.std_points = self.get_std_points()
 
             # 获取实时 LANDMARK 点坐标
@@ -325,25 +398,21 @@ class TimedChallengeMode:
             """更新"""
             # 更新掩膜索引、点索引
             self.json_line_idx, self.std_overlay_idx = self.idx_update(condition=self.match_score)
+            # time.sleep(4)
             # self.json_line_idx, self.std_overlay_idx = self.idx_update(True)  # 调试
-            # print(f"掩膜帧索引：{self.std_overlay_idx}")  # 调试
-            # print(f"标准点帧索引：{self.json_line_idx}")  # 调试
+            print(f"掩膜帧索引：{self.std_overlay_idx}")  # 调试
+            print(f"标准点帧索引：{self.json_line_idx}")  # 调试
 
             """绘制"""
             # 画布绘制左右翻转的实时画面，这里必须返回接收画布
             self.canvas = draw.draw_realtime_cap_only(self.canvas, image)
-
-            # 只当满足条件时更新中心点，避免频繁跟随
-            if self.match_score > 0.3:
-                self.center = get_center_pos(sketList)
 
             # 根据掩膜索引获取标准掩膜帧
             # print(self.std_overlay_idx) # 调试
             self.overlay = self.get_std_overlay(self.std_overlay_idx)
 
             # 画布绘制标准掩膜帧
-            # draw.draw_overlay_on_canvas(self.canvas, self.overlay)
-            draw.crop_and_overlay(self.canvas, self.overlay, center=self.center)
+            draw.draw_overlay_on_canvas(self.canvas, self.overlay)
 
             # 画布绘制标准点和实时点，以及箭头
             draw.draw_points_with_arrow(self.canvas, self.std_points, self.realtime_points,
@@ -361,10 +430,10 @@ class TimedChallengeMode:
             title_rect = title_surf.get_rect(center=(WIN_WIDTH // 2, 30))
             self.screen.blit(title_surf, title_rect)
 
-            # 2.
-            # time_text = FONT_CONFIG["score"].render(f": {remaining_time}", True, (255, 215, 0))
-            # time_rect = time_text.get_rect(topright=(WIN_WIDTH - 20, 20))
-            # self.screen.blit(time_text, time_rect)
+            # 2. 显示倒计时
+            time_text = FONT_CONFIG["score"].render(f"MOVE {self.std_overlay_idx}", True, (255, 215, 0))
+            time_rect = time_text.get_rect(topright=(WIN_WIDTH - 20, 20))
+            self.screen.blit(time_text, time_rect)
 
             # 更新反馈系统（原有逻辑不变）
             self.feedback_sys.update_feedbacks()
@@ -386,7 +455,7 @@ if __name__ == "__main__":
     sport = get_sport_type(sport_str = ["TaiChi", "Aerobics", "Yoga"])
     sport = "太极"  # 临时
 
-    mode = TimedChallengeMode(sport_type=sport)
+    mode = TimedChallengeMode(sport_type=sport, challenge_time=60000000)
 
     cnt = 1
     while mode.running:
@@ -418,7 +487,8 @@ if __name__ == "__main__":
 
     """结算"""
     clock = pygame.time.Clock()
-    while True:
+    cnt = 0
+    while cnt < 15: # 发送 15 次
         frame = Draw.draw_game_over(score=final_score)
         """发送三"""
         _, buffer = cv2.imencode('.jpg', frame, [
@@ -427,10 +497,10 @@ if __name__ == "__main__":
         ])
         sys.stdout.buffer.write(buffer.tobytes())
         sys.stdout.flush()
-
-        cv2.imshow("Game Over", frame)
-        if cv2.waitKey(50) & 0xFF == 27:
-            break
-        clock.tick(1)   # 1fps
+        # cv2.imshow("Game Over", frame)
+        # if cv2.waitKey(50) & 0xFF == 27:
+        #     break
+        clock.tick(10)   # 1fps
+        cnt += 1
     cv2.destroyAllWindows()
         

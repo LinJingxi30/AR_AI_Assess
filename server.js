@@ -22,10 +22,11 @@ const PYTHON_INTERPRETER =  (__dirname,process.env.PYTHON_INTERPRETER || 'env/py
 const PYTHON_SCRIPTS = {
     train: {
         "真人": "RealPractice.py",
-        "虚拟人物": "VirtualPractice.py"
+        "虚拟人物": "VirtualPractice.py",
+        "练习模式": "TimedChallengeMode/TCC_4points_std_follow_4.23.py",
     },
     challenge: {
-        "限时": "TimedchallengeMode/TimedchallengeClass.py",
+        "限时": "OriginTimedchallengeMode/TimedchallengeClass.py",
         "无尽": "EndlessChallengeMode/EndlessChallengeClass.py"
     },
     fitness: {
