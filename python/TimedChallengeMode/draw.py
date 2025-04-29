@@ -25,62 +25,135 @@ def draw_realtime_cap_only(canvas, cap_frame, use_flip=False):
         print("错误：摄像头画面为空！")
 
 
-def draw_overlay_centered(canvas, overlay, center, scale=1.0):
+def draw_overlay_centered1(canvas, overlay, center, origin_center=None, scale=1.0):
     """
-    将overlay遮罩图片以center为中心点，按scale缩放后叠加到canvas上。
-    overlay可以有alpha通道，canvas为BGR三通道。
-    只保留在canvas范围内的部分，超出部分自动裁剪。
+    参数:
+    canvas: 目标画布 (numpy数组)
+    overlay: 要叠加的掩膜图像 (numpy数组)
+    center: 目标画布上的中心坐标 (x,y)
+    origin_center: 掩膜图像上的原点坐标 (默认图像中心)
+    scale: 缩放比例
     """
-    if overlay is None or center is None:
-        print("错误：遮罩或中心点为空！", file=sys.stderr)
-        return
-
-    # 1. 缩放overlay
-    # h, w = overlay.shape[:2]
-    w, h = overlay.shape[:2]
-    print(w, h) # 测试
-    new_w, new_h = int(w * scale), int(h * scale)
-    overlay_resized = cv2.resize(overlay, (new_w, new_h), interpolation=cv2.INTER_LINEAR)
-
-    # 2. 计算放置位置
-    cx, cy = int(center[0]), int(center[1])
-    top_left_x = cx - new_w // 2
-    top_left_y = cy - new_h // 2
-
-    # 3. 计算有效区域（防止越界）
-    canvas_h, canvas_w = canvas.shape[:2]
-    x1 = max(top_left_x, 0)
-    y1 = max(top_left_y, 0)
-    x2 = min(top_left_x + new_w, canvas_w)
-    y2 = min(top_left_y + new_h, canvas_h)
-
-    # 对应overlay区域
-    overlay_x1 = x1 - top_left_x
-    overlay_y1 = y1 - top_left_y
-    overlay_x2 = overlay_x1 + (x2 - x1)
-    overlay_y2 = overlay_y1 + (y2 - y1)
-
-    # 检查区域是否有效
-    if x2 <= x1 or y2 <= y1 or overlay_x2 <= overlay_x1 or overlay_y2 <= overlay_y1:
-        # 区域无效，直接返回
+    if overlay is None:
         return canvas
-
-    # 4. 叠加
-    if overlay_resized.shape[2] == 4:
-        # 有alpha通道
-        alpha = overlay_resized[overlay_y1:overlay_y2, overlay_x1:overlay_x2, 3:4] / 255.0
-        overlay_rgb = overlay_resized[overlay_y1:overlay_y2, overlay_x1:overlay_x2, :3].astype(np.float32)
-        canvas_roi = canvas[y1:y2, x1:x2].astype(np.float32)
-        blended = overlay_rgb * alpha + canvas_roi * (1 - alpha)
-        # canvas[y1:y2, x1:x2] = blended.astype(canvas.dtype)
-        a = 0.5
-        canvas[y1:y2, x1:x2] = (blended * a + canvas[y1:y2, x1:x2] * (1 - a)).astype(canvas.dtype)
+    
+    # 获取掩膜尺寸
+    oh, ow = overlay.shape[:2]
+    
+    # 1. 计算缩放后的掩膜尺寸
+    scaled_w = int(ow * scale)
+    scaled_h = int(oh * scale)
+    
+    # 2. 缩放掩膜图像
+    scaled_overlay = cv2.resize(overlay, (scaled_w, scaled_h))
+    
+    # 3. 确定原点锚点（默认使用图像中心）
+    if origin_center is None:
+        origin_center = (scaled_w // 2, scaled_h // 2)
     else:
-        # 无alpha通道，直接覆盖
-        canvas[y1:y2, x1:x2] = overlay_resized[overlay_y1:overlay_y2, overlay_x1:overlay_x2, :3]
-
+        # 将原始掩膜坐标映射到缩放后图像
+        origin_center = (int(origin_center[0] * scale), 
+                        int(origin_center[1] * scale))
+        
+    cv2.circle(scaled_overlay, origin_center, radius=15, color=(0, 0, 255), thickness=-1)
+    
+    # 4. 计算绘制位置
+    x = int(center[0] - origin_center[0])
+    y = int(center[1] - origin_center[1])
+    
+    # 5. 处理越界情况（仅绘制可见部分）
+    canvas_h, canvas_w = canvas.shape[:2]
+    
+    # 计算源图像ROI
+    src_x1 = max(0, -x)
+    src_y1 = max(0, -y)
+    src_x2 = min(scaled_w, canvas_w - x)
+    src_y2 = min(scaled_h, canvas_h - y)
+    
+    # 计算目标ROI
+    dst_x1 = max(0, x)
+    dst_y1 = max(0, y)
+    dst_x2 = min(canvas_w, x + scaled_w)
+    dst_y2 = min(canvas_h, y + scaled_h)
+    
+    # 6. 仅当有重叠区域时进行混合
+    if src_x2 > src_x1 and src_y2 > src_y1:
+        # 处理alpha通道（如果有）
+        if scaled_overlay.shape[2] == 4:
+            alpha = scaled_overlay[src_y1:src_y2, src_x1:src_x2, 3] / 255.0
+            for c in range(3):
+                canvas[dst_y1:dst_y2, dst_x1:dst_x2, c] = \
+                    (1 - alpha) * canvas[dst_y1:dst_y2, dst_x1:dst_x2, c] + \
+                    alpha * scaled_overlay[src_y1:src_y2, src_x1:src_x2, c]
+        else:
+            # 无alpha通道直接覆盖
+            canvas[dst_y1:dst_y2, dst_x1:dst_x2] = \
+                scaled_overlay[src_y1:src_y2, src_x1:src_x2]
+    
     return canvas
 
+
+def draw_overlay_centered(canvas, overlay, center, origin_center=None, scale=1.0, opacity=0.5):
+    if overlay is None:
+        return canvas
+    
+    # 获取掩膜尺寸
+    oh, ow = overlay.shape[:2]
+    s_ow, s_oh = int(ow * scale), int(oh * scale)
+
+    if origin_center is None:
+        origin_center = (s_ow // 2, s_oh // 2)
+    else:
+        # 将原始掩膜坐标映射到缩放后图像
+        origin_center = (int(origin_center[0] * scale), 
+                        int(origin_center[1] * scale))
+    
+    s_overlay = cv2.resize(overlay, (s_ow, s_oh))
+
+    # 在scaled_overlay上标记原点，但避免修改alpha通道
+    if s_overlay.shape[2] == 4:
+        bgr_part = s_overlay[:, :, :3].copy()
+
+        cv2.circle(bgr_part, origin_center, radius=15, color=(0, 0, 255), thickness=-1)
+        s_overlay = np.dstack([bgr_part, s_overlay[:, :, 3]])
+    else:
+        cv2.circle(s_overlay, origin_center, radius=15, color=(0, 0, 255), thickness=-1)
+    
+
+    x = int(center[0] - origin_center[0])
+    y = int(center[1] - origin_center[1])
+
+    # canvas 上的四个角
+    canvas_h, canvas_w = canvas.shape[:2]
+    c_topleft = (max(0, x), max(0, y))  # 左上角，不小于0
+    c_topright = (min(canvas_w, x + s_ow), max(0, y))   # 右上角，x不大于canvas宽度, y不小于0
+    c_bottomleft = (max(0, x), min(canvas_h, y + s_oh))  # 左下角，x不小于0, y不大于canvas高度
+    c_bottomright = (min(canvas_w, x + s_ow), min(canvas_h, y + s_oh))  # 右下角，x不大于canvas宽度, y不大于canvas高度
+
+    # overlay 上的四个角
+    o_topleft = (max(0, -x), max(0, -y))  # 左上角，不小于0
+    o_topright = (min(s_ow, canvas_w - x), max(0, -y))  # 右上角，x不大于canvas宽度, y不小于0
+    o_bottomleft = (max(0, -x), min(s_oh, canvas_h - y))  # 左下角，x不小于0, y不大于canvas高度
+    o_bottomright = (min(s_ow, canvas_w - x), min(s_oh, canvas_h - y))  # 右下角，x不大于canvas宽度, y不大于canvas高度
+
+    if o_topright[0] > o_topleft[0] and o_bottomleft[1] > o_topleft[1]:
+        # 处理alpha通道（如果有）
+        if s_overlay.shape[2] == 4:
+            alpha = s_overlay[o_topleft[1]:o_bottomleft[1], o_topleft[0]:o_topright[0], 3] / 255.0
+            for c in range(3):
+                canvas[c_topleft[1]:c_bottomleft[1], c_topleft[0]:c_topright[0], c] = \
+                    (1 - alpha) * canvas[c_topleft[1]:c_bottomleft[1], c_topleft[0]:c_topright[0], c] + \
+                    opacity * alpha * s_overlay[o_topleft[1]:o_bottomleft[1], o_topleft[0]:o_topright[0], c]
+        else:
+            # 无alpha通道直接覆盖
+            canvas[c_topleft[1]:c_bottomleft[1], c_topleft[0]:c_topright[0]] = \
+                s_overlay[o_topleft[1]:o_bottomleft[1], o_topleft[0]:o_topright[0]]
+    
+    # print(center)
+    int_center = (int(center[0]), int(center[1]))
+    cv2.circle(canvas, int_center, radius=10, color=(0, 165, 255), thickness=-1)
+            
+    return canvas
 
 def draw_overlay_on_canvas(canvas, overlay):
     """将遮罩叠加到画布上"""

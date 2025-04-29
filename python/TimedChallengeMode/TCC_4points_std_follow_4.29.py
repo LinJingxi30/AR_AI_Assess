@@ -35,7 +35,7 @@ FRAME_RATE = 60
 
 # 调试开关
 DEBUG = True
-
+OVERLAY_CENTER_SCALE = 0.5
 
 class TimedChallengeMode:
     def __init__(self, distance_threshold=50, sport_type="太极", challenge_time=60):
@@ -124,7 +124,7 @@ class TimedChallengeMode:
                 frame_idx_str = filename.split('_')[-1].split('.')[0]
                 frame_idx = int(frame_idx_str)
                 # scale = 1.4  # 可以根据需要调整scale
-                scale = 0.45
+                scale = OVERLAY_CENTER_SCALE
                 data["poses"] = [
                     *((0, 0, 0) for _ in range(15)),
                     (
@@ -139,22 +139,24 @@ class TimedChallengeMode:
                     ),  # 16
                     *((0, 0, 0) for _ in range(10)),
                     (
-                        int(scale * data["points"]["left_f"][0]* 1.84),
+                        int(scale * data["points"]["left_f"][0]* 1.74),
                         int(scale * data["points"]["left_f"][1] * 1.84),
                         0
                     ),  # 27
                     (
-                        int(scale * data["points"]["right_f"][0]* 1.84),
+                        int(scale * data["points"]["right_f"][0]* 1.74),
                         int(scale * data["points"]["right_f"][1] * 1.84),
                         0
                     ),  # 28
                     *((0, 0, 0) for _ in range(3)),
                     (
-                        int(scale * data["points"]["center"][0]* 1.84),
+                        int(scale * data["points"]["center"][0]* 1.74),
                         int(scale * data["points"]["center"][1] * 1.84),
                         0
-                    )
+                    )   # center
                 ]
+                # print(data["points"]["center"]) # 调试
+                # print(f"中心点：{data['poses'][-1]}")  # 调试
                 # print(len(data["poses"]))
                 self.std_sampled_json_dict.append({"frame_idx": frame_idx, "poses": data["poses"]})
                 # print(f"frame_idx: {frame_idx}, poses: {data['poses']}")  # 调试
@@ -188,6 +190,7 @@ class TimedChallengeMode:
             frame_data = self.std_sampled_json_dict[self.json_line_idx]
             # print(frame_data)  # 调试
             pose_list = frame_data["poses"]
+            print(pose_list)    # 调试
             if pose_list:
                 poses = np.array(pose_list).reshape(33, 3)
                 self.std_points = [
@@ -312,7 +315,7 @@ class TimedChallengeMode:
         """
         # todo:: 条件字典保留；（点更新）条件全局；（帧）成绩要累加 -> 统计招式成绩；招式条件是点索引追上掩膜索引
 
-        # condition = True
+        # condition = True    # 调试
 
         # 获取开始时刻
         if self.pose_start_timing_flag == True:
@@ -436,8 +439,8 @@ class TimedChallengeMode:
                 # self.realtime_center[1] += 180
                 self.realtime_center = tuple(self.realtime_center)
 
-                std_points_center = (self.realtime_center[0], self.realtime_center[1] + 120)
-                std_video_center = (self.realtime_center[0], self.realtime_center[1] + 130)
+                std_points_center = (self.realtime_center[0], self.realtime_center[1] + 50)
+                std_video_center = (self.realtime_center[0], self.realtime_center[1] + 50)
                 # std_points_center = sketList[-1]
                 # std_video_center = sketList[-1]
             else:
@@ -449,7 +452,10 @@ class TimedChallengeMode:
 
             # 获取标准 LANDMARK 点坐标 + 完整的标准点坐标（暂时）
             self.std_points, stdList = self.get_std_points()
-            # print("stdlist", stdList)
+            print("stdlist111", stdList[-1]) # 调试
+
+            mark_center = (stdList[-1][0] // OVERLAY_CENTER_SCALE, stdList[-1][1] // OVERLAY_CENTER_SCALE)  #! todo:: 标准点中心坐标，后面stdList整个平移，中心点也被波及
+
             # 将标准点根据实时中心点（躯干）进行平移
             if std_points_center:
                 # print("stdlist", stdList)
@@ -500,9 +506,10 @@ class TimedChallengeMode:
             # print(self.std_overlay_idx) # 调试
             self.overlay = self.get_std_overlay(self.std_overlay_idx)
 
+            # print(f"stdList222: {stdList[-1]}") # 调试
             # 画布绘制标准掩膜帧
             if std_video_center:
-                draw.draw_overlay_centered(self.canvas, self.overlay, std_video_center, scale=0.5)
+                draw.draw_overlay_centered(self.canvas, self.overlay, std_video_center, origin_center=mark_center, scale=OVERLAY_CENTER_SCALE, opacity=0.7)
             else:
                 draw.draw_overlay_on_canvas(self.canvas, self.overlay)
 
