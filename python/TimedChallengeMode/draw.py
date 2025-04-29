@@ -32,11 +32,13 @@ def draw_overlay_centered(canvas, overlay, center, scale=1.0):
     只保留在canvas范围内的部分，超出部分自动裁剪。
     """
     if overlay is None or center is None:
-        print("错误：遮罩或中心点为空！")
+        print("错误：遮罩或中心点为空！", file=sys.stderr)
         return
 
     # 1. 缩放overlay
-    h, w = overlay.shape[:2]
+    # h, w = overlay.shape[:2]
+    w, h = overlay.shape[:2]
+    print(w, h) # 测试
     new_w, new_h = int(w * scale), int(h * scale)
     overlay_resized = cv2.resize(overlay, (new_w, new_h), interpolation=cv2.INTER_LINEAR)
 
@@ -70,7 +72,9 @@ def draw_overlay_centered(canvas, overlay, center, scale=1.0):
         overlay_rgb = overlay_resized[overlay_y1:overlay_y2, overlay_x1:overlay_x2, :3].astype(np.float32)
         canvas_roi = canvas[y1:y2, x1:x2].astype(np.float32)
         blended = overlay_rgb * alpha + canvas_roi * (1 - alpha)
-        canvas[y1:y2, x1:x2] = blended.astype(canvas.dtype)
+        # canvas[y1:y2, x1:x2] = blended.astype(canvas.dtype)
+        a = 0.5
+        canvas[y1:y2, x1:x2] = (blended * a + canvas[y1:y2, x1:x2] * (1 - a)).astype(canvas.dtype)
     else:
         # 无alpha通道，直接覆盖
         canvas[y1:y2, x1:x2] = overlay_resized[overlay_y1:overlay_y2, overlay_x1:overlay_x2, :3]
@@ -112,10 +116,13 @@ def draw_points_with_arrow(canvas, std_points, real_points, condition_dict):
 
     # 定义每对点的颜色（示例使用红、绿、蓝、黄）
     PAIR_COLORS = [
-        (255, 0, 0),    # 红色
+        # (255, 0, 0),    # 红色
+        (255, 0, 0),
         (0, 255, 0),    # 绿色
-        (0, 0, 255),    # 蓝色
-        (255, 255, 0)   # 黄色
+        (255, 0, 0),    # 蓝色
+        (0, 255, 0),  # 绿色
+
+        # (255, 255, 0)   # 黄色
     ]
 
     for idx, ((std, real), name) in enumerate(zip(zip(std_points, real_points), POSE_LANDMARKS.keys())):
@@ -140,7 +147,7 @@ def draw_points_with_arrow(canvas, std_points, real_points, condition_dict):
             arrow_color = VISUAL_CONFIG["arrow"]["achieve_color"]
         else:
             arrow_color = VISUAL_CONFIG["arrow"]["normal_color"]
-        # draw_arrows_on_path(canvas, real_pos, std_pos, arrow_color)
+        draw_arrows_on_path(canvas, real_pos, std_pos, arrow_color)
 
     return canvas
 

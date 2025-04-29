@@ -52,7 +52,7 @@ class TimedChallengeMode:
         self.json_line_idx = 0      # 标准点
         self.std_overlay_idx = 0    # 掩膜
         self.MOVE = 1    # 第 招式
-        self.move_end_idx_list = [10, 30, 40, 260, 695] # 用一个列表控制每个招式的结束索引
+        self.move_end_idx_list = [695] # 用一个列表控制每个招式的结束索引
         self.current_move_end_idx = self.move_end_idx_list[0] # 初始化招式结束索引
         self.current_move_start_idx = 0 # 初始化招式开始索引
         self.overlay = None
@@ -123,31 +123,37 @@ class TimedChallengeMode:
                 # 提取下划线后的数字部分（不含扩展名）
                 frame_idx_str = filename.split('_')[-1].split('.')[0]
                 frame_idx = int(frame_idx_str)
-                scale = 0.7  # 可以根据需要调整scale
+                # scale = 1.4  # 可以根据需要调整scale
+                scale = 0.45
                 data["poses"] = [
                     *((0, 0, 0) for _ in range(15)),
                     (
-                        int(scale * data["points"]["left_h"][0]),
-                        int(scale * data["points"]["left_h"][1]),
+                        int(scale * data["points"]["left_h"][0] * 1.74),
+                        int(scale * data["points"]["left_h"][1] * 1.84),
                         0
                     ),  # 15
                     (
-                        int(scale * data["points"]["right_h"][0]),
-                        int(scale * data["points"]["right_h"][1]),
+                        int(scale * data["points"]["right_h"][0]* 1.74),
+                        int(scale * data["points"]["right_h"][1] * 1.84),
                         0
                     ),  # 16
                     *((0, 0, 0) for _ in range(10)),
                     (
-                        int(scale * data["points"]["left_f"][0]),
-                        int(scale * data["points"]["left_f"][1]),
+                        int(scale * data["points"]["left_f"][0]* 1.84),
+                        int(scale * data["points"]["left_f"][1] * 1.84),
                         0
                     ),  # 27
                     (
-                        int(scale * data["points"]["right_f"][0]),
-                        int(scale * data["points"]["right_f"][1]),
+                        int(scale * data["points"]["right_f"][0]* 1.84),
+                        int(scale * data["points"]["right_f"][1] * 1.84),
                         0
                     ),  # 28
-                    *((0, 0, 0) for _ in range(4)),
+                    *((0, 0, 0) for _ in range(3)),
+                    (
+                        int(scale * data["points"]["center"][0]* 1.84),
+                        int(scale * data["points"]["center"][1] * 1.84),
+                        0
+                    )
                 ]
                 # print(len(data["poses"]))
                 self.std_sampled_json_dict.append({"frame_idx": frame_idx, "poses": data["poses"]})
@@ -224,7 +230,8 @@ class TimedChallengeMode:
         path = self.std_overlay_files[idx]
         img = cv2.imread(path, cv2.IMREAD_UNCHANGED)
         if img is None: return None
-        return cv2.resize(img, WIN_SIZE)
+        # return cv2.resize(img, WIN_SIZE)
+        return img
 
 
     def get_std_overlay(self, std_overlay_idx=None):
@@ -305,24 +312,26 @@ class TimedChallengeMode:
         """
         # todo:: 条件字典保留；（点更新）条件全局；（帧）成绩要累加 -> 统计招式成绩；招式条件是点索引追上掩膜索引
 
+        # condition = True
+
         # 获取开始时刻
         if self.pose_start_timing_flag == True:
             self.pose_start_time = time.time()
             # 关闭重置时间标志位
             self.pose_start_timing_flag = False
-
-        self.std_overlay_idx += 1   # 掩膜帧索引+1，是指录入集的索引，不含原本json文件的索引值
+        if condition:
+            self.std_overlay_idx += 1   # 掩膜帧索引+1，是指录入集的索引，不含原本json文件的索引值
         if isMoveDone:
             # 判分、反馈
             # 一个招式所花时间
             time_period = time.time() - self.pose_start_time
 
-            if time_period < 15:
-                self.feedback_sys.add_feedback("perfect", 10)
-            elif time_period < 25:
-                self.feedback_sys.add_feedback("great", 5)
-            else:
-                self.feedback_sys.add_feedback("good", 3)
+            # if time_period < 15:
+            #     self.feedback_sys.add_feedback("perfect", 10)
+            # elif time_period < 25:
+            #     self.feedback_sys.add_feedback("great", 5)
+            # else:
+            #     self.feedback_sys.add_feedback("good", 3)
 
             # 开启重置时间标志位
             self.pose_start_timing_flag = True
@@ -427,8 +436,10 @@ class TimedChallengeMode:
                 # self.realtime_center[1] += 180
                 self.realtime_center = tuple(self.realtime_center)
 
-                std_points_center = (self.realtime_center[0], self.realtime_center[1] + 180)
-                std_video_center = (self.realtime_center[0], self.realtime_center[1])
+                std_points_center = (self.realtime_center[0], self.realtime_center[1] + 120)
+                std_video_center = (self.realtime_center[0], self.realtime_center[1] + 130)
+                # std_points_center = sketList[-1]
+                # std_video_center = sketList[-1]
             else:
                 std_points_center = (WIN_WIDTH // 2, WIN_HEIGHT // 2)
                 std_video_center = (WIN_WIDTH // 2, WIN_HEIGHT // 2)
@@ -442,10 +453,7 @@ class TimedChallengeMode:
             # 将标准点根据实时中心点（躯干）进行平移
             if std_points_center:
                 # print("stdlist", stdList)
-                # rtcentertuple = (int(self.realtime_center[0]), int(self.realtime_center[1]))
-                # cv2.circle(self.canvas, rtcentertuple, 25, (0, 255, 0), -1)  # 绘制绿色圆点
-                # print("中心点", rtcentertuple)
-                stdList = move_coords_by_center_to_pos_set_pts(stdList, [15, 16, 27, 28], std_points_center)
+                stdList = move_coords_by_center_to_pos_set_pts(stdList, [15, 16, 27, 28], std_points_center, extern_center=stdList[-1])
                 # print("after stdlist", stdList, len(stdList))
 
 
@@ -484,17 +492,17 @@ class TimedChallengeMode:
             # 画布绘制左右翻转的实时画面，这里必须返回接收画布
             self.canvas = draw.draw_realtime_cap_only(self.canvas, image)
 
-            # 根据掩膜索引获取标准掩膜帧
-            # print(self.std_overlay_idx) # 调试
-            self.overlay = self.get_std_overlay(self.std_overlay_idx)
-
             # 直接调暗画布
             LIGHTNESS = 0.5
             self.canvas = (self.canvas * LIGHTNESS).astype(np.uint8)  # 调暗画布，乘以系数 0.5
 
+            # 根据掩膜索引获取标准掩膜帧
+            # print(self.std_overlay_idx) # 调试
+            self.overlay = self.get_std_overlay(self.std_overlay_idx)
+
             # 画布绘制标准掩膜帧
             if std_video_center:
-                draw.draw_overlay_centered(self.canvas, self.overlay, std_video_center, scale=0.3)
+                draw.draw_overlay_centered(self.canvas, self.overlay, std_video_center, scale=0.5)
             else:
                 draw.draw_overlay_on_canvas(self.canvas, self.overlay)
 
@@ -502,11 +510,13 @@ class TimedChallengeMode:
             # print(self.std_points)  # 测试
             draw.draw_points_with_arrow(self.canvas, self.std_points, self.realtime_points,
                                         self.condition_dict)  # 需传入每个选定点的布尔字典，以控制单独的箭头颜色
-            if self.realtime_center:
-                # print("stdlist", stdList)
-                rtcentertuple = (int(self.realtime_center[0]), int(self.realtime_center[1]))
-                # print("中心点", rtcentertuple)
-                # cv2.circle(self.canvas, rtcentertuple, 25, (0, 255, 0), -1)  # 绘制绿色圆点
+            # if self.realtime_center and std_points_center:
+            #     # print("stdlist", stdList)
+            #     rtcentertuple = (int(self.realtime_center[0]), int(self.realtime_center[1]))
+            #     # print("中心点", rtcentertuple)
+            #     cv2.circle(self.canvas, rtcentertuple, 25, (0, 255, 0), -1)  # 绘制绿色圆点
+            #     stdcentertuple = (int(std_points_center[0]), int(std_points_center[1]))
+            #     cv2.circle(self.canvas, stdcentertuple, 25, (0, 0, 0), -1)
 
             """显示"""
             # 转换到Pygame显示

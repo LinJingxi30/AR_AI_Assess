@@ -36,14 +36,17 @@ def move_coords_by_center_to_pos(Pose, to_position, use_ground=True):
 
     return Pose
 
-def move_coords_by_center_to_pos_set_pts(Pose, pts, to_position):
+def move_coords_by_center_to_pos_set_pts(Pose, pts, to_position, extern_center=None):
     """
     """
+    if extern_center is None:
+        # 使用规定点集pts计算中心点
+        center_pos = get_center_pos_from_pts(pts=pts, Pose=Pose)
+        # print("center_pos:", center_pos)
+    else:
+        # 使用传入的中心点
+        center_pos = extern_center
 
-    # 使用规定点集pts计算中心点
-    center_pos = get_center_pos_from_pts(pts=pts, Pose=Pose)
-    # print("center_pos:", center_pos)
-    
     # 计算移动距离
     move_x = to_position[0] - center_pos[0]
     move_y = to_position[1] - center_pos[1]
