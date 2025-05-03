@@ -1,5 +1,7 @@
 import sys
 from pathlib import Path
+from sys import stderr
+
 import mediapipe as mp
 
 from anyio import sleep
@@ -177,7 +179,7 @@ class TimedChallengeMode:
     def cap_init(self):
         """初始化摄像头"""
         if not self.cap.isOpened():
-            print("错误：摄像头初始化失败！")
+            print("错误：摄像头初始化失败！", file=stderr)
             return
 
 
@@ -190,7 +192,7 @@ class TimedChallengeMode:
             frame_data = self.std_sampled_json_dict[self.json_line_idx]
             # print(frame_data)  # 调试
             pose_list = frame_data["poses"]
-            print(pose_list)    # 调试
+            # print(pose_list)    # 调试
             if pose_list:
                 poses = np.array(pose_list).reshape(33, 3)
                 self.std_points = [
@@ -279,7 +281,7 @@ class TimedChallengeMode:
             # 综合所有判分点的成绩 # 这就是为什么有时候点是绿的，却不跳转：overall 比 dict 里更严格
             match_score = 1.0 - (total_distance / max_possible_distance) if max_possible_distance > 0 else 1.0
 
-            if match_score > 0.3:
+            if match_score > 0.05:
                 all_points_matched = True
             else:
                 all_points_matched = False
@@ -452,7 +454,7 @@ class TimedChallengeMode:
 
             # 获取标准 LANDMARK 点坐标 + 完整的标准点坐标（暂时）
             self.std_points, stdList = self.get_std_points()
-            print("stdlist111", stdList[-1]) # 调试
+            # print("stdlist111", stdList[-1]) # 调试
 
             mark_center = (stdList[-1][0] // OVERLAY_CENTER_SCALE, stdList[-1][1] // OVERLAY_CENTER_SCALE)  #! todo:: 标准点中心坐标，后面stdList整个平移，中心点也被波及
 
