@@ -4,14 +4,15 @@
 # @Content :
 from functools import lru_cache
 import json
+import time
+import sys
+from pathlib import Path
 
 import cv2
 import pygame
 import mediapipe as mp
 import numpy as np
 
-import sys
-from pathlib import Path
 
 import draw
 
@@ -38,6 +39,25 @@ PTS_CONDITION_THRESH = [100, 100, 250, 250] # 对应上面的 4 个点的判定�
 RT_PTS_TO_CENTER = [11, 12, 23, 24]  # 左肩、右肩、左髋、右髋
 LIGHTNESS = 0.5  # 画布亮度调整系数
 STD_SCALE = 0.5  # 标准对齐点/掩膜缩放系数
+MAX_SCORE = 100  # 最大分数
+
+PYGAME_UI_CONFIG = {
+    "标题": {
+        "文字": "太极引导助手🥋",
+        "字体": "python\\gameAssets\\fonts\\SmileySans-Oblique.ttf",
+        "字号": 60,
+        "颜色": (100, 155, 255),  # RGB(100, 155, 255)
+        "位置": (180, 60),
+    },
+    "计分": {
+        "文字": "当前积分：",
+        "字体": "python\\gameAssets\\fonts\\SmileySans-Oblique.ttf",
+        "字号": 40,
+        "颜色": (255, 215, 255),  # RGB(255, 215, 255) 
+        "位置": (WIN_WIDTH - 160, 60),
+    },
+
+}
 
 """
 备注：
@@ -76,11 +96,12 @@ class Run:
         self.rt_landmarks_list = None
         self.std_landmarks_list = None
         self.rt_center = None
-        self.screen = None  # pygame 窗口
         self.canvas = None  # cv2 画布
+        self.pygame_surface = None  # pygame 画布
+        self.screen = None  # pygame 窗口
 
         # init 初始化工具
-        self.camera_init(resolution=(1920, 1080))
+        self.camera_init(resolution=(1280, 720))
         self.pose_detector_init()
         self.pygame_init()
 
@@ -90,7 +111,9 @@ class Run:
         # state 状态
         self.current_std_index = 0
         self.running = True
+        self.timer = None
         self.conditions = [False] * len(POSE_ALIGH_LANDMARKS)
+        self.conditions_met_time = 0
         self.score = 0
 
 
@@ -102,7 +125,7 @@ class Run:
             self.window_events()
 
             """帧率控制"""
-            self.frame_rate_clock.tick(framerate=self.frame_rate)
+            self.frame_rate_clock.tick(self.frame_rate)
 
             """拍摄实时画面帧"""
             self.real_world_frame = self.camera_capture(camera=self.camera)  # 获取实时画面，已经拉伸到窗口大小并左右翻转
@@ -113,7 +136,7 @@ class Run:
             # 获取对齐点列表 std_landmarks_list 和 rt_landmarks_list；
             # 渲染标点、箭头、掩膜到画布
             self.canvas_render(rt_frame=self.real_world_frame, 
-                                    conditions=self.conditions)
+                               conditions=self.conditions)
 
             """条件判定"""
             # 检查条件是否满足，更新 condition 列表
@@ -131,15 +154,125 @@ class Run:
             self.current_std_index = self.index_update(conditions=self.conditions, 
                                                        cur_index=self.current_std_index, 
                                                        end_index=len(self.std_pose_lists))
-    
+            
             """分数统计"""
-            if all(self.conditions):
-                # 如果所有条件都满足，增加分数
-                self.score += 3
-                # print("分数：", self.score)  # 调试：打印分数
+            self.score = self.score_calculate(max_tot_score=MAX_SCORE, 
+                                              tot_score=self.score,
+                                              conditions=self.conditions, 
+                                              time_range=(1, 8))    # 调整时间范围以调整判分宽松度（最佳，最差）
+            # print("分数：", self.score)  # 调试：打印分数
 
-        return self.canvas
+            """转换到 Pygame surface"""
+            
+            """绘制 Pygame UI"""
+            # 绘制已用时间、招式、实时总得分
+            self.pygame_UI_render(canvas=self.canvas, CONFIGS=PYGAME_UI_CONFIG)
+
+            # cv2.putText(self.canvas, f"Score: {int(self.score)}", (30, 60), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 255, 0), 4)  # 调试：在画布左上角绘制分数
+
+
+
+        return self.screen
     
+    def pygame_UI_render(self, canvas, CONFIGS):
+        """
+        绘制 Pygame UI
+        """
+        # 先处理 BGR 格式的 cv2 画布
+        # 转换为 RGB 格式
+        canvas_rgb = cv2.cvtColor(canvas, cv2.COLOR_BGR2RGB)
+        # 转换为 Pygame Surface 格式
+        self.pygame_surface = pygame.surfarray.make_surface(canvas_rgb.swapaxes(0, 1))
+        # 绘制到 Pygame 窗口
+        self.screen.blit(self.pygame_surface, (0, 0))
+
+        # 绘制标题
+        TITLE = CONFIGS["标题"]
+        # 加载字体并设置字号
+        font = pygame.font.Font(TITLE["字体"], TITLE["字号"])
+        title_surface = font.render(TITLE["文字"], True, TITLE["颜色"])
+        title_rect = title_surface.get_rect(center=TITLE["位置"])
+        self.screen.blit(title_surface, title_rect)
+
+        # 绘制计分
+        SCORE = CONFIGS["计分"]
+        font = pygame.font.Font(SCORE["字体"], SCORE["字号"])
+        score_surface = font.render(f"{SCORE['文字']}{int(self.score)}分", True, SCORE["颜色"])
+        score_rect = score_surface.get_rect(center=SCORE["位置"])
+        self.screen.blit(score_surface, score_rect)
+
+
+    
+    def score_calculate(self, max_tot_score, tot_score, conditions, time_range):
+        """
+        时间基准的分数计算
+        """
+        # 获取本次达成条件所用时间
+        time_used = self.get_time_used(conditions)
+
+        if time_used is not None:
+            # 计算每帧分数上限（总分 / 标准帧数）
+            if self.std_pose_lists:
+                per_max_score = max_tot_score / len(self.std_pose_lists)
+            else:
+                per_max_score = 1  # 防止除零
+
+            # 得到当前帧分数范围
+            cur_score_range = (0, per_max_score)
+
+            # 计算当前帧分数
+            cur_score = self.calc_score_by_time(time_used, cur_score_range, time_range)
+            
+            # 更新总分
+            tot_score += cur_score
+
+            # 限制总分不超过上限
+            if tot_score > max_tot_score:
+                tot_score = max_tot_score
+
+        return tot_score
+
+    def get_time_used(self, conditions):
+        """
+        获取当前条件满足所用时间
+        """
+        if all(conditions):
+            if self.timer is not None:
+                # 结束计时
+                time_used = time.time() - self.timer
+                # 只有在满足条件时才重置计时器
+                self.timer = None
+                # 返回所花时间
+                return time_used
+            else:
+                # 一开始就满足条件，所花时间为 0s
+                return 0
+        else:
+            if self.timer is None:
+                # 开始时刻
+                self.timer = time.time()
+                return None
+            
+    def calc_score_by_time(self, time_used, cur_score_range, time_range):
+        """
+        根据用时计算分数，时间越短分数越高
+        cur_score_range: (min_score, max_score)
+        """
+        min_score, max_score = cur_score_range
+        best_time, worst_time = time_range
+
+        # 不能取等，0s 直接满分
+        if time_used < 0:
+            return 0
+        # 时间上下限，大于w直接按w算分，小于b直接按b算分
+        if time_used <= best_time:
+            return max_score
+        elif time_used >= worst_time:
+            return min_score
+        else:
+            # 将分数归一化到 [min_score, max_score]
+            # 所花时间越少，分数越高
+            return max_score - (max_score - min_score) * ((time_used - best_time) / (worst_time - best_time))
 
     def index_update(self, conditions, cur_index, end_index):
         """根据条件，步进跳帧"""
@@ -208,13 +341,15 @@ class Run:
         self.canvas = (self.canvas * LIGHTNESS).astype(np.uint8)  # 调整画布亮度
         self.canvas = draw.draw_overlay_centered(self.canvas, self.std_overlay, 
                                                     center=self.std_center, target=self.rt_center, 
-                                                    win_size=WIN_SIZE, scale=STD_SCALE)  # 在画布上叠加掩膜，掩膜中心点与用户中心点对齐
+                                                    win_size=WIN_SIZE, 
+                                                    scale=STD_SCALE, 
+                                                    opacity=0.6)  # 在画布上叠加掩膜，掩膜中心点与用户中心点对齐
 
         """绘制 对齐点 + 箭头 到画布"""
-        self.canvas = draw.draw_points_and_arrows(self.canvas,
-                                                    self.std_landmarks_list,
-                                                    self.rt_landmarks_list,
-                                                    conditions)
+        self.canvas = draw.draw_points_and_arrows(self.canvas, 
+                                                  self.std_landmarks_list, 
+                                                  self.rt_landmarks_list, 
+                                                  conditions)
         
         # 调试：绘制较大的实时中心点（橙色）
         # cv2.circle(self.canvas, (int(self.rt_center[0]), int(self.rt_center[1])), 15, (0, 165, 255), -1)
@@ -502,9 +637,9 @@ if __name__ == "__main__":
     while run.running:
         run.main_update()
         # 这里可以添加其他处理逻辑，例如绘制实时画面等
-        if run.canvas is not None:
-            surface = pygame.surfarray.make_surface(cv2.cvtColor(run.canvas, cv2.COLOR_BGR2RGB).swapaxes(0, 1))
-            run.screen.blit(surface, (0, 0))
+        # if run.canvas is not None:
+        #     surface = pygame.surfarray.make_surface(cv2.cvtColor(run.canvas, cv2.COLOR_BGR2RGB).swapaxes(0, 1))
+        #     run.screen.blit(surface, (0, 0))
         pygame.display.flip()  # 更新窗口显示
 
     # 清理资源

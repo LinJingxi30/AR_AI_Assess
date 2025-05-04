@@ -7,12 +7,15 @@ import cv2
 import numpy as np
 
 PTS_PAIR_COLORS = [
-    (255, 0, 0), (0, 255, 0), (255, 0, 0), (0, 255, 0),
+    (140, 50, 0),    # rgb(0, 50, 140)
+    (150, 255, 0),    # rgb(20, 255, 150)
+    (140, 0, 0),    # rgb(0, 0, 140)
+    (50, 205, 0),    # rgb(20, 205, 0)
 ]
 
 ARROW_COLORS = {
-    "normal": (0, 0, 255),    # BGR红色   rgb(255, 0, 0)
-    "achieve": (0, 255, 0),   # BGR绿色   rgb(0, 255, 0)
+    "normal": (0, 0, 255),    # BGR红色   rgb(155, 0, 0)
+    "achieve": (0, 255, 0),   # BGR绿色   rgb(0, 100, 0)
 }
 
 ARROW_NUM = 2
@@ -39,11 +42,11 @@ def draw_overlay_centered(canvas, std_overlay, center, target, win_size, scale=1
     else:
         target = (int(target[0]), int(target[1]))
 
-    # 调试用：绘制 center 于掩膜（BGRA）（center）
-    if overlay_resized.shape[2] == 4:
-        cv2.circle(overlay_resized, center, 10, (0, 165, 255, 150), -1)
-    else:
-        cv2.circle(overlay_resized, center, 10, (0, 165, 255), -1)
+    # # 调试用：绘制 center 于掩膜（BGRA）（center）
+    # if overlay_resized.shape[2] == 4:
+    #     cv2.circle(overlay_resized, center, 10, (0, 165, 255, 150), -1)
+    # else:
+    #     cv2.circle(overlay_resized, center, 10, (0, 165, 255), -1)
 
     # 开始绘制掩膜
     # 计算偏移量
