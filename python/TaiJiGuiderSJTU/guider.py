@@ -44,19 +44,18 @@ MAX_SCORE = 100  # 最大分数
 PYGAME_UI_CONFIG = {
     "标题": {
         "文字": "太极引导助手🥋",
-        "字体": "python\\gameAssets\\fonts\\SmileySans-Oblique.ttf",
+        "字体": str(Path(PY_ROOT) / "gameAssets" / "fonts" / "SmileySans-Oblique.ttf"),
         "字号": 60,
         "颜色": (100, 155, 255),  # RGB(100, 155, 255)
         "位置": (180, 60),
     },
     "计分": {
         "文字": "当前积分：",
-        "字体": "python\\gameAssets\\fonts\\SmileySans-Oblique.ttf",
+        "字体": str(Path(PY_ROOT) / "gameAssets" / "fonts" / "SmileySans-Oblique.ttf"),
         "字号": 40,
         "颜色": (255, 215, 255),  # RGB(255, 215, 255) 
         "位置": (WIN_WIDTH - 160, 60),
     },
-
 }
 
 """
@@ -66,21 +65,22 @@ PYGAME_UI_CONFIG = {
     1. JSON 每行代表1帧 -> 1帧标准姿态列表[33 * (x, y, z=0)] -> 所有帧标准姿态列表 [[33 * (x, y, z=0)], [...], ...] 内含一个视频的所有帧的标准姿态列表
     2. 1帧姿态列表叫 std_pose_list； 所有帧姿态列表叫 std_pose_lists
     3. 循环之前预加载完的是 std_pose_lists，每次进入循环获取的是 std_pose_list = std_pose_lists[current_std_index]
-    4. std_pose_list[0] 是标点中心点 (3d to 2d)，std_pose_list[1] 是左指尖，std_pose_list[2] 是右指尖，std_pose_list[3] 是左脚尖，std_pose_list[4] 是右脚尖
+    4. std_pose_list[0] 是标点中心点，std_pose_list[1] 是左指尖，std_pose_list[2] 是右指尖，std_pose_list[3] 是左脚尖，std_pose_list[4] 是右脚尖
 - 再获取标准对齐点列表 std_landmarks_list（4个点）
     由于完整标准姿态列表格式与实时的一致，
     所以可以直接使用 get_landmarks_list(std_pose_list, landmarks=POSE_ALIGH_LANDMARKS) 获取标准对齐点列表 std_landmarks_list
 """
 
-class Run:
-    def __init__(self, NXT_FRAME_THRESH=50):
+class Guider:
+    def __init__(self):
         # config 配置
-        self.distance_thresh = NXT_FRAME_THRESH
+        win_topic = "AR太极拳助手"
         self.frame_rate = 60
 
         # path 路径
         self.std_json_path = Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "C79-V2_points.json"
         self.std_frame_path = Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "masked_sampled_std_frames"
+        win_bgm_path = Path(PY_ROOT) / "gameAssets" / "sounds" / "SJTUbgm.mp3"
 
         # utils 工具
         self.camera = None
@@ -96,6 +96,8 @@ class Run:
         self.rt_landmarks_list = None
         self.std_landmarks_list = None
         self.rt_center = None
+        self.std_center = None
+        self.std_overlay = None
         self.canvas = None  # cv2 画布
         self.pygame_surface = None  # pygame 画布
         self.screen = None  # pygame 窗口
@@ -103,18 +105,17 @@ class Run:
         # init 初始化工具
         self.camera_init(resolution=(1280, 720))
         self.pose_detector_init()
-        self.pygame_init()
+        self.pygame_init(win_topic=win_topic, win_bgm_path=str(win_bgm_path))
 
         # load 初始化加载资源
         self.std_pose_lists, self.std_overlay_paths = self.load_std_resouces(self.std_json_path, self.std_frame_path)
 
         # state 状态
         self.current_std_index = 0
-        self.running = True
         self.timer = None
         self.conditions = [False] * len(POSE_ALIGH_LANDMARKS)
-        self.conditions_met_time = 0
         self.score = 0
+        self.running = True
 
 
     def main_update(self, frame=None):
@@ -170,10 +171,34 @@ class Run:
 
             # cv2.putText(self.canvas, f"Score: {int(self.score)}", (30, 60), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 255, 0), 4)  # 调试：在画布左上角绘制分数
 
-
-
         return self.screen
-    
+
+    @staticmethod
+    def get_transmit_frame(surface: pygame.Surface) -> bytes:
+        """
+        将 Pygame 窗口转换为可发送格式
+        """
+        # 将 Pygame Surface 转换为 NumPy 数组，形状（w, h, c=3）
+        frame = pygame.surfarray.array3d(surface)
+
+        # 改变形状（交换轴）得到（h, w, c=3）
+        frame = np.transpose(frame, (1, 0, 2))
+
+        # 转换为 BGR 格式
+        frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
+
+        # 使用 JPEG 压缩
+        _, buffer = cv2.imencode('.jpg', frame, [
+            cv2.IMWRITE_JPEG_QUALITY, 90,   # 压缩质量
+            cv2.IMWRITE_JPEG_OPTIMIZE, 1,  # 霍夫曼优化
+        ])
+
+        # 转换为字节流
+        jpeg_data = buffer.tobytes()
+
+        return jpeg_data
+
+
     def pygame_UI_render(self, canvas, CONFIGS):
         """
         绘制 Pygame UI
@@ -251,8 +276,8 @@ class Run:
             if self.timer is None:
                 # 开始时刻
                 self.timer = time.time()
-                return None
-            
+            return None
+
     def calc_score_by_time(self, time_used, cur_score_range, time_range):
         """
         根据用时计算分数，时间越短分数越高
@@ -483,7 +508,7 @@ class Run:
                 line = line.strip()
                 if not line:
                     break
-                
+
                 # 一帧 <- 一行
                 frame_dict = json.loads(line)
 
@@ -499,25 +524,25 @@ class Run:
                     # 用 * 解包 len 个 (0, 0, 0)
                     *((0, 0, 0) for _ in range(landmarks[0]-1)),
                     (
-                        frame_dict["points"]["left_h"][0], 
+                        frame_dict["points"]["left_h"][0],
                         frame_dict["points"]["left_h"][1],
                         0
                     ),  # poes_list[i] 是第 i+1 个，前有 i 个 (0, 0, 0)
                     *((0, 0, 0) for _ in range(landmarks[1]-landmarks[0]-1)),
                     (
-                        frame_dict["points"]["right_h"][0], 
+                        frame_dict["points"]["right_h"][0],
                         frame_dict["points"]["right_h"][1],
                         0
                     ),  # 索引对应
                     *((0, 0, 0) for _ in range(landmarks[2]-landmarks[1]-1)),
                     (
-                        frame_dict["points"]["left_f"][0], 
+                        frame_dict["points"]["left_f"][0],
                         frame_dict["points"]["left_f"][1],
                         0
                     ),  # 索引对应
                     *((0, 0, 0) for _ in range(landmarks[3]-landmarks[2]-1)),
                     (
-                        frame_dict["points"]["right_f"][0], 
+                        frame_dict["points"]["right_f"][0],
                         frame_dict["points"]["right_f"][1],
                         0
                     ),  # 索引对应
@@ -627,21 +652,31 @@ class Run:
 
         # return std_landmarks_list
 
-
+    def send_jpeg_data(self, data):
+        """
+        发送 JPEG 数据：打印在标准输出流
+        """
+        sys.stdout.buffer.write(data)
+        sys.stdout.flush()
 
 
 # @A last new line here:
 
 if __name__ == "__main__":
-    run = Run()
-    while run.running:
-        run.main_update()
-        # 这里可以添加其他处理逻辑，例如绘制实时画面等
-        # if run.canvas is not None:
-        #     surface = pygame.surfarray.make_surface(cv2.cvtColor(run.canvas, cv2.COLOR_BGR2RGB).swapaxes(0, 1))
-        #     run.screen.blit(surface, (0, 0))
-        pygame.display.flip()  # 更新窗口显示
-
+    # 创建 Guider 实例
+    TaiJiGuider = Guider()
+    # 开始运行
+    TaiJiGuider.running = True
+    # 渲染循环
+    while TaiJiGuider.running:
+        # 渲染 .screen
+        TaiJiGuider.main_update()
+        # 获取 JPEG 字节数据
+        frame_to_web = TaiJiGuider.get_transmit_frame(TaiJiGuider.screen)
+        # 发送 JPEG 数据
+        TaiJiGuider.send_jpeg_data(frame_to_web)
+        # 更新窗口显示
+        pygame.display.flip()
     # 清理资源
-    run.camera.release()
+    TaiJiGuider.camera.release()
     pygame.quit()
