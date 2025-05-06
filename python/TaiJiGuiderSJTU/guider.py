@@ -34,11 +34,12 @@ WIN_WIDTH, WIN_HEIGHT = WIN_SIZE
 # }
 
 POSE_ALIGH_LANDMARKS = [19, 20, 31, 32]  # 左指尖、右指尖、左脚尖、右脚尖
-PTS_CONDITION_THRESH = [100, 100, 250, 250] # 对应上面的 4 个点的判定阈值
+PTS_CONDITION_THRESH = [125, 125, 250, 250] # 对应上面的 4 个点的判定阈值
 
 RT_PTS_TO_CENTER = [11, 12, 23, 24]  # 左肩、右肩、左髋、右髋
+BENEATH = 120   # 标准中心相对实时中心降低高度（像素）
 LIGHTNESS = 0.5  # 画布亮度调整系数
-STD_SCALE = 0.5  # 标准对齐点/掩膜缩放系数
+STD_SCALE = 0.55  # 标准对齐点/掩膜缩放系数
 MAX_SCORE = 100  # 最大分数
 
 PYGAME_UI_CONFIG = {
@@ -78,7 +79,7 @@ class Guider:
         self.frame_rate = 60
 
         # path 路径
-        self.std_json_path = Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "C79-V2_points.json"
+        self.std_json_path = Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "C79-V2.1_points.json"
         self.std_frame_path = Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "masked_sampled_std_frames"
         win_bgm_path = Path(PY_ROOT) / "gameAssets" / "sounds" / "SJTUbgm.mp3"
 
@@ -163,8 +164,6 @@ class Guider:
                                               time_range=(1, 8))    # 调整时间范围以调整判分宽松度（最佳，最差）
             # print("分数：", self.score)  # 调试：打印分数
 
-            """转换到 Pygame surface"""
-            
             """绘制 Pygame UI"""
             # 绘制已用时间、招式、实时总得分
             self.pygame_UI_render(canvas=self.canvas, CONFIGS=PYGAME_UI_CONFIG)
@@ -350,16 +349,11 @@ class Guider:
 
         """获取实时躯干位置；获取标准中心标点"""
         self.rt_center = self.get_center_from_points_2d(self.rt_pose_list, from_pts_idx=RT_PTS_TO_CENTER, win_size=WIN_SIZE)  # tuple(float, float)
-        self.rt_center = (self.rt_center[0], self.rt_center[1] + 100)
-        # print("标准列表：", self.std_pose_list) # 调试：打印标准列表
-        self.std_center = (self.std_pose_list[0][0], self.std_pose_list[0][1])  # std_pose_list 的第一个元组是标点中心点 (3d to 2d)
-
-        """在平移之前缩放标准对齐点"""
-        # todo:: 这里的缩放lm原本是800*800，比例与掩膜不同，一定会错位
-        self.std_landmarks_list = [(x * STD_SCALE * 1.74, y * STD_SCALE * 1.84) for x, y in self.std_landmarks_list]  # 缩放标准对齐点
+        self.rt_center = (self.rt_center[0], self.rt_center[1] + BENEATH)   # 参数调整中心点位置，向下偏移 BENEATH 像素
+        self.std_center = (self.std_pose_list[0][0] * STD_SCALE, self.std_pose_list[0][1] * STD_SCALE)  # std_pose_list 的第一个元组是标点中心点 (3d to 2d)
 
         """将标准对齐点吸附到用户"""
-        self.align_pose_to_target_by_center_2d(self.std_landmarks_list, center=self.std_center, target=self.rt_center)
+        self.align_pose_to_target_by_center_2d(self.std_landmarks_list, center=self.std_center, target=self.rt_center, scale=STD_SCALE)
         # print(self.std_landmarks_list) # 调试
 
         """叠加掩膜到画布"""
@@ -368,7 +362,7 @@ class Guider:
                                                     center=self.std_center, target=self.rt_center, 
                                                     win_size=WIN_SIZE, 
                                                     scale=STD_SCALE, 
-                                                    opacity=0.6)  # 在画布上叠加掩膜，掩膜中心点与用户中心点对齐
+                                                    opacity=0.4)  # 在画布上叠加掩膜，掩膜中心点与用户中心点对齐
 
         """绘制 对齐点 + 箭头 到画布"""
         self.canvas = draw.draw_points_and_arrows(self.canvas, 
@@ -628,7 +622,7 @@ class Guider:
         
         return overlay
 
-    def align_pose_to_target_by_center_2d(self, std_landmarks_list, center, target):
+    def align_pose_to_target_by_center_2d(self, std_landmarks_list, center, target, scale=1):
         if not std_landmarks_list:
             return
         if not target:
@@ -648,6 +642,10 @@ class Guider:
         for i in range(len(std_landmarks_list)):
             # 元组无法直接修改，所以需要先转换为列表
             x, y = std_landmarks_list[i]
+            # 平移之前先缩放
+            x *= scale
+            y *= scale
+            # 进行平移
             std_landmarks_list[i] = (x + offset_x, y + offset_y)
 
         # return std_landmarks_list

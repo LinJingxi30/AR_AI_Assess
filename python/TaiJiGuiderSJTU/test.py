@@ -1,70 +1,16 @@
-# -*- coding: utf-8 -*-            
-# @Author : LJX
-# @Time : 2025/4/30 02:34
-# @Content :
+import json
 
-import pygame
-import cv2
+infile = r"E:\Github\repositories\media_pipe\python\StdSportsResults\TaiJi\C79-V2_points.json"
+outfile = r"E:\Github\repositories\media_pipe\python\StdSportsResults\TaiJi\C79-V2.1.json"
 
-def main():
-    # 初始化 pygame
-    pygame.init()
-    screen_width, screen_height = 800, 600
-    screen = pygame.display.set_mode((screen_width, screen_height))
-    pygame.display.set_caption("Pygame 初始化示例")
-
-    # 创建时钟控制帧率
-    clock = pygame.time.Clock()
-    running = True
-
-    while running:
-        # 处理 pygame 事件
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                running = False
-
-        # 填充背景颜色
-        screen.fill((0, 0, 0))
-
-        # 更新显示内容
-        pygame.display.flip()
-
-        # 保持帧率为 60 FPS
-        clock.tick(60)
-
-    # 退出 pygame
-    pygame.quit()
-
-def cv2test():
-    cap = cv2.VideoCapture(0)
-    cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
-    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
-
-    if not cap.isOpened():
-        print("无法打开摄像头")
-        return
-
-    while True:
-        ret, frame = cap.read()
-        if not ret:
-            print("无法读取摄像头画面")
-            break
-
-        # 获取分辨率，打印
-        width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
-        height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-        print(f"Camera Resolution: {width}x{height}")
-
-        cv2.imshow("Camera 1300x1000", frame)
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            break
-
-
-
-    cap.release()
-    cv2.destroyAllWindows()
-
-if __name__ == "__main__":
-    cv2test()
-
-# @A last new line here:
+with open(infile, 'r') as fin, open(outfile, 'w') as fout:
+    for line in fin:
+        if not line.strip():
+            continue
+        data = json.loads(line)
+        pts = data.get("points", {})
+        for key, coord in pts.items():
+            if isinstance(coord, list) and len(coord) == 2:
+                coord[0] *= 1.74  # 横坐标调整
+                coord[1] *= 1.84  # 纵坐标调整
+        fout.write(json.dumps(data) + "\n")
