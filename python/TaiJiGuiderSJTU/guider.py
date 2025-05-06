@@ -24,22 +24,14 @@ from Config import WIN_SIZE, STD_SPORTS_RESULTS_ROOT
 
 WIN_WIDTH, WIN_HEIGHT = WIN_SIZE
 
-# POSE_ALIGH_LANDMARKS = {
-#     # key: value
-#     # 任意点：索引
-#     "左指尖": 19,
-#     "右指尖": 20,
-#     "左脚尖": 31,
-#     "右脚尖": 32,
-# }
-
 POSE_ALIGH_LANDMARKS = [19, 20, 31, 32]  # 左指尖、右指尖、左脚尖、右脚尖
 PTS_CONDITION_THRESH = [125, 125, 250, 250] # 对应上面的 4 个点的判定阈值
-
 RT_PTS_TO_CENTER = [11, 12, 23, 24]  # 左肩、右肩、左髋、右髋
+
 BENEATH = 120   # 标准中心相对实时中心降低高度（像素）
 LIGHTNESS = 0.5  # 画布亮度调整系数
 STD_SCALE = 0.55  # 标准对齐点/掩膜缩放系数
+
 MAX_SCORE = 100  # 最大分数
 
 PYGAME_UI_CONFIG = {
@@ -109,7 +101,7 @@ class Guider:
         self.pygame_init(win_topic=win_topic, win_bgm_path=str(win_bgm_path))
 
         # load 初始化加载资源
-        self.std_pose_lists, self.std_overlay_paths = self.load_std_resouces(self.std_json_path, self.std_frame_path)
+        self.std_pose_lists, self.std_overlay_paths = self.load_std_resources(self.std_json_path, self.std_frame_path)
 
         # state 状态
         self.current_std_index = 0
@@ -146,10 +138,6 @@ class Guider:
                                  thresholds=PTS_CONDITION_THRESH, 
                                  std_lm_list=self.std_landmarks_list, 
                                  rt_lm_list=self.rt_landmarks_list)
-
-            # print("条件列表：", self.conditions)  # 调试：打印条件列表
-            # print(self.current_std_index)  # 调试：打印当前标准帧索引
-            # print(f"共有{len(self.std_pose_lists)}帧")  # 调试：打印标准帧总数
             
             """步进跳帧"""
             # self.conditions = [True] * len(POSE_ALIGH_LANDMARKS)  # 调试
@@ -158,17 +146,14 @@ class Guider:
                                                        end_index=len(self.std_pose_lists))
             
             """分数统计"""
-            self.score = self.score_calculate(max_tot_score=MAX_SCORE, 
-                                              tot_score=self.score,
-                                              conditions=self.conditions, 
-                                              time_range=(1, 8))    # 调整时间范围以调整判分宽松度（最佳，最差）
-            # print("分数：", self.score)  # 调试：打印分数
+            self.score = self.single_posture_score_calc(max_tot_score=MAX_SCORE,
+                                                        tot_score=self.score,
+                                                        conditions=self.conditions,
+                                                        time_range=(1, 8))    # 调整时间范围以调整判分宽松度（最佳，最差）
 
             """绘制 Pygame UI"""
             # 绘制已用时间、招式、实时总得分
             self.pygame_UI_render(canvas=self.canvas, CONFIGS=PYGAME_UI_CONFIG)
-
-            # cv2.putText(self.canvas, f"Score: {int(self.score)}", (30, 60), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 255, 0), 4)  # 调试：在画布左上角绘制分数
 
         return self.screen
 
@@ -202,7 +187,7 @@ class Guider:
         """
         绘制 Pygame UI
         """
-        # 先处理 BGR 格式的 cv2 画布
+        # 源：BGR 格式的 cv2 画布
         # 转换为 RGB 格式
         canvas_rgb = cv2.cvtColor(canvas, cv2.COLOR_BGR2RGB)
         # 转换为 Pygame Surface 格式
@@ -227,9 +212,9 @@ class Guider:
 
 
     
-    def score_calculate(self, max_tot_score, tot_score, conditions, time_range):
+    def single_posture_score_calc(self, max_tot_score, tot_score, conditions, time_range):
         """
-        时间基准的分数计算
+        针对 “一式” 的时间基准的分数计算
         """
         # 获取本次达成条件所用时间
         time_used = self.get_time_used(conditions)
@@ -245,7 +230,7 @@ class Guider:
             cur_score_range = (0, per_max_score)
 
             # 计算当前帧分数
-            cur_score = self.calc_score_by_time(time_used, cur_score_range, time_range)
+            cur_score = self.single_frame_score_calc(time_used, cur_score_range, time_range)
             
             # 更新总分
             tot_score += cur_score
@@ -277,10 +262,10 @@ class Guider:
                 self.timer = time.time()
             return None
 
-    def calc_score_by_time(self, time_used, cur_score_range, time_range):
+    @staticmethod
+    def single_frame_score_calc(time_used, cur_score_range, time_range):
         """
-        根据用时计算分数，时间越短分数越高
-        cur_score_range: (min_score, max_score)
+        每帧得分计算：根据用时计算分数，时间越短分数越高
         """
         min_score, max_score = cur_score_range
         best_time, worst_time = time_range
@@ -298,8 +283,11 @@ class Guider:
             # 所花时间越少，分数越高
             return max_score - (max_score - min_score) * ((time_used - best_time) / (worst_time - best_time))
 
-    def index_update(self, conditions, cur_index, end_index):
-        """根据条件，步进跳帧"""
+    @staticmethod
+    def index_update(conditions, cur_index, end_index):
+        """
+        根据条件，步进跳帧
+        """
         if cur_index < end_index - 1:
             if all(conditions):
                 # 如果所有条件都满足，跳到下一帧
@@ -310,7 +298,8 @@ class Guider:
         
         return cur_index
     
-    def condition_check(self, conditions, thresholds, std_lm_list, rt_lm_list):
+    @staticmethod
+    def condition_check(conditions, thresholds, std_lm_list, rt_lm_list):
         """
         检查条件是否满足，更新 condition 列表
         """
@@ -339,6 +328,7 @@ class Guider:
         if self.current_std_index >= len(self.std_pose_lists):
             # todo:: 这里可以添加循环播放的逻辑；结束逻辑
             pass
+        
         self.std_pose_list = self.std_pose_lists[self.current_std_index]  # 标准完整姿态列表，从 lists 中获取 list，格式同上
         self.std_landmarks_list = self.get_landmarks_list(self.std_pose_list, landmarks=POSE_ALIGH_LANDMARKS)   # 标准关键（对齐）点列表，格式同上
         self.std_overlay = self.get_current_std_overlay(paths=self.std_overlay_paths, overlay_idx=self.current_std_index)  # 标准帧路径，格式为 str
@@ -383,7 +373,10 @@ class Guider:
                 self.running = False
 
     def camera_init(self, resolution=(1280, 720)):
-        """初始化摄像头"""
+        """
+        初始化摄像头
+        """
+        # 获取摄像头 0
         self.camera = cv2.VideoCapture(0)
         
         # 尝试设置分辨率
@@ -401,7 +394,9 @@ class Guider:
             raise RuntimeError("摄像头初始化失败")
 
     def pose_detector_init(self):
-        """初始化姿势检测模型"""
+        """
+        初始化姿势检测模型
+        """
         self.pose_detector = mp.solutions.pose.Pose(
             static_image_mode=False,
             model_complexity=1,
@@ -410,9 +405,7 @@ class Guider:
             min_tracking_confidence=0.7
         )
 
-    def pygame_init(self, 
-                    win_bgm_path="python\\gameAssets\\sounds\\SJTUbgm.mp3", 
-                    win_topic="太极拳AR引导助手"):
+    def pygame_init(self, win_bgm_path, win_topic):
         """
         初始化 Pygame
         窗口、音频、反馈系统
@@ -439,7 +432,8 @@ class Guider:
 
     def pose_detection(self, frame_bgr) -> list[tuple]:
         """
-        使用 Mediapipe 进行姿态检测，返回1帧完整姿态列表
+        使用 self.pose_detector 进行姿态检测，返回1帧完整姿态列表
+        self.pose_detector 使用的是 Mediapipe 的 Pose 模型
         """
         # 转为 RGB 格式以便 Mediapipe 处理
         frame_rgb = cv2.cvtColor(frame_bgr, cv2.COLOR_BGR2RGB)
@@ -458,7 +452,8 @@ class Guider:
         # 返回 [33 * tuple(x, y, z=0)] 或 []
         return pose_list
 
-    def get_landmarks_list(self, full_pose_list, landmarks=None) -> list[tuple]:
+    @staticmethod
+    def get_landmarks_list(full_pose_list, landmarks=None) -> list[tuple]:
         """
         完整姿态列表 -> 关键点坐标列表
         """
@@ -477,7 +472,7 @@ class Guider:
         # [4 * int(x, y)]
         return landmarks_list
 
-    def load_std_resouces(self, json_path, frame_path) -> tuple[list[list[tuple]], list[str]]:
+    def load_std_resources(self, json_path, frame_path) -> tuple[list[list[tuple]], list[str]]:
         """
         加载标准资源
         """
@@ -549,7 +544,8 @@ class Guider:
         # [[33 * tuple(x, y, z=0)], ..., ] len(json)
         return std_full_pose_lists
 
-    def load_std_frame_paths(self, frame_path) -> list[str]:
+    @staticmethod
+    def load_std_frame_paths(frame_path) -> list[str]:
 
         # 存储目录下的所有 PNG 文件路径，按名称排序，转为字符串（ pathlib 写法）
         frame_paths_list = [str(p) for p in sorted(Path(frame_path).glob("*.png"))]
@@ -557,7 +553,8 @@ class Guider:
         # list[Path] -> list[str]
         return frame_paths_list
 
-    def camera_capture(self, camera=None, frame=None) -> None | cv2.Mat | np.ndarray:
+    @staticmethod
+    def camera_capture(camera=None, frame=None) -> None | cv2.Mat | np.ndarray:
         """
         获取并处理现实实时画面，赋值到 self.real_world_frame
         """
@@ -584,7 +581,8 @@ class Guider:
 
         return real_world_frame
 
-    def get_center_from_points_2d(self, full_pose_list, from_pts_idx, win_size) -> tuple[float, float]:
+    @staticmethod
+    def get_center_from_points_2d(full_pose_list, from_pts_idx, win_size) -> tuple[float, float]:
         # 默认中心点为窗口中心
         if not from_pts_idx or not full_pose_list:
             return win_size[0] / 2, win_size[1] / 2
@@ -622,7 +620,11 @@ class Guider:
         
         return overlay
 
-    def align_pose_to_target_by_center_2d(self, std_landmarks_list, center, target, scale=1):
+    @staticmethod
+    def align_pose_to_target_by_center_2d(std_landmarks_list, center, target, scale=1.0):
+        """
+        将标准对齐点列表 std_landmarks_list 根据中心点 center，吸附到目标点 target 上
+        """
         if not std_landmarks_list:
             return
         if not target:
@@ -630,7 +632,7 @@ class Guider:
             target = (WIN_WIDTH // 2, WIN_HEIGHT // 2)
 
         if not center:
-            # 自行计算中心点
+            # todo::自行计算中心点
             # center = self.get_center_from_points_2d(std_landmarks_list, from_pts_idx=POSE_ALIGH_LANDMARKS, win_size=WIN_SIZE)
             return
         
@@ -650,7 +652,8 @@ class Guider:
 
         # return std_landmarks_list
 
-    def send_jpeg_data(self, data):
+    @staticmethod
+    def send_jpeg_data(data):
         """
         发送 JPEG 数据：打印在标准输出流
         """
