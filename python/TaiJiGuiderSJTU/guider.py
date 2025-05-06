@@ -7,24 +7,34 @@ import json
 import time
 import sys
 from pathlib import Path
-
 import cv2
 import pygame
 import mediapipe as mp
 import numpy as np
-
-
 import draw
-
-
 PY_ROOT = Path(__file__).resolve().parent.parent
 sys.path.append(str(PY_ROOT))   # 添加 Python 根目录到模块搜索路径中
 from Config import WIN_SIZE, STD_SPORTS_RESULTS_ROOT
 
+"""
+备注：
+标准对齐关节点（4个点）获取流程：（在 self.canvas_render() 函数内实现）
+
+- 先获取完整姿态列表 std_pose_list（33个点）
+    1. JSON 每行代表1帧 -> 1帧标准姿态列表[33 * (x, y, z=0)] -> 所有帧标准姿态列表 [[33 * (x, y, z=0)], [...], ...] 内含一个视频的所有帧的标准姿态列表
+    2. 1帧姿态列表叫 std_pose_list； 所有帧姿态列表叫 std_pose_lists
+    3. 循环之前预加载完的是 std_pose_lists，每次进入循环获取的是 std_pose_list = std_pose_lists[current_std_index]
+    4. std_pose_list[0] 是标点中心点，std_pose_list[1] 是左指尖，std_pose_list[2] 是右指尖，std_pose_list[3] 是左脚尖，std_pose_list[4] 是右脚尖
+
+- 再获取标准对齐点列表 std_landmarks_list（4个点）
+    由于完整标准姿态列表格式与实时的一致，
+    所以可以直接使用 get_landmarks_list(std_pose_list, landmarks=POSE_ALIGN_LANDMARKS) 获取标准对齐点列表 std_landmarks_list
+"""
+
 
 WIN_WIDTH, WIN_HEIGHT = WIN_SIZE
 
-POSE_ALIGH_LANDMARKS = [19, 20, 31, 32]  # 左指尖、右指尖、左脚尖、右脚尖
+POSE_ALIGN_LANDMARKS = [19, 20, 31, 32]  # 左指尖、右指尖、左脚尖、右脚尖
 PTS_CONDITION_THRESH = [125, 125, 250, 250] # 对应上面的 4 个点的判定阈值
 RT_PTS_TO_CENTER = [11, 12, 23, 24]  # 左肩、右肩、左髋、右髋
 
@@ -51,18 +61,6 @@ PYGAME_UI_CONFIG = {
     },
 }
 
-"""
-备注：
-标准对齐关节点（4个点）获取流程：
-- 先获取完整姿态列表 std_pose_list（33个点）
-    1. JSON 每行代表1帧 -> 1帧标准姿态列表[33 * (x, y, z=0)] -> 所有帧标准姿态列表 [[33 * (x, y, z=0)], [...], ...] 内含一个视频的所有帧的标准姿态列表
-    2. 1帧姿态列表叫 std_pose_list； 所有帧姿态列表叫 std_pose_lists
-    3. 循环之前预加载完的是 std_pose_lists，每次进入循环获取的是 std_pose_list = std_pose_lists[current_std_index]
-    4. std_pose_list[0] 是标点中心点，std_pose_list[1] 是左指尖，std_pose_list[2] 是右指尖，std_pose_list[3] 是左脚尖，std_pose_list[4] 是右脚尖
-- 再获取标准对齐点列表 std_landmarks_list（4个点）
-    由于完整标准姿态列表格式与实时的一致，
-    所以可以直接使用 get_landmarks_list(std_pose_list, landmarks=POSE_ALIGH_LANDMARKS) 获取标准对齐点列表 std_landmarks_list
-"""
 
 class Guider:
     def __init__(self):
@@ -106,7 +104,7 @@ class Guider:
         # state 状态
         self.current_std_index = 0
         self.timer = None
-        self.conditions = [False] * len(POSE_ALIGH_LANDMARKS)
+        self.conditions = [False] * len(POSE_ALIGN_LANDMARKS)
         self.score = 0
         self.running = True
 
@@ -121,10 +119,16 @@ class Guider:
             """帧率控制"""
             self.frame_rate_clock.tick(self.frame_rate)
 
-            """拍摄实时画面帧"""
-            self.real_world_frame = self.camera_capture(camera=self.camera)  # 获取实时画面，已经拉伸到窗口大小并左右翻转
+            """获取实时画面帧"""
+            if frame is None:
+                # 外部未传帧
+                self.real_world_frame = self.camera_capture(camera=self.camera)  # 拍摄实时画面，已经拉伸到窗口大小并左右翻转
+            else:
+                # 外部传帧
+                self.real_world_frame = self.camera_capture(frame=frame)    # 拉伸到窗口大小并左右翻转
+            # 检查实时帧是否获取成功
             if self.real_world_frame is None:
-                return
+                return None
             
             """主画布渲染"""
             # 获取对齐点列表 std_landmarks_list 和 rt_landmarks_list；
@@ -140,7 +144,7 @@ class Guider:
                                  rt_lm_list=self.rt_landmarks_list)
             
             """步进跳帧"""
-            # self.conditions = [True] * len(POSE_ALIGH_LANDMARKS)  # 调试
+            # self.conditions = [True] * len(POSE_ALIGN_LANDMARKS)  # 调试
             self.current_std_index = self.index_update(conditions=self.conditions, 
                                                        cur_index=self.current_std_index, 
                                                        end_index=len(self.std_pose_lists))
@@ -305,7 +309,7 @@ class Guider:
         """
         if not std_lm_list or not rt_lm_list:
             # 如果没有标准或实时数据，条件不满足
-            conditions[:] = [False] * len(POSE_ALIGH_LANDMARKS)
+            conditions[:] = [False] * len(POSE_ALIGN_LANDMARKS)
             return
         
         for idx, (std_pt, rt_pt) in enumerate(zip(std_lm_list, rt_lm_list)):
@@ -330,12 +334,12 @@ class Guider:
             pass
         
         self.std_pose_list = self.std_pose_lists[self.current_std_index]  # 标准完整姿态列表，从 lists 中获取 list，格式同上
-        self.std_landmarks_list = self.get_landmarks_list(self.std_pose_list, landmarks=POSE_ALIGH_LANDMARKS)   # 标准关键（对齐）点列表，格式同上
+        self.std_landmarks_list = self.get_landmarks_list(self.std_pose_list, landmarks=POSE_ALIGN_LANDMARKS)   # 标准关键（对齐）点列表，格式同上
         self.std_overlay = self.get_current_std_overlay(paths=self.std_overlay_paths, overlay_idx=self.current_std_index)  # 标准帧路径，格式为 str
 
         """实时对齐点获取"""
         self.rt_pose_list = self.pose_detection(self.real_world_frame)   # 实时完整姿态列表，格式为： [33 * tuple(x, y, z=0)] 或 []
-        self.rt_landmarks_list = self.get_landmarks_list(self.rt_pose_list, landmarks=POSE_ALIGH_LANDMARKS) # 实时关键（对齐）点列表，格式为： [4 * int(x, y)] 或 []
+        self.rt_landmarks_list = self.get_landmarks_list(self.rt_pose_list, landmarks=POSE_ALIGN_LANDMARKS) # 实时关键（对齐）点列表，格式为： [4 * int(x, y)] 或 []
 
         """获取实时躯干位置；获取标准中心标点"""
         self.rt_center = self.get_center_from_points_2d(self.rt_pose_list, from_pts_idx=RT_PTS_TO_CENTER, win_size=WIN_SIZE)  # tuple(float, float)
@@ -465,7 +469,7 @@ class Guider:
         if full_pose_list:
             landmarks_list = [
                 (full_pose_list[lm][0], full_pose_list[lm][1])
-                # 遍历列表 POSE_ALIGH_LANDMARKS 中的存储的关键点索引，存储对应完整列表里的坐标
+                # 遍历列表 POSE_ALIGN_LANDMARKS 中的存储的关键点索引，存储对应完整列表里的坐标
                 for lm in landmarks if lm < len(full_pose_list)
             ]
 
@@ -478,7 +482,7 @@ class Guider:
         """
         # 加载标准 JSON 数据 -> 标准姿态合集列表
         # [[33 * tuple(x, y, z=0)], [...], ..., ]
-        std_pose_lists = self.load_std_pose_lists(json_path, landmarks=POSE_ALIGH_LANDMARKS)
+        std_pose_lists = self.load_std_pose_lists(json_path, landmarks=POSE_ALIGN_LANDMARKS)
         
         # 标准帧路径合集列表
         # [str(path), str, ...]
@@ -565,10 +569,10 @@ class Guider:
                 success, frame = camera.read()
                 if not success:
                     print("获取实时画面失败：实时帧读取不成功", file=sys.stderr)
-                    return
+                    return None
             else:
                 print("获取实时画面失败：相机为空", file=sys.stderr)
-                return
+                return None
         else:
             # 外部统一传帧
             pass
@@ -633,7 +637,7 @@ class Guider:
 
         if not center:
             # todo::自行计算中心点
-            # center = self.get_center_from_points_2d(std_landmarks_list, from_pts_idx=POSE_ALIGH_LANDMARKS, win_size=WIN_SIZE)
+            # center = self.get_center_from_points_2d(std_landmarks_list, from_pts_idx=POSE_ALIGN_LANDMARKS, win_size=WIN_SIZE)
             return
         
         # 计算偏移量
