@@ -1,7 +1,7 @@
 import json
 
 infile = r"E:\Github\repositories\media_pipe\python\StdSportsResults\TaiJi\C79-V2_points.json"
-outfile = r"E:\Github\repositories\media_pipe\python\StdSportsResults\TaiJi\C79-V2.1.json"
+outfile = r"E:\Github\repositories\media_pipe\python\StdSportsResults\TaiJi\C79-V2.1_points.json"
 
 with open(infile, 'r') as fin, open(outfile, 'w') as fout:
     for line in fin:
