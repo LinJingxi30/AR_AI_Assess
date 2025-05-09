@@ -95,12 +95,13 @@ def draw_overlay_centered(canvas, std_overlay, center, target, win_size, scale=1
 
     return canvas
 
-def draw_points_and_arrows(canvas, std_landmarks_list, rt_landmarks_list, condition):
+def draw_points_and_arrows(canvas, std_landmarks_list, rt_landmarks_list, condition, colors=PTS_PAIR_COLORS):
     # todo:: 这里的组合中 rt_landmarks_list 可能会有空值，导致不能绘制标准点
     for idx, (std_lm_pt, rt_lm_pt) in enumerate(zip(std_landmarks_list, rt_landmarks_list)):
 
         # 选择点对颜色
-        color = PTS_PAIR_COLORS[idx % len(PTS_PAIR_COLORS)]
+        # color = PTS_PAIR_COLORS[idx % len(PTS_PAIR_COLORS)]
+        color = colors[idx]
         
 
         # 绘制标准点（配对配色）

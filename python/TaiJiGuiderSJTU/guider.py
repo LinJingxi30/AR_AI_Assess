@@ -61,17 +61,23 @@ PYGAME_UI_CONFIG = {
     },
 }
 
+PATHS = {
+    "标准 JSON 文件路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "C79-V2.1_points.json",
+    "标准掩膜图片路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "masked_sampled_std_frames",
+    "背景音乐": Path(PY_ROOT) / "gameAssets" / "sounds" / "SJTUbgm.mp3",
+}
+
 
 class Guider:
-    def __init__(self):
+    def __init__(self, paths=PATHS):
         # config 配置
         win_topic = "AR太极拳助手"
         self.frame_rate = 60
 
         # path 路径
-        self.std_json_path = Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "C79-V2.1_points.json"
-        self.std_frame_path = Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "masked_sampled_std_frames"
-        win_bgm_path = Path(PY_ROOT) / "gameAssets" / "sounds" / "SJTUbgm.mp3"
+        self.std_json_path = paths["标准 JSON 文件路径"]
+        self.std_frame_path = paths["标准掩膜图片路径"]
+        win_bgm_path = paths["背景音乐"]
 
         # utils 工具
         self.camera = None
@@ -108,6 +114,17 @@ class Guider:
         self.score = 0
         self.running = True
 
+    def main_loop(self):
+        while self.running:
+            # 渲染 .screen
+            self.main_update()
+            # 获取 JPEG 字节数据
+            frame_to_web = self.get_transmit_frame(self.screen)
+            # 发送 JPEG 数据
+            self.send_jpeg_data(frame_to_web)
+            # 更新窗口显示
+            pygame.display.flip()
+        self.camera.release()
 
     def main_update(self, frame=None):
         # 可以从外部传实时帧
@@ -139,6 +156,7 @@ class Guider:
             """条件判定"""
             # 检查条件是否满足，更新 condition 列表
             self.condition_check(conditions=self.conditions, 
+                                 landmarks=POSE_ALIGN_LANDMARKS,
                                  thresholds=PTS_CONDITION_THRESH, 
                                  std_lm_list=self.std_landmarks_list, 
                                  rt_lm_list=self.rt_landmarks_list)
@@ -303,13 +321,13 @@ class Guider:
         return cur_index
     
     @staticmethod
-    def condition_check(conditions, thresholds, std_lm_list, rt_lm_list):
+    def condition_check(conditions, landmarks, thresholds, std_lm_list, rt_lm_list):
         """
         检查条件是否满足，更新 condition 列表
         """
         if not std_lm_list or not rt_lm_list:
             # 如果没有标准或实时数据，条件不满足
-            conditions[:] = [False] * len(POSE_ALIGN_LANDMARKS)
+            conditions[:] = [False] * len(landmarks)
             return
         
         for idx, (std_pt, rt_pt) in enumerate(zip(std_lm_list, rt_lm_list)):
