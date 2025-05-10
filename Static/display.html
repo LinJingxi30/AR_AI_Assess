@@ -11,7 +11,7 @@
      
     </style>
   </head>
-  <body class="bg-white flex justify-center items-center h-screen">
+  <body class="bg-black flex justify-center items-center h-screen">
     <!-- 新增蒙版层 -->
     <div class="fixed inset-0 bg-[url('images/bk2.png')] bg-cover opacity-80 z-10"></div>
 
@@ -21,7 +21,7 @@
       <canvas id="health-chart" width="400" height="200"></canvas>
     </div>
 
-    <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
+    <script src="js/socket.io.min.js"></script>
     <script>
       let { protocol, host } = window.location;
       let baseURL = protocol + "//" + host;

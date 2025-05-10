@@ -10,13 +10,13 @@ const server = http.createServer(app);
 const io = new Server(server);
 
 // 设置静态文件目录
-app.use(express.static(path.join(__dirname,'Static')));
+app.use(express.static('Static'));
 
 // 使用中间件解析请求体
 app.use(express.json());
 
 // 定义 Python 解释器路径和脚本路径
-const PYTHON_INTERPRETER =  (__dirname,process.env.PYTHON_INTERPRETER || 'env/python.exe'); // 默认使用当前目录下的 python.exe
+const PYTHON_INTERPRETER =  (process.env.PYTHON_INTERPRETER || 'env/python.exe'); // 默认使用当前目录下的 python.exe
 
 // 定义不同主模式和子模式对应的 Python 脚本
 const PYTHON_SCRIPTS = {
@@ -117,7 +117,7 @@ io.on('connection', (socket) => {
             return;
         }
 
-        const scriptPath = path.join(__dirname,'python',PYTHON_SCRIPTS[mainMode]?.[subMode]);
+        const scriptPath = path.join('python',PYTHON_SCRIPTS[mainMode]?.[subMode]);
         if (!scriptPath) {
             console.error(`未找到对应的脚本: mainMode=${mainMode}, subMode=${subMode}`);
             return;

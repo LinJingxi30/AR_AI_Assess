@@ -1,11 +1,11 @@
 {
-  "name": "3apose-app",  
-  "version": "1.0.0",  
+  "name": "3apose-app",
+  "version": "1.0.0",
   "dependencies": {
+    "bonjour": "^3.5.0",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
     "mathjs": "^14.4.0",
-    "mdns-js": "^1.0.3",
     "mqtt": "^5.10.4",
     "socket.io": "^4.8.1",
     "stun": "^2.1.0"
@@ -15,11 +15,10 @@
     "build": "pkg . --out-path=dist/"
   },
   "pkg": {
-    "assets": [
-      "Static/**/*",
-      "python/**/*"
-    ],
-    "targets": ["node18-win-x64"]
+    "assets": [],
+    "targets": [
+      "node18-win-x64"
+    ]
   },
   "bin": "./server.js"
 }
