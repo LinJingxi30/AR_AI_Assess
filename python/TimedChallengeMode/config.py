@@ -15,7 +15,7 @@ pygame.init()
 SOUND_FILES = {
     "perfect": "gameAssets/sounds/perfect2.wav",
     "great": "gameAssets/sounds/great2.wav",
-    "good": "gameAssets/sounds/good2.wav"
+    "good": "gameAssets/sounds/good.wav"
 }
 
 # 字体配置
@@ -35,7 +35,7 @@ VISUAL_CONFIG = {
         "checkmark_size": 15
     },
     "gradient": {
-        "max_radius": 30,
+        "max_radius": 70,
         "steps": 5,  # 减少 steps 以提高性能
         "std_color": (255, 191, 0),     # BGR标准点颜色   rgb(0, 191, 255)
         "real_color": (72, 209, 204)    # BGR实时点颜色   rgb(204, 209, 72)
@@ -48,10 +48,14 @@ VISUAL_CONFIG = {
 }
 
 POSE_LANDMARKS = {
-    "左手掌": 15,
-    "右手掌": 16,
-    "左脚踝": 27,
-    "右脚踝": 28
+    # "左手掌": 15,
+    # "右手掌": 16,
+    "左手指尖": 19,
+    "右手指尖": 20,
+    "左脚尖": 31,
+    "右脚尖": 32,
+    # "左脚踝": 27,
+    # "右脚踝": 28
 }
 
 # @A last new line here:

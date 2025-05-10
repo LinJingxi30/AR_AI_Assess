@@ -7,7 +7,7 @@ import cv2
 import numpy as np
 from cvzone.PoseModule import PoseDetector
 from Config.common_data import FPS, WIN_SIZE
-from Config.paths import SPORTS_TYPE_PATH
+from Config.paths import SPORTS_TYPE_PATH, STD_SPORTS_RESULTS_ROOT
 from ProcessKit import Draw, Json2PreviewClass as j2pc
 import time
 
@@ -26,7 +26,7 @@ FRAME_RATE = 60
 
 
 class EndlessChallengeMode:
-    def __init__(self, distance_threshold=50, sport_type="太极", round_duration=TIMER_CONFIG["round_duration"]):
+    def __init__(self, distance_threshold=50, sport_type="太极", round_duration=25):#TIMER_CONFIG["round_duration"]):
         self.sport_type = sport_type
         self.std_sampled_json_dir = None
         self.std_masked_frames_dir = None
@@ -83,8 +83,8 @@ class EndlessChallengeMode:
             print(f"未找到运动类型: {sport_type}，使用默认类型: 太极")
             sport_type = "太极"
         # 选择对应路径
-        self.std_sampled_json_dir = SPORTS_TYPE_PATH[sport_type] / "sampled_std_frames.json"  # 抽样后的 JSON 文件路径
-        self.std_masked_frames_dir = SPORTS_TYPE_PATH[sport_type] / "masked_sampled_std_frames"  # 抽样后、遮罩后帧保存路径
+        self.std_sampled_json_dir = Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi_4.11" / "sampled_std_frames.json"  # 抽样后的 JSON 文件路径
+        self.std_masked_frames_dir = Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi_4.11" / "masked_sampled_std_frames"  # 抽样后、遮罩后帧保存路径
 
     
     def load_std_data(self):
@@ -406,7 +406,7 @@ if __name__ == "__main__":
     sport = get_sport_type(sport_str = ["TaiChi", "Aerobics", "Yoga"])
     sport = "太极"  # 临时
 
-    mode = EndlessChallengeMode(sport_type=sport, round_duration=15)
+    mode = EndlessChallengeMode(sport_type=sport)
 
     cnt = 1
     while mode.running:
@@ -438,8 +438,9 @@ if __name__ == "__main__":
 
     """结算"""
     clock = pygame.time.Clock()
-    while True:
-        frame = Draw.draw_game_over(score=final_score, img_dir="gameAssets\images\challenge_end.png")
+    cnt = 0
+    while cnt < 15: # 发送 15 次
+        frame = Draw.draw_game_over(score=final_score)
         """发送三"""
         _, buffer = cv2.imencode('.jpg', frame, [
             int(cv2.IMWRITE_JPEG_QUALITY), 75,  # 质量系数
@@ -447,9 +448,10 @@ if __name__ == "__main__":
         ])
         sys.stdout.buffer.write(buffer.tobytes())
         sys.stdout.flush()
-
-        cv2.imshow("Game Over", frame)
-        if cv2.waitKey(50) & 0xFF == 27:
-            break
-        clock.tick(1)   # 1fps
+        # cv2.imshow("Game Over", frame)
+        # if cv2.waitKey(50) & 0xFF == 27:
+        #     break
+        clock.tick(10)   # 1fps
+        cnt += 1
     cv2.destroyAllWindows()
+        

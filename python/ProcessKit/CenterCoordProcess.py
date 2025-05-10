@@ -29,16 +29,56 @@ def move_coords_by_center_to_pos(Pose, to_position, use_ground=True):
     # move_z = to_position[2] - center_pos[2]
     
     # 对每个关节坐标加上移动距离
-    for i in range(33):
+    for i in range(len(Pose)):
         Pose[i][0] += move_x
         Pose[i][1] += move_y
         # Pose[i][2] += move_z
 
     return Pose
 
+def move_coords_by_center_to_pos_set_pts(Pose, pts, to_position, extern_center=None):
+    """
+    """
+    if extern_center is None:
+        # 使用规定点集pts计算中心点
+        center_pos = get_center_pos_from_pts(pts=pts, Pose=Pose)
+        # print("center_pos:", center_pos)
+    else:
+        # 使用传入的中心点
+        center_pos = extern_center
+
+    # 计算移动距离
+    move_x = to_position[0] - center_pos[0]
+    move_y = to_position[1] - center_pos[1]
+    # move_z = to_position[2] - center_pos[2]
+    
+    # 对每个关节坐标加上移动距离
+    for i in range(len(Pose)):
+        Pose[i][0] += move_x
+        Pose[i][1] += move_y
+
+    return Pose
+
+
+def get_center_pos_from_pts(pts, Pose):
+    count = len(pts)
+    # for idx in pts:
+        # print("idx:", idx, "Pose[idx]:", Pose[idx])
+    sum_x = sum(Pose[idx][0] for idx in pts)
+    sum_y = sum(Pose[idx][1] for idx in pts)
+    # sum_z = sum(Pose[idx][2] for idx in pts)
+    return (sum_x / count, sum_y / count)
 
 
 def get_center_pos(finalPose):
+    # 大致在躯干位置
+    # 左髋关节，右髋关节 = 23, 24
+    # 左肩关节，右肩关节 = 11, 12
+    center_pos = (finalPose[23][0] + finalPose[24][0] + finalPose[11][0] + finalPose[12][0]) / 4, \
+                (finalPose[23][1] + finalPose[24][1] + finalPose[11][1] + finalPose[12][1]) / 4
+    return center_pos
+
+def get_center_pos3d(finalPose):
     # 大致在躯干位置
     # 左髋关节，右髋关节 = 23, 24
     # 左肩关节，右肩关节 = 11, 12

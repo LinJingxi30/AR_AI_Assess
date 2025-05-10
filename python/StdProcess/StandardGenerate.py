@@ -95,15 +95,110 @@ def StandardGenerate(sampleThreshold=THRESHOLD["sample"], frame_type="draw", ove
     shutil.copy(sampled_json_dir, dest_json_path)
     print(f"已保存采样帧 JSON 文件到 {dest_json_path}！")
 
+
+def StandardGenerate_2(sampleThreshold=THRESHOLD["sample"], frame_type="draw", overlayThreshold=THRESHOLD["overlay"],
+                     pathDict=PATHS, areadyGenFull=False, areadyGenMasked=False):
+    # 路径解析
+    std_video = pathDict["std_video"]  # 标准原视频路径
+    std_json_dir = pathDict["std_json_dir"]  # 完整流JSON文件路径
+    std_frames_save_dir = pathDict["std_frames_save_dir"]  # 完整流帧保存路径
+    sampled_json_dir = pathDict["sampled_json_dir"]  # 抽样后的JSON文件路径
+    sampled_frames_save_dir = pathDict["sampled_frames_save_dir"]  # 抽样后帧保存路径
+    std_masked_frames_save_dir = pathDict["std_masked_frames_save_dir"]  # 抽样后、遮罩后帧保存路径
+
+    if not areadyGenFull:
+        # 采样阈值threshold
+        # 生成完整流 JSON
+        # save_frames=True 配合 line45 中 direct_copy_from_std_frame_dir使用。都会先清空保存目录，再保存图片。
+        v2j.get_std_json_images(std_video,
+                                std_json_dir, std_frames_save_dir,
+                                std_sket_center_pos,
+                                std_sket_scale,
+                                frame_type=frame_type,  # origin / draw
+                                media_pipe_draw=False,  # 使用官方绘图
+                                display_sket=False,  # 展示 origin / draww 帧
+                                draw_config=BLACK_SKET_CONFIG,
+                                save_frames=True,
+                                win_size=WIN_SIZE)
+
+    # 每隔15f抽一次
+    with open(std_json_dir, 'r', encoding='utf-8') as f:
+        all_lines = f.readlines()
+    sampled_lines = [line for idx, line in enumerate(all_lines) if idx % 15 == 0]
+    with open(sampled_json_dir, 'w', encoding='utf-8') as f:
+        f.writelines(sampled_lines)
+    print(f"已保存采样帧 JSON 文件到 {sampled_json_dir}！")
+
+    # 采样明显变化帧到 JSON 文件
+    # jdif.get_sampled_json(std_json_dir,
+    #                       sampled_json_dir,
+    #                       threshold=0)  # 全采
+
+    # sampled_json_dir = std_json_dir
+    # sampled_frames_save_dir = std_frames_save_dir
+
+    # 从采样帧 JSON 文件生成图片/转存图片
+    # direct_copy_from_std_frame_dir 启用转存
+    j2i.get_img_from_json(sampled_json_dir,
+                          sampled_frames_save_dir,
+                          direct_copy_from_std_frame_dir=std_frames_save_dir,
+                          fps=10000 / sampleThreshold,
+                          scale=std_sket_scale,
+                          at_position=False,
+                          color_point=False,
+                          color_line=False,
+                          radius=13,
+                          thickness=24,
+                          display_sket=True,
+                          canvas_size=WIN_SIZE)
+
+    # print(sampled_frames_save_dir)
+    # print(sampled_json_dir)
+
+    # 根据采样帧存下的图片，生成遮罩后的图片
+    if areadyGenMasked == False:
+        i2m.get_folder_masked_imgs(sampled_frames_save_dir,
+                                   std_masked_frames_save_dir,
+                                   display_masked_img=False,
+                                   overlayThreshold=overlayThreshold,
+                                   # bg_opacity=THRESHOLD["bg_opacity"],
+                                   bg_opacity=0.5,
+                                   color_glow=THRESHOLD["color_glow"],
+                                   thickness=THRESHOLD["glow_thickness"])
+
+    i2m.overlay_images(in_glow_dir= std_masked_frames_save_dir,
+                       in_alpha_dir=r"E:\WeChat\Chat_record\xwechat_files\wxid_tp1yuspiigso22_4579\msg\file\2025-04\taiji_all\alpha",
+                       save_dir= r"E:\Github\repositories\media_pipe\python\StdProcess\newsave",
+                       WIN_SIZE=WIN_SIZE,
+                       transparency=0.8)    # 不透明度
+
+    # TODO:: 筛选函数，删除指定图片以及对应json行
+
+    # 把采样帧 JSON 文件拷贝到遮罩后的文件夹
+    dest_json_path = Path(std_masked_frames_save_dir) / Path(sampled_json_dir).name
+    shutil.copy(sampled_json_dir, dest_json_path)
+    print(f"已保存采样帧 JSON 文件到 {dest_json_path}！")
+
+
+taijipathdict = {
+    "std_video": r"E:\WeChat\Chat_record\xwechat_files\wxid_tp1yuspiigso22_4579\msg\file\2025-04\taiji_all\taiji_allall25.mp4",  # 标准视频路径
+    "std_frames_save_dir": Path(MEDIA_PIPE_ROOT) / "StdProcess/full_std_frames",  # 完整流帧保存路径
+    "sampled_frames_save_dir": Path(MEDIA_PIPE_ROOT) / "StdProcess/sampled_std_frames",  # 抽样后帧保存路径
+    "std_masked_frames_save_dir": Path(MEDIA_PIPE_ROOT) / "StdProcess/masked_sampled_std_frames",  # 抽样后、遮罩后帧保存路径
+    "std_json_dir": Path(MEDIA_PIPE_ROOT) / "StdProcess/full_std_frames.json",  # 完整流JSON文件路径
+    "sampled_json_dir": Path(MEDIA_PIPE_ROOT) / "StdProcess/sampled_std_frames.json",  # 抽样后的JSON文件路径
+}
+
 if __name__ == '__main__':
     areadyGenFull = 0  # 是否已经生成完整流 JSON 文件
     # print_red_text = lambda text: print(f"\033[91m{text}\033[0m")
     print_green_text = lambda text: print(f"\033[92m{text}\033[0m")
     print_green_text("生成太极!")
-    StandardGenerate(sampleThreshold=1000, overlayThreshold=155, frame_type="origin", pathDict=StdSportsResultsPATHS["太极"], areadyGenFull=areadyGenFull)  # 采样阈值和遮罩阈值
-    print_green_text("生成健美操!")
-    StandardGenerate(sampleThreshold=3500, overlayThreshold=155, frame_type="draw", pathDict=StdSportsResultsPATHS["健美操"], areadyGenFull=areadyGenFull)
-    print_green_text("生成瑜伽!")
-    StandardGenerate(sampleThreshold=500, overlayThreshold=180, frame_type="draw", pathDict=StdSportsResultsPATHS["瑜伽"], areadyGenFull=areadyGenFull)
+    # StandardGenerate(sampleThreshold=1000, overlayThreshold=155, frame_type="origin", pathDict=StdSportsResultsPATHS["太极"], areadyGenFull=areadyGenFull)  # 采样阈值和遮罩阈值
+    # print_green_text("生成健美操!")
+    # StandardGenerate(sampleThreshold=3500, overlayThreshold=155, frame_type="draw", pathDict=StdSportsResultsPATHS["健美操"], areadyGenFull=areadyGenFull)
+    # print_green_text("生成瑜伽!")
+    # StandardGenerate(sampleThreshold=500, overlayThreshold=180, frame_type="draw", pathDict=StdSportsResultsPATHS["瑜伽"], areadyGenFull=areadyGenFull)
+    StandardGenerate_2(sampleThreshold=1, overlayThreshold=55, frame_type="origin", pathDict=taijipathdict, areadyGenFull=0, areadyGenMasked=0)
 
 # @A last new line here:

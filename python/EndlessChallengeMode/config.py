@@ -61,7 +61,7 @@ POSE_LANDMARKS = {
 
 # 相较限时模式，添加
 TIMER_CONFIG = {
-    "round_duration": 5,  # 回合时长（秒）
+    "round_duration": 25,  # 回合时长（秒）
     "max_lives": 3,        # 最大生命值
     "bar_width": 200,      # 读条宽度
     "bar_height": 20       # 读条高度

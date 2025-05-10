@@ -1,6 +1,8 @@
 import sys
 from pathlib import Path
 
+from anyio import sleep
+
 MEDIA_PIPE_ROOT = Path(__file__).resolve().parent.parent
 sys.path.append(str(MEDIA_PIPE_ROOT))
 
@@ -66,8 +68,9 @@ class TimedChallengeMode:
         # 初始化 Pygame 窗口、音频、反馈系统
         self.screen = pygame.display.set_mode(WIN_SIZE, DOUBLEBUF | RESIZABLE)
         pygame.display.set_caption("Motion Coach Pro")
-        mixer.music.load("gameAssets/sounds/timed_bgm.mp3")
-        mixer.music.set_volume(0.3)
+        # mixer.music.load("gameAssets/sounds/timed_bgm.mp3")
+        mixer.music.load("gameAssets/sounds/SJTUbgm2.mp3")
+        mixer.music.set_volume(0.8)
         mixer.music.play(-1)
         self.feedback_sys = FeedbackSystem()
 
@@ -206,6 +209,9 @@ class TimedChallengeMode:
             self.pose_start_time = time.time()
             # 关闭重置时间标志位
             self.pose_start_timing_flag = False
+
+        if time.time() - self.pose_start_time > 3.0:    # 花费时间大于3秒
+            condition = 0.5
 
         if condition > 0.3:
             # 计算到达目标花费的时间
@@ -392,9 +398,10 @@ class TimedChallengeMode:
             """更新"""
             # 更新掩膜索引、点索引
             self.json_line_idx, self.std_overlay_idx = self.idx_update(condition=self.match_score)
+            # time.sleep(4)
             # self.json_line_idx, self.std_overlay_idx = self.idx_update(True)  # 调试
-            # print(f"掩膜帧索引：{self.std_overlay_idx}")  # 调试
-            # print(f"标准点帧索引：{self.json_line_idx}")  # 调试
+            print(f"掩膜帧索引：{self.std_overlay_idx}")  # 调试
+            print(f"标准点帧索引：{self.json_line_idx}")  # 调试
 
             """绘制"""
             # 画布绘制左右翻转的实时画面，这里必须返回接收画布
@@ -419,12 +426,12 @@ class TimedChallengeMode:
 
             # 绘制界面元素
             # 1. 显示"Timed Mode"标题
-            title_surf = FONT_CONFIG["title"].render("Timed Mode", True, (255, 255, 255))
+            title_surf = FONT_CONFIG["title"].render("TaiChi Practice", True, (255, 255, 255))
             title_rect = title_surf.get_rect(center=(WIN_WIDTH // 2, 30))
             self.screen.blit(title_surf, title_rect)
 
             # 2. 显示倒计时
-            time_text = FONT_CONFIG["score"].render(f"Time Left: {remaining_time}", True, (255, 215, 0))
+            time_text = FONT_CONFIG["score"].render(f"MOVE {self.std_overlay_idx}", True, (255, 215, 0))
             time_rect = time_text.get_rect(topright=(WIN_WIDTH - 20, 20))
             self.screen.blit(time_text, time_rect)
 
@@ -448,7 +455,7 @@ if __name__ == "__main__":
     sport = get_sport_type(sport_str = ["TaiChi", "Aerobics", "Yoga"])
     sport = "太极"  # 临时
 
-    mode = TimedChallengeMode(sport_type=sport, challenge_time=60)
+    mode = TimedChallengeMode(sport_type=sport, challenge_time=60000000)
 
     cnt = 1
     while mode.running:

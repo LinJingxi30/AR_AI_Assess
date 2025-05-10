@@ -264,7 +264,7 @@ def draw_game_over(img_dir=END_SCREEN_IMAGE_PATH, score=0, font=FontProperties(f
     return img
 
 # 主程序：双人模式——左右画面分别采集右手（均使用关键点索引16），左右拼接显示
-def main(time_duration=30):
+def main(time_duration=100):
     cv2.namedWindow("Hand Tracking and Animation", cv2.WINDOW_NORMAL)
     cv2.resizeWindow("Hand Tracking and Animation", WIN_SIZE[0], WIN_SIZE[1])
     
@@ -355,7 +355,7 @@ def main(time_duration=30):
 
         """发送"""
         # frame = cv2.cvtColor(combined_frame, cv2.COLOR_BGR2RGB)
-        _, buffer = cv2.imencode('.jpg', frame, [
+        _, buffer = cv2.imencode('.jpg', combined_frame, [
             int(cv2.IMWRITE_JPEG_QUALITY), 75,  # 质量系数
             int(cv2.IMWRITE_JPEG_OPTIMIZE), 1    # 启用Huffman优化
         ])
@@ -388,7 +388,12 @@ if __name__ == "__main__":
     clock = pygame.time.Clock()
     # 获取成绩
     scores_str = f"\nPlayer 1: {final_score[0]}pts;\n Player 2: {final_score[1]}pts !"
-    while True:
+    
+
+
+
+    cnt = 0
+    while cnt < 15: # 发送 15 次
         frame = draw_game_over(score=scores_str, img_dir="gameAssets\images\\tiaowuji_end.png")
         """发送三"""
         _, buffer = cv2.imencode('.jpg', frame, [
@@ -398,8 +403,9 @@ if __name__ == "__main__":
         sys.stdout.buffer.write(buffer.tobytes())
         sys.stdout.flush()
 
-        cv2.imshow("Game Over", frame)
-        if cv2.waitKey(50) & 0xFF == 27:
-            break
-        clock.tick(1)   # 1fps
+        # cv2.imshow("Game Over", frame)
+        # if cv2.waitKey(50) & 0xFF == 27:
+        #     break
+        clock.tick(10)   # 1fps
+        cnt += 1
     cv2.destroyAllWindows()

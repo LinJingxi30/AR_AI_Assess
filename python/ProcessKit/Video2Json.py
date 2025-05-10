@@ -67,6 +67,8 @@ def get_std_json_images(std_video,
         if not success:
             break   # 读取完毕跳出
 
+        image = cv2.flip(image, 1)
+
         # 把视频帧缩放到窗口大小
         image = cv2.resize(image, (win_width, win_height))
 
