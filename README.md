@@ -17,9 +17,10 @@
 - 然后保证项目文件夹中没有.env文件，nodejs会优先使用嵌入python作为解释器
 ### nodejs
 - 运行npm run build开始打包，注意需要先打包Python环境
-使用pkg打包，输出目录为dist，assets为Static,pyhon和env三个文件夹所有文件
-
-# **执行pack.bat可以一键 构建嵌入式python并安装依赖+nodejs打包 最终在dist/下获得exe文件**
+- 使用pkg打包，输出目录为dist，
+  
+然后将dist下exe文件和Static,pyhon和env三个文件夹放在同一个目录下双击exe即可
+**执行pack.bat可以一键 构建嵌入式python并安装依赖+nodejs打包 最终在dist/下获得exe文件**
 
 
 

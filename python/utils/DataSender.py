@@ -32,6 +32,6 @@ class DataSender:
             "command": command,
             **kwargs
         }
-        sys.stdout.write("---FRAME---\n")
-        sys.stdout.write(json.dumps(header) + "\n")
+        sys.stdout.buffer.write(b"---FRAME---\n")
+        sys.stdout.buffer.write((json.dumps(header) + "\n").encode('utf-8'))
         sys.stdout.flush()

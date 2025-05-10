@@ -19,7 +19,7 @@
 {"type":"control", "command":"PLAY_AUDIO", "flag":1}
 ```
 command: 命令名称
-flag：音频控制标志位
+flag：音频控制标志位，int
 
 ## Socket.IO API
 
@@ -91,6 +91,15 @@ flag：音频控制标志位
     "message": "Capture process has stopped",
     "code": 0
   }
+  ```
+
+### 8. `get_process_status`
+- **描述**: 获取当前房间的Python进程状态
+- **事件类型**: `emit`
+- **返回事件**: `process_status`
+- **返回数据格式**: 
+  ```json
+  "进程状态描述" // "运行中" 或 "已停止"
   ```
 
 ---

@@ -4,7 +4,7 @@ import os
 # 获取当前脚本的绝对路径（RealPractice.py 的路径）
 current_script_path = os.path.abspath(__file__)
 # 获取项目根目录（media_pipe 目录）
-project_root = os.path.dirname(current_script_path)
+project_root = os.path.dirname(os.path.abspath(__file__))
 # 将项目根目录添加到 Python 模块搜索路径
 sys.path.append(project_root)
 import cv2

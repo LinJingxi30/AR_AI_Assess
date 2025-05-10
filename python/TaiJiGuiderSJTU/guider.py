@@ -11,9 +11,10 @@ import cv2
 import pygame
 import mediapipe as mp
 import numpy as np
-import draw
+
 PY_ROOT = Path(__file__).resolve().parent.parent
 sys.path.append(str(PY_ROOT))   # 添加 Python 根目录到模块搜索路径中
+from TaiJiGuiderSJTU import draw
 from Config import WIN_SIZE, STD_SPORTS_RESULTS_ROOT
 from utils.DataSender import DataSender
 
@@ -686,8 +687,10 @@ class Guider:
 # @A last new line here:
 
 if __name__ == "__main__":
+    
     # 创建 Guider 实例
     TaiJiGuider = Guider()
+    DataSender.send_control("PLAY_AUDIO",flag = 1)
     # 开始运行
     TaiJiGuider.running = True
     # 渲染循环

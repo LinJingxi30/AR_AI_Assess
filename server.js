@@ -105,6 +105,15 @@ io.on('connection', (socket) => {
         broadcastConnections(); // 广播更新
     });
 
+    // 添加获取进程状态的处理
+    socket.on('get_process_status', () => {
+        const room = connections.get(socket.id)?.room;
+        if (!room) return;
+        
+        const status = pythonProcesses.has(room) ? '运行中' : '未运行';
+        socket.emit('process_status', status);
+    });
+
     // 处理开始捕捉的请求
     socket.on('start_capture', ({ mainMode, subMode }) => {
         const room = connections.get(socket.id)?.room;
@@ -173,6 +182,7 @@ io.on('connection', (socket) => {
                         // console.log('解析到的帧头:', headerStr);
                         // 处理控制帧
                         if (frameState.header.type === 'control') {
+                            // console.log('解析到控制帧:', headerStr);
                             io.to(room).emit('control', frameState.header);
                             frameState = null;
                             continue;
@@ -222,7 +232,7 @@ io.on('connection', (socket) => {
         pythonProcess.on('close', (code) => {
             console.log(`Python脚本退出 (${room})，代码: ${code}`);
             pythonProcesses.delete(room);
-            broadcastProcessStatus(room, '已停止');
+            broadcastProcessStatus(room, '未运行');
         });
 
         broadcastProcessStatus(room, '运行中');

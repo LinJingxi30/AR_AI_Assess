@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>实时画面显示</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="js/chart.js"></script>
+    <script src="js/mqtt.min.js"></script>
+    <style>
+     
+    </style>
+  </head>
+  <body class="bg-black flex justify-center items-center h-screen">
+    <!-- 新增蒙版层 -->
+    <!-- <div class="fixed inset-0 bg-[url('images/bk3.png')] bg-cover opacity-80 z-10"></div> -->
+
+    <img id="live-feed" alt="实时画面" class="max-w-full max-h-full object-contain" />
+
+    <div id="chart-container" class="absolute top-4 right-4 bg-transparent p-4 rounded shadow-lg">
+      <canvas id="health-chart" width="400" height="200"></canvas>
+    </div>
+
+    <!-- 添加音频控制组件 -->
+    <div class="fixed bottom-4 right-4 z-20 flex gap-4">
+      <select id="main-mode-select" class="bg-white/80 rounded px-4 py-2">
+        <option value="">选择中心主题</option>
+        <option value="train">训练</option>
+        <option value="challenge">挑战</option>
+        <option value="fitness">健身</option>
+      </select>
+      <select id="sub-mode-select" class="bg-white/80 rounded px-4 py-2" disabled>
+        <option value="">请先选择中心主题</option>
+      </select>
+      <button id="start-btn" onclick="startCapture()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700" style="display:block">
+        开始运动
+      </button>
+      <button id="stop-btn" onclick="stopCapture()" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700" style="display:none">
+        结束运动
+      </button>
+    </div>
+
+    <!-- 音频元素 -->
+    <audio id="audio-1" src="audio/1.欢迎使用AR智能太极系统......mp3" preload="auto"></audio>
+    <audio id="audio-2" src="audio/2.准备好了吗？让我们开始吧。.mp3" preload="auto"></audio>
+    <audio id="audio-3" src="audio/3.首先，您会看到画面上.....mp3" preload="auto"></audio>
+    <audio id="audio-4" src="audio/4.很好.mp3" preload="auto"></audio>
+
+    <script src="js/socket.io.min.js"></script>
+    <script>
+      let { protocol, host } = window.location;
+      let baseURL = protocol + "//" + host;
+      let lastUrl;
+
+      const liveFeed = document.getElementById("live-feed");
+      const socket = io(baseURL, { 
+        reconnection: true, 
+        reconnectionAttempts: 5,
+      });
+      let roomID ;
+
+      const startBtn = document.getElementById("start-btn");
+      const stopBtn = document.getElementById("stop-btn");
+
+      socket.on('connect', () => {
+        // 默认加入 和id相同名字的 房间
+        if (sessionStorage.getItem("roomID")) {
+          roomID = sessionStorage.getItem("roomID");
+          socket.emit("join_room", { room: roomID });
+        }
+        socket.emit("get_process_status"); // 连接时获取状态
+      });
+
+      socket.on("process_status", (status) => {
+        if(status === "运行中") {
+          startBtn.style.display = "none";
+          stopBtn.style.display = "block";
+          mainModeSelect.style.display = "none";
+          subModeSelect.style.display = "none";
+        } else if(status === "未运行") {
+          startBtn.style.display = "block";
+          stopBtn.style.display = "none";
+          mainModeSelect.style.display = "block";
+          subModeSelect.style.display = "block";
+        }
+      });
+
+      socket.on("update_room", (room) => {
+        roomID = room;
+        sessionStorage.setItem("roomID", roomID);
+        console.log(`房间已更新: ${roomID}`);
+      });
+
+      socket.on("frame", (data) => {
+        if (data) {
+          if (lastUrl) {
+            URL.revokeObjectURL(lastUrl); // 释放之前的URL
+          }
+          // 创建一个Blob对象并生成URL
+          const blob = new Blob([data], { type: "image/jpeg" });
+          lastUrl = URL.createObjectURL(blob);
+
+          // 设置img元素的src属性为Blob URL
+          liveFeed.src = lastUrl;
+        } else {
+          console.error("接收到空数据");
+        }
+        // liveFeed.src = 'data:image/jpeg;base64,' + data;
+        data = null;
+      });
+
+      socket.on("connect_error", (error) => {
+        console.error("Socket.IO 连接错误:", error);
+      });
+
+      socket.on("disconnect", () => {
+        console.warn("Socket.IO 断开连接，尝试重连...");
+        liveFeed.src = "";
+        frameQueue = [];
+        isProcessing = false;
+      });
+
+      socket.on("reconnect", () => {
+        console.log("Socket.IO 重连成功");
+      });
+
+      // 清理资源
+      window.addEventListener('beforeunload', () => {
+        clearInterval(fpsInterval);
+        socket.disconnect();
+        frameQueue = [];
+      });
+
+      // 添加模式映射
+      const modeMap = {
+        train: ["真人", "虚拟人物", "练习模式"],
+        challenge: ["限时", "无尽"],
+        fitness: ["单人", "多人"]
+      };
+
+      const mainModeSelect = document.getElementById("main-mode-select");
+      const subModeSelect = document.getElementById("sub-mode-select");
+      const audioElements = {
+        1: document.getElementById("audio-1"),
+        2: document.getElementById("audio-2"),
+        3: document.getElementById("audio-3"),
+        4: document.getElementById("audio-4")
+      };
+
+      function updateSubModes() {
+        const mainMode = mainModeSelect.value;
+        const subModes = modeMap[mainMode] || [];
+        
+        subModeSelect.innerHTML = subModes.length
+          ? subModes.map(subMode => `<option value="${subMode}">${subMode}</option>`).join('')
+          : '<option value="">请先选择中心主题</option>';
+        
+        subModeSelect.disabled = !subModes.length;
+      }
+
+      function startCapture() {
+        const mainMode = mainModeSelect.value;
+        const subMode = subModeSelect.value;
+        if (!mainMode || !subMode) {
+          alert("请选择中心主题和子模式！");
+          return;
+        }
+        socket.emit("start_capture", { mainMode, subMode });
+      }
+
+      function stopCapture() {
+        socket.emit("stop_capture");
+      }
+
+      // 监听控制消息
+      socket.on("control", (data) => {
+        console.log("接收到控制消息:", data);
+        if (data.command === "PLAY_AUDIO") {
+          console.log(`播放音频: ${data.flag}`);
+          const audio = audioElements[data.flag];
+          if (audio) {
+            // 停止所有其他音频
+            Object.values(audioElements).forEach(a => {
+              if (a !== audio) a.pause();
+            });
+            // 播放指定音频
+            audio.currentTime = 0;
+            audio.play();
+          }
+        }
+      });
+
+      mainModeSelect.addEventListener("change", updateSubModes);
+    </script>
+  </body>
+</html>

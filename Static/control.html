@@ -30,15 +30,15 @@
         </select>
       </div>
       <div class="flex justify-center gap-4 mb-6">
-        <button onclick="startCapture()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-          开始捕捉
+        <button id="start-btn" onclick="startCapture()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700" style="display:block">
+          开始运动
         </button>
-        <button onclick="stopCapture()" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
-          停止捕捉
+        <button id="stop-btn" onclick="stopCapture()" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700" style="display:none">
+          结束运动
         </button>
       </div>
       <div class="flex justify-center">
-        <p id="process-status" class="text-lg font-bold">子进程状态: 未启动</p>
+        <p id="process-status" class="text-lg font-bold">子进程状态: unknow</p>
       </div>
     </div>
 
@@ -52,6 +52,8 @@
       const mainModeSelect = document.getElementById("main-mode-select");
       const subModeSelect = document.getElementById("sub-mode-select");
       const processStatus = document.getElementById("process-status");
+      const startBtn = document.getElementById("start-btn");
+      const stopBtn = document.getElementById("stop-btn");
       const socket = io(baseURL, { reconnection: true, reconnectionAttempts: 5 });
       let roomID;
 
@@ -67,9 +69,21 @@
           roomID = sessionStorage.getItem("roomID");
           socket.emit("join_room", { room: roomID });
         }
+        socket.emit("get_process_status");
       });
       socket.on("process_status", (status) => {
         processStatus.textContent = `子进程状态: ${status}`;
+        if(status === "运行中") {
+          startBtn.style.display = "none";
+          stopBtn.style.display = "block";
+          mainModeSelect.style.display = "none";
+          subModeSelect.style.display = "none";
+        } else if(status === "未运行") {
+          startBtn.style.display = "block";
+          stopBtn.style.display = "none";
+          mainModeSelect.style.display = "block";
+          subModeSelect.style.display = "block";
+        }
       });
 
       socket.on("update_room", (room) => {
