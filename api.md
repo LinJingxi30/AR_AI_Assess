@@ -1,5 +1,26 @@
 # API 文档
 
+## nodejs和python通信数据格式
+
+### 帧格式
+每个数据帧以 `---FRAME---\n` 作为起始标记，后跟 JSON 格式的头部信息和可选的二进制数据。
+
+#### 图像帧格式
+```
+---FRAME---
+{"type":"image", "length":123456}
+<binary_data>
+```
+- length：后置binary_data长度
+
+#### 控制帧格式
+```
+---FRAME---
+{"type":"control", "command":"PLAY_AUDIO", "flag":1}
+```
+command: 命令名称
+flag：音频控制标志位
+
 ## Socket.IO API
 
 ### 1. `frame`

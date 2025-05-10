@@ -15,6 +15,7 @@ import draw
 PY_ROOT = Path(__file__).resolve().parent.parent
 sys.path.append(str(PY_ROOT))   # 添加 Python 根目录到模块搜索路径中
 from Config import WIN_SIZE, STD_SPORTS_RESULTS_ROOT
+from utils.DataSender import DataSender
 
 """
 备注：
@@ -679,8 +680,7 @@ class Guider:
         """
         发送 JPEG 数据：打印在标准输出流
         """
-        sys.stdout.buffer.write(data)
-        sys.stdout.flush()
+        DataSender.send_frame(data)
 
 
 # @A last new line here:

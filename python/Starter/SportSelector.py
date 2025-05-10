@@ -11,6 +11,7 @@ from cvzone.PoseModule import PoseDetector
 from Config.common_data import WIN_SIZE, FPS
 import Starter.config as this_config
 from Starter.draw import *
+from  utils.DataSender import DataSender
 
 # 防止同名解析混淆
 THIS_VIS_CONFIG = this_config.VISUAL_CONFIG
@@ -90,8 +91,7 @@ def get_sport_type(sport_str = ["TaiChi", "Aerobics", "Yoga"]):
 
         """发送至前端"""
         _,buffer = cv2.imencode('.jpg', display_frame)  # 编码为 JPG 格式
-        sys.stdout.buffer.write(buffer)  # 将编码后的数据写入标准输出流
-        sys.stdout.flush()  # 刷新输出流
+        DataSender.send_frame(buffer.tobytes())  # 发送数据
 
         cv2.imshow("Select Sport", display_frame)
         key = cv2.waitKey(1) & 0xFF

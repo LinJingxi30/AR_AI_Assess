@@ -1,5 +1,12 @@
 # -*- coding: utf-8 -*-
 import sys
+import os
+# 获取当前脚本的绝对路径（RealPractice.py 的路径）
+current_script_path = os.path.abspath(__file__)
+# 获取项目根目录（media_pipe 目录）
+project_root = os.path.dirname(current_script_path)
+# 将项目根目录添加到 Python 模块搜索路径
+sys.path.append(project_root)
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
@@ -13,6 +20,7 @@ from matplotlib.font_manager import FontProperties
 import pygame
 from Config.common_data import WIN_SIZE
 from Starter.SportSelector import get_sport_type
+from utils.DataSender import DataSender
 
 # Constants
 DPI = 100
@@ -409,9 +417,7 @@ if __name__ == "__main__":
             int(cv2.IMWRITE_JPEG_QUALITY), 75,  # 质量系数
             int(cv2.IMWRITE_JPEG_OPTIMIZE), 1    # 启用Huffman优化
         ])
-        sys.stdout.buffer.write(buffer.tobytes())
-        sys.stdout.flush()
-
+        DataSender.send_frame(buffer.tobytes())
         cv2.imshow("Pose Animation Game", canvas)
         if cv2.waitKey(1) & 0xFF == 27:  # ESC to exit
             break
@@ -435,8 +441,7 @@ if __name__ == "__main__":
             int(cv2.IMWRITE_JPEG_QUALITY), 75,  # 质量系数
             int(cv2.IMWRITE_JPEG_OPTIMIZE), 1  # 启用Huffman优化
         ])
-        sys.stdout.buffer.write(buffer.tobytes())
-        sys.stdout.flush()
+        DataSender.send_frame(buffer.tobytes())
 
         # cv2.imshow("Game Over", frame)
         # if cv2.waitKey(50) & 0xFF == 27:

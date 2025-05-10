@@ -20,6 +20,7 @@ import pygame
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_agg import FigureCanvasAgg
 from matplotlib.font_manager import FontProperties
+from utils.DataSender import DataSender
 
 
 VISUAL_CONFIG = {
@@ -187,8 +188,7 @@ def main():
             int(cv2.IMWRITE_JPEG_QUALITY), 75,
             int(cv2.IMWRITE_JPEG_OPTIMIZE), 1
         ])
-        sys.stdout.buffer.write(buffer)
-        sys.stdout.flush()
+        DataSender.send_frame(buffer.tobytes())
 
         # 显示窗口
         display_frame = cv2.resize(frame, WIN_SIZE)
@@ -211,8 +211,7 @@ def main():
             int(cv2.IMWRITE_JPEG_QUALITY), 75,  # 质量系数
             int(cv2.IMWRITE_JPEG_OPTIMIZE), 1  # 启用Huffman优化
         ])
-        sys.stdout.buffer.write(buffer.tobytes())
-        sys.stdout.flush()
+        DataSender.send_frame(buffer.tobytes())
 
         # cv2.imshow("Game Over", frame)
         # if cv2.waitKey(50) & 0xFF == 27:

@@ -1,4 +1,11 @@
 import sys
+import os
+# 获取当前脚本的绝对路径（RealPractice.py 的路径）
+current_script_path = os.path.abspath(__file__)
+# 获取项目根目录（media_pipe 目录）
+project_root = os.path.dirname(current_script_path)
+# 将项目根目录添加到 Python 模块搜索路径
+sys.path.append(project_root)
 import pygame
 from cvzone.PoseModule import PoseDetector
 from enum import Enum
@@ -13,6 +20,7 @@ import random
 import time
 import threading
 import queue
+from utils.DataSender import DataSender
 
 from Starter.SportSelector import get_sport_type
 from ProcessKit import Draw
@@ -359,8 +367,7 @@ def main(time_duration=100):
             int(cv2.IMWRITE_JPEG_QUALITY), 75,  # 质量系数
             int(cv2.IMWRITE_JPEG_OPTIMIZE), 1    # 启用Huffman优化
         ])
-        sys.stdout.buffer.write(buffer.tobytes())
-        sys.stdout.flush()
+        DataSender.send_frame(buffer.tobytes())
 
         cv2.imshow("Hand Tracking and Animation", combined_frame)
         cv2.resizeWindow("Hand Tracking and Animation", WIN_SIZE[0], WIN_SIZE[1])
@@ -400,8 +407,7 @@ if __name__ == "__main__":
             int(cv2.IMWRITE_JPEG_QUALITY), 75,  # 质量系数
             int(cv2.IMWRITE_JPEG_OPTIMIZE), 1  # 启用Huffman优化
         ])
-        sys.stdout.buffer.write(buffer.tobytes())
-        sys.stdout.flush()
+        DataSender.send_frame(buffer.tobytes())
 
         # cv2.imshow("Game Over", frame)
         # if cv2.waitKey(50) & 0xFF == 27:

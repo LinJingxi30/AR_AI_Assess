@@ -22,6 +22,7 @@ from pygame import mixer
 
 from Starter.SportSelector import get_sport_type
 from ProcessKit import Draw
+from utils.DataSender import DataSender
 
 # 窗口参数
 WIN_WIDTH, WIN_HEIGHT = WIN_SIZE
@@ -345,8 +346,7 @@ class TimedChallengeMode:
             arr = pygame.surfarray.array3d(self.screen)   # shape: (width, height, 3)
             arr = np.swapaxes(arr, 0, 1)                  # shape: (height, width, 3)
             _,buffer = cv2.imencode('.jpg', arr)  # 编码为 JPG 格式
-            sys.stdout.buffer.write(buffer)  # 将编码后的数据写入标准输出流
-            sys.stdout.flush()  # 刷新输出流
+            DartaSender.send_frame(buffer.tobytes())  # 发送数据
 
         # 清理资源
         self.cap.release()
@@ -474,8 +474,7 @@ if __name__ == "__main__":
             int(cv2.IMWRITE_JPEG_QUALITY), 75,  # 质量系数
             int(cv2.IMWRITE_JPEG_OPTIMIZE), 1    # 启用Huffman优化
         ])
-        sys.stdout.buffer.write(buffer.tobytes())
-        sys.stdout.flush()
+        DataSender.send_frame(buffer.tobytes())  # 发送数据
 
     final_score = mode.feedback_sys.total_score
     print_green_text = lambda text: print(f"\033[92m{text}\033[0m", file=sys.stderr)
@@ -495,8 +494,7 @@ if __name__ == "__main__":
             int(cv2.IMWRITE_JPEG_QUALITY), 75,  # 质量系数
             int(cv2.IMWRITE_JPEG_OPTIMIZE), 1  # 启用Huffman优化
         ])
-        sys.stdout.buffer.write(buffer.tobytes())
-        sys.stdout.flush()
+        DataSender.send_frame(buffer.tobytes())  # 发送数据
         # cv2.imshow("Game Over", frame)
         # if cv2.waitKey(50) & 0xFF == 27:
         #     break

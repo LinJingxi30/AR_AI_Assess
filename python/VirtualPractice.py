@@ -1,8 +1,14 @@
 # -*- coding: utf-8 -*-
 import sys
-from pathlib import Path
+import os
 import cv2
 import numpy as np
+# 获取当前脚本的绝对路径（RealPractice.py 的路径）
+current_script_path = os.path.abspath(__file__)
+# 获取项目根目录（media_pipe 目录）
+project_root = os.path.dirname(current_script_path)
+# 将项目根目录添加到 Python 模块搜索路径
+sys.path.append(project_root)
 import os
 import time
 from cvzone.PoseModule import PoseDetector
@@ -14,6 +20,7 @@ from matplotlib.backends.backend_agg import FigureCanvasAgg
 from matplotlib.font_manager import FontProperties
 
 from ProcessKit import Draw
+from utils.DataSender import DataSender
 
 WIN_WIDTH, WIN_HEIGHT = WIN_SIZE
 
@@ -181,8 +188,7 @@ def main():
             int(cv2.IMWRITE_JPEG_QUALITY), 75,
             int(cv2.IMWRITE_JPEG_OPTIMIZE), 1
         ])
-        sys.stdout.buffer.write(buffer)
-        sys.stdout.flush()
+        DataSender.send_frame(buffer.tobytes())
 
         # 显示窗口
         display_frame = cv2.resize(frame, WIN_SIZE)
@@ -207,8 +213,7 @@ def main():
             int(cv2.IMWRITE_JPEG_QUALITY), 75,  # 质量系数
             int(cv2.IMWRITE_JPEG_OPTIMIZE), 1  # 启用Huffman优化
         ])
-        sys.stdout.buffer.write(buffer.tobytes())
-        sys.stdout.flush()
+        DataSender.send_frame(buffer.tobytes())
 
         # cv2.imshow("Game Over", frame)
         # if cv2.waitKey(50) & 0xFF == 27:

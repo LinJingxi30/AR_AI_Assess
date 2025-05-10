@@ -18,6 +18,7 @@ from pygame.locals import *
 from pygame import mixer
 
 from Starter.SportSelector import get_sport_type
+from utils.DataSender import DataSender
 
 
 # 窗口参数
@@ -425,8 +426,7 @@ if __name__ == "__main__":
             int(cv2.IMWRITE_JPEG_QUALITY), 75,  # 质量系数
             int(cv2.IMWRITE_JPEG_OPTIMIZE), 1    # 启用Huffman优化
         ])
-        sys.stdout.buffer.write(buffer.tobytes())
-        sys.stdout.flush()
+        DataSender.send_frame(buffer.tobytes())  # 发送数据
 
     final_score = mode.feedback_sys.total_score
     print_green_text = lambda text: print(f"\033[92m{text}\033[0m", file=sys.stderr)
@@ -446,8 +446,7 @@ if __name__ == "__main__":
             int(cv2.IMWRITE_JPEG_QUALITY), 75,  # 质量系数
             int(cv2.IMWRITE_JPEG_OPTIMIZE), 1  # 启用Huffman优化
         ])
-        sys.stdout.buffer.write(buffer.tobytes())
-        sys.stdout.flush()
+        DataSender.send_frame(buffer.tobytes())  # 发送数据
         # cv2.imshow("Game Over", frame)
         # if cv2.waitKey(50) & 0xFF == 27:
         #     break

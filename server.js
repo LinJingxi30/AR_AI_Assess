@@ -16,7 +16,7 @@ app.use(express.static('Static'));
 app.use(express.json());
 
 // 定义 Python 解释器路径和脚本路径
-const PYTHON_INTERPRETER =  (process.env.PYTHON_INTERPRETER || 'env/python.exe'); // 默认使用当前目录下的 python.exe
+const PYTHON_INTERPRETER = (process.env.PYTHON_INTERPRETER || 'env/python.exe'); // 默认使用当前目录下的 python.exe
 
 // 定义不同主模式和子模式对应的 Python 脚本
 const PYTHON_SCRIPTS = {
@@ -30,7 +30,6 @@ const PYTHON_SCRIPTS = {
         "无尽": "EndlessChallengeMode/EndlessChallengeClass.py"
     },
     fitness: {
-        // "单人": "1pFitnessMode/1pFitnessClass.py",
         "单人": "1pFitness.py",
         "多人": "2pFitness.py"
     }
@@ -87,7 +86,7 @@ function broadcastProcessStatus(room, status) {
 io.on('connection', (socket) => {
     console.log(`A user connected: ${socket.id}`);
     // const defaultRoom = socket.id; // 默认房间为自身 ID
-    const defaultRoom = "room"; 
+    const defaultRoom = "room";
     connections.set(socket.id, { room: defaultRoom });
     socket.join(defaultRoom);
 
@@ -112,13 +111,13 @@ io.on('connection', (socket) => {
         if (!room) return;
 
         console.log(`Socket ${socket.id} requested to start capture in room: ${room}, mainMode: ${mainMode}, subMode: ${subMode}`);
-        
+
         if (pythonProcesses.has(room)) {
             broadcastProcessStatus(room, '已启动');
             return;
         }
 
-        const scriptPath = path.join('python',PYTHON_SCRIPTS[mainMode]?.[subMode]);
+        const scriptPath = path.join('python', PYTHON_SCRIPTS[mainMode]?.[subMode]);
         if (!scriptPath) {
             console.error(`未找到对应的脚本: mainMode=${mainMode}, subMode=${subMode}`);
             return;
@@ -128,25 +127,93 @@ io.on('connection', (socket) => {
         pythonProcesses.set(room, pythonProcess);
 
         broadcastProcessStatus(room, '启动中');
-        let chunks = []
-        pythonProcess.stdout.on('data', (data) => {
-            const uintArray = new Uint8Array(data);
-            // 检查 JPEG 文件头
-            if (uintArray[0] === 0xFF && uintArray[1] === 0xD8) {
-                // console.log("检测到 JPEG 文件头，开始合并数据块");
 
-                // 合并当前的 chunks 数组并发送
-                if (chunks.length > 0) {
-                    const completeImage = Buffer.concat(chunks);
-                    io.to(room).emit('frame', completeImage);
-                    // 清空数组以便接收新的图像
-                    chunks = [];
+        // 初始化缓冲区和帧状态
+        let buffer = Buffer.alloc(0);  // 用于存储接收到的数据
+        let frameState = null;  // 用于跟踪当前帧的处理状态
+
+        pythonProcess.stdout.on('data', (chunk) => {
+            // console.log('收到数据块，长度:', chunk.length);
+            // 将新接收的数据追加到缓冲区
+            buffer = Buffer.concat([buffer, chunk]);
+            // console.log('当前缓冲区总长度:', buffer.length);
+            // 只要缓冲区还有数据就继续处理
+            while (buffer.length > 0) {
+                // 第一步：查找帧标记
+                if (!frameState) {
+                    // TODO: 可以将标记字符串定义为常量，提高复用性
+                    const marker = Buffer.from('---FRAME---\n');
+                    const markerIndex = buffer.indexOf(marker);
+                    // console.log('查找帧标记:', markerIndex !== -1 ? '找到位置:' + markerIndex : '未找到');
+                    // 优化点：可以缓存marker.length避免重复计算
+                    if (markerIndex === -1) break;  // 没找到标记，等待更多数据
+
+                    // 移除标记之前的数据和标记本身
+                    buffer = buffer.slice(markerIndex + marker.length);
+                    // 初始化新帧的状态
+                    frameState = {
+                        header: null,           // 帧头信息
+                        expectedLength: 0,      // 预期的数据长度
+                        receivedBuffer: []      // 接收到的数据缓冲区
+                    };
+                }
+
+                // 第二步：解析帧头
+                if (frameState && !frameState.header) {
+                    const newlineIndex = buffer.indexOf(0x0A);  // 查找换行符
+                    // console.log('查找帧头结束符:', newlineIndex !== -1 ? '找到位置:' + newlineIndex : '未找到');
+                    if (newlineIndex === -1) break;  // 帧头不完整，等待更多数据
+
+                    // 提取并解析帧头
+                    const headerStr = buffer.slice(0, newlineIndex).toString('utf8');
+                    buffer = buffer.slice(newlineIndex + 1);
+
+                    try {
+                        frameState.header = JSON.parse(headerStr);
+                        // console.log('解析到的帧头:', headerStr);
+                        // 处理控制帧
+                        if (frameState.header.type === 'control') {
+                            io.to(room).emit('control', frameState.header);
+                            frameState = null;
+                            continue;
+                        }else if (frameState.header.type === 'image') {
+                            frameState.expectedLength = frameState.header.length;
+                            frameState.receivedLength = 0;
+                        } else {
+                            console.warn('未知帧类型：', frameState.header.type);
+                            frameState = null;
+                        }
+                    } catch (err) {
+                        console.error('解析帧头失败：', err);
+                        frameState = null;
+                    }
+                }
+
+                // 第三步：收集图像数据
+                if (frameState?.header?.type === 'image') {
+                    // 计算还需要接收的数据长度
+                    const remaining = frameState.expectedLength - frameState.receivedLength;
+                    const toTake = Math.min(buffer.length, remaining);
+                    // console.log('接收图像数据片段:', toTake, '字节');
+                    // 将数据添加到帧缓冲区
+                    frameState.receivedBuffer.push(buffer.slice(0, toTake));
+                    frameState.receivedLength += toTake;
+                    buffer = buffer.slice(toTake);
+
+                    // 检查是否接收完整帧
+                    if (frameState.receivedLength >= frameState.expectedLength) {
+                        // 合并所有接收到的数据块
+                        const imageBuffer = Buffer.concat(frameState.receivedBuffer);
+                        // 发送完整的图像帧
+                        io.to(room).emit('frame', imageBuffer);
+                        frameState = null;
+                    }
+                } else {
+                    break;  // 等待下一个帧
                 }
             }
-
-            // 将数据块推入数组
-            chunks.push(data);
         });
+
 
         pythonProcess.stderr.on('data', (data) => {
             console.error(`Python脚本错误 (${room}): ${data}`);
