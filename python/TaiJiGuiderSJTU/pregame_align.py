@@ -30,6 +30,8 @@ PTS_PAIR_COLORS = [
     [(23, 210, 255)],  
 ]
 
+PTS_CONDITION_THRESH = [[50], [50], [50], [50]] # 对应上面的 4 个点的判定阈值
+
 class AlignGuider(Guider):
     def __init__(self):
         super().__init__(paths=PATHS)  # 调用父类会初始化摄像头、mediapipe、pygame、加载 JSON……
@@ -138,7 +140,7 @@ class AlignGuider(Guider):
         """
         根据条件，步进跳帧
         """
-        if cur_index < end_index - 1:
+        if cur_index < end_index:
             if all(conditions):
                 # 如果所有条件都满足，跳到下一帧
                 cur_index += 1

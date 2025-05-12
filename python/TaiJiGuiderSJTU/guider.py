@@ -313,7 +313,7 @@ class Guider:
         """
         根据条件，步进跳帧
         """
-        if cur_index < end_index - 1:
+        if cur_index < end_index:
             if all(conditions):
                 # 如果所有条件都满足，跳到下一帧
                 cur_index += 1
