@@ -40,9 +40,10 @@ POSE_ALIGN_LANDMARKS = [19, 20, 31, 32]  # 左指尖、右指尖、左脚尖、�
 PTS_CONDITION_THRESH = [125, 125, 250, 250] # 对应上面的 4 个点的判定阈值
 RT_PTS_TO_CENTER = [11, 12, 23, 24]  # 左肩、右肩、左髋、右髋
 
-BENEATH = 120   # 标准中心相对实时中心降低高度（像素）
-LIGHTNESS = 0.5  # 画布亮度调整系数
-STD_SCALE = 0.4  # 标准对齐点/掩膜缩放系数
+LIGHTNESS = 0.6  # 画布亮度调整系数
+STD_SCALE = 0.45  # 标准对齐点/掩膜缩放系数
+STD_CENTER_Y_OFFSET = -120   # 标准中心相对实时中心降低高度（像素）
+STD_OVERLAY_OPACITY = 0.6  # 掩膜透明度
 
 MAX_SCORE = 100  # 最大分数
 
@@ -362,8 +363,8 @@ class Guider:
         self.rt_landmarks_list = self.get_landmarks_list(self.rt_pose_list, landmarks=POSE_ALIGN_LANDMARKS) # 实时关键（对齐）点列表，格式为： [4 * int(x, y)] 或 []
 
         """获取实时躯干位置；获取标准中心标点"""
-        self.rt_center = self.get_center_from_points_2d(self.rt_pose_list, from_pts_idx=RT_PTS_TO_CENTER, win_size=WIN_SIZE)  # tuple(float, float)
-        self.rt_center = (self.rt_center[0], self.rt_center[1] + BENEATH)   # 参数调整中心点位置，向下偏移 BENEATH 像素
+        self.rt_center = self.get_center_from_points_2d(self.rt_pose_list, from_pts_idx=RT_PTS_TO_CENTER, win_size=WIN_SIZE, y_offset=STD_CENTER_Y_OFFSET)  # tuple(float, float)
+        # self.rt_center = (self.rt_center[0], self.rt_center[1] + BENEATH)   # 参数调整中心点位置，向下偏移 BENEATH 像素
         self.std_center = (self.std_pose_list[0][0] * STD_SCALE, self.std_pose_list[0][1] * STD_SCALE)  # std_pose_list 的第一个元组是标点中心点 (3d to 2d)
 
         """将标准对齐点吸附到用户"""
@@ -376,7 +377,7 @@ class Guider:
                                                     center=self.std_center, target=self.rt_center, 
                                                     win_size=WIN_SIZE, 
                                                     scale=STD_SCALE, 
-                                                    opacity=0.4)  # 在画布上叠加掩膜，掩膜中心点与用户中心点对齐
+                                                    opacity=STD_OVERLAY_OPACITY)  # 在画布上叠加掩膜，掩膜中心点与用户中心点对齐
 
         """绘制 对齐点 + 箭头 到画布"""
         self.canvas = draw.draw_points_and_arrows(self.canvas, 
@@ -606,7 +607,7 @@ class Guider:
         return real_world_frame
 
     @staticmethod
-    def get_center_from_points_2d(full_pose_list, from_pts_idx, win_size) -> tuple[float, float]:
+    def get_center_from_points_2d(full_pose_list, from_pts_idx, win_size, y_offset) -> tuple[float, float]:
         # 默认中心点为窗口中心
         if not from_pts_idx or not full_pose_list:
             return win_size[0] / 2, win_size[1] / 2
@@ -616,7 +617,7 @@ class Guider:
         y_sum = sum(full_pose_list[idx][1] for idx in from_pts_idx)
 
         center_x = x_sum / len(from_pts_idx)
-        center_y = y_sum / len(from_pts_idx)
+        center_y = y_sum / len(from_pts_idx) - y_offset
 
         center_2d = (center_x, center_y)
 

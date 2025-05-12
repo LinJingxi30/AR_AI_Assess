@@ -16,6 +16,7 @@ from pathlib import Path
 from guider import *
 from Config import STD_SPORTS_RESULTS_ROOT, WIN_SIZE
 
+# 重载常量
 PATHS = {
     "标准 JSON 文件路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "C79-V2.1_points_align.json",
     "标准掩膜图片路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "pregame_align",
@@ -23,10 +24,10 @@ PATHS = {
 }
 
 PTS_PAIR_COLORS = [
-    [(140, 50, 0)],    # rgb(0, 50, 140)
-    [(150, 255, 0)],    # rgb(20, 255, 150)
-    [(140, 0, 0)],    # rgb(0, 0, 140)
-    [(50, 205, 0)],    # rgb(20, 205, 0)
+    [(255, 78, 0)],    
+    [(23, 210, 255)],  
+    [(255, 78, 0)],    
+    [(23, 210, 255)],  
 ]
 
 class AlignGuider(Guider):
@@ -35,12 +36,6 @@ class AlignGuider(Guider):
         # 我们只关心这四个 landmark
         self.POSE_ALIGN_LANDMARKS = [[19], [20], [31], [32]]
         self.conditions = [False]
-
-    # def _load_std_resources(self):
-    #     std_json = Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi/C79-V2.1_points_align.json"
-    #     std_frames = Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi/pregame_align"
-    #     self.std_pose_lists = self.load_std_pose_lists(std_json, landmarks=[19, 20, 31, 32])
-    #     self.std_overlay_paths = self.load_std_frame_paths(std_frames)
 
     def main_update(self, frame=None):
         # 可以从外部传实时帧
@@ -116,8 +111,7 @@ class AlignGuider(Guider):
         self.rt_landmarks_list = self.get_landmarks_list(self.rt_pose_list, landmarks=self.POSE_ALIGN_LANDMARK) # 实时关键（对齐）点列表，格式为： [4 * int(x, y)] 或 []
 
         """获取实时躯干位置；获取标准中心标点"""
-        self.rt_center = self.get_center_from_points_2d(self.rt_pose_list, from_pts_idx=RT_PTS_TO_CENTER, win_size=WIN_SIZE)  # tuple(float, float)
-        self.rt_center = (self.rt_center[0], self.rt_center[1] + BENEATH)   # 参数调整中心点位置，向下偏移 BENEATH 像素
+        self.rt_center = self.get_center_from_points_2d(self.rt_pose_list, from_pts_idx=RT_PTS_TO_CENTER, win_size=WIN_SIZE, y_offset=STD_CENTER_Y_OFFSET)  # tuple(float, float)
         self.std_center = (self.std_pose_list[0][0] * STD_SCALE, self.std_pose_list[0][1] * STD_SCALE)  # std_pose_list 的第一个元组是标点中心点 (3d to 2d)
 
         """将标准对齐点吸附到用户"""
@@ -130,7 +124,7 @@ class AlignGuider(Guider):
                                                     center=self.std_center, target=self.rt_center, 
                                                     win_size=WIN_SIZE, 
                                                     scale=STD_SCALE, 
-                                                    opacity=0.4)  # 在画布上叠加掩膜，掩膜中心点与用户中心点对齐
+                                                    opacity=STD_OVERLAY_OPACITY)  # 在画布上叠加掩膜，掩膜中心点与用户中心点对齐
 
         """绘制 对齐点 + 箭头 到画布"""
         pts_colors = PTS_PAIR_COLORS[self.current_std_index]
