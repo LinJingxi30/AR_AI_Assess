@@ -124,7 +124,7 @@ class Guider:
             # 获取 JPEG 字节数据
             frame_to_web = self.get_transmit_frame(self.screen)
             # 发送 JPEG 数据
-            self.send_jpeg_data(frame_to_web)
+            # self.send_jpeg_data(frame_to_web)
             # 更新窗口显示
             pygame.display.flip()
         self.camera.release()
@@ -168,7 +168,7 @@ class Guider:
             # self.conditions = [True] * len(POSE_ALIGN_LANDMARKS)  # 调试
             self.current_std_index = self.index_update(conditions=self.conditions, 
                                                        cur_index=self.current_std_index, 
-                                                       end_index=len(self.std_pose_lists))
+                                                       end_index=len(self.std_pose_lists)-1)
             
             """分数统计"""
             self.score = self.single_posture_score_calc(max_tot_score=MAX_SCORE,
@@ -319,7 +319,8 @@ class Guider:
                 cur_index += 1
                 # elif 三秒
         else:
-            cur_index = 0  # 循环播放
+            if all(conditions):
+                cur_index = 0  # 循环播放
         
         return cur_index
     

@@ -78,7 +78,7 @@ class AlignGuider(Guider):
             # self.conditions = [True] * len(POSE_ALIGN_LANDMARKS)  # 调试
             self.current_std_index = self.index_update(conditions=self.conditions, 
                                                        cur_index=self.current_std_index, 
-                                                       end_index=len(self.std_pose_lists))
+                                                       end_index=len(self.std_pose_lists)-1)
             
             # print(self., self.)
 
@@ -146,7 +146,8 @@ class AlignGuider(Guider):
                 cur_index += 1
                 # elif 三秒
         else:
-            self.running = False  # 退出
+            if all(conditions):
+                self.running = False  # 退出
         
         return cur_index
 
