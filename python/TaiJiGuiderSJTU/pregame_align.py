@@ -1,18 +1,7 @@
-# align_guide.py
-from functools import lru_cache
-import json
-import time
 import sys
 from pathlib import Path
-import mediapipe as mp
-import draw
 PY_ROOT = Path(__file__).resolve().parent.parent
 sys.path.append(str(PY_ROOT))   # 添加 Python 根目录到模块搜索路径中
-from Config import WIN_SIZE, STD_SPORTS_RESULTS_ROOT
-import cv2
-import pygame
-import numpy as np
-from pathlib import Path
 from guider import *
 from Config import STD_SPORTS_RESULTS_ROOT, WIN_SIZE
 
@@ -33,9 +22,10 @@ PTS_PAIR_COLORS = [
 PTS_CONDITION_THRESH = [[50], [50], [50], [50]] # 对应上面的 4 个点的判定阈值
 
 class AlignGuider(Guider):
-    def __init__(self):
-        super().__init__(paths=PATHS)  # 调用父类会初始化摄像头、mediapipe、pygame、加载 JSON……
+    def __init__(self, _paths=PATHS, debug=False):
+        super().__init__(paths=_paths, debug=debug)  # 调用父类会初始化摄像头、mediapipe、pygame、加载 JSON……
         # 我们只关心这四个 landmark
+        self.POSE_ALIGN_LANDMARK = None
         self.POSE_ALIGN_LANDMARKS = [[19], [20], [31], [32]]
         self.conditions = [False]
 
@@ -50,15 +40,10 @@ class AlignGuider(Guider):
             self.frame_rate_clock.tick(self.frame_rate)
 
             """获取实时画面帧"""
-            if frame is None:
-                # 外部未传帧
-                self.real_world_frame = self.camera_capture(camera=self.camera)  # 拍摄实时画面，已经拉伸到窗口大小并左右翻转
-            else:
-                # 外部传帧
-                self.real_world_frame = self.camera_capture(frame=frame)    # 拉伸到窗口大小并左右翻转
-            # 检查实时帧是否获取成功
-            if self.real_world_frame is None:
-                return None
+            # （已翻转）（已拉伸到窗口分辨率）
+            self.real_world_frame = CamUtils.get_camera_processed_frame(camera=self.camera,
+                                                                    win_size=WIN_SIZE,
+                                                                    frame=frame)
             
             """主画布渲染"""
             # 获取对齐点列表 std_landmarks_list 和 rt_landmarks_list；
@@ -75,10 +60,16 @@ class AlignGuider(Guider):
                                  rt_lm_list=self.rt_landmarks_list)
             
             """步进跳帧"""
-            # self.conditions = [True] * len(POSE_ALIGN_LANDMARKS)  # 调试
+            if self.debug:
+                self.conditions = [True] * len(POSE_ALIGN_LANDMARKS)  # 调试
             self.current_std_index = self.index_update(conditions=self.conditions, 
                                                        cur_index=self.current_std_index, 
                                                        end_index=len(self.std_pose_lists)-1)
+            
+            """音频提示指令发送"""
+            # todo:: 逻辑写死什么时候发什么 if
+            self.send_voice_command(command=self.current_std_index+1)  # 发送当前帧的音频提示指令
+
             
             # print(self., self.)
 
@@ -94,19 +85,18 @@ class AlignGuider(Guider):
 
         return self.screen
     
+    def send_voice_command(self, command):
+        DataSender.send_control(command=command)
+    
     def canvas_render(self, rt_frame, conditions):
         """绘制实时画面帧"""
         self.canvas = rt_frame.copy()  # 复制实时画面帧到画布
 
         """标准对齐点加载"""
-        if self.current_std_index >= len(self.std_pose_lists):
-            # todo:: 这里可以添加循环播放的逻辑；结束逻辑
-            pass
-        
         self.POSE_ALIGN_LANDMARK = self.POSE_ALIGN_LANDMARKS[self.current_std_index]
         self.std_pose_list = self.std_pose_lists[self.current_std_index]  # 标准完整姿态列表，从 lists 中获取 list，格式同上
         self.std_landmarks_list = self.get_landmarks_list(self.std_pose_list, landmarks=self.POSE_ALIGN_LANDMARK)   # 标准关键（对齐）点列表，格式同上
-        self.std_overlay = self.get_current_std_overlay(paths=self.std_overlay_paths, overlay_idx=self.current_std_index)  # 标准帧路径，格式为 str
+        # self.std_overlay = self.get_current_std_overlay(paths=self.std_overlay_paths, overlay_idx=self.current_std_index)  # 标准帧路径，格式为 str
 
         """实时对齐点获取"""
         self.rt_pose_list = self.pose_detection(self.real_world_frame)   # 实时完整姿态列表，格式为： [33 * tuple(x, y, z=0)] 或 []
@@ -121,12 +111,12 @@ class AlignGuider(Guider):
         # print(self.std_landmarks_list) # 调试
 
         """叠加掩膜到画布"""
-        self.canvas = (self.canvas * LIGHTNESS).astype(np.uint8)  # 调整画布亮度
-        self.canvas = draw.draw_overlay_centered(self.canvas, self.std_overlay, 
-                                                    center=self.std_center, target=self.rt_center, 
-                                                    win_size=WIN_SIZE, 
-                                                    scale=STD_SCALE, 
-                                                    opacity=STD_OVERLAY_OPACITY)  # 在画布上叠加掩膜，掩膜中心点与用户中心点对齐
+        # self.canvas = (self.canvas * LIGHTNESS).astype(np.uint8)  # 调整画布亮度
+        # self.canvas = draw.draw_overlay_centered(self.canvas, self.std_overlay, 
+        #                                             center=self.std_center, target=self.rt_center, 
+        #                                             win_size=WIN_SIZE, 
+        #                                             scale=STD_SCALE, 
+        #                                             opacity=STD_OVERLAY_OPACITY)  # 在画布上叠加掩膜，掩膜中心点与用户中心点对齐
 
         """绘制 对齐点 + 箭头 到画布"""
         pts_colors = PTS_PAIR_COLORS[self.current_std_index]
@@ -135,21 +125,6 @@ class AlignGuider(Guider):
                                                   self.rt_landmarks_list, 
                                                   conditions,
                                                   colors=pts_colors)
-        
-    def index_update(self, conditions, cur_index, end_index):
-        """
-        根据条件，步进跳帧
-        """
-        if cur_index < end_index:
-            if all(conditions):
-                # 如果所有条件都满足，跳到下一帧
-                cur_index += 1
-                # elif 三秒
-        else:
-            if all(conditions):
-                self.running = False  # 退出
-        
-        return cur_index
 
 
         # canvas = rt_frame.copy()
