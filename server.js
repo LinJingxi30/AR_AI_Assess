@@ -33,7 +33,7 @@ const PYTHON_SCRIPTS = {
     train: {
         "真人": "RealPractice.py",
         "虚拟人物": "VirtualPractice.py",
-        "练习模式": "TaiJiGuiderSJTU/guider.py",
+        "练习模式": "TaiJiGuiderSJTU/main.py",
     },
     challenge: {
         "限时": "OriginTimedchallengeMode/TimedchallengeClass.py",

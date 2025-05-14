@@ -7,10 +7,10 @@ import cv2
 import numpy as np
 
 PTS_PAIR_COLORS = [
-    (140, 50, 0),    # rgb(0, 50, 140)
-    (150, 255, 0),    # rgb(20, 255, 150)
-    (140, 0, 0),    # rgb(0, 0, 140)
-    (50, 205, 0),    # rgb(20, 205, 0)
+    (255, 78, 0),    # rgb(0, 78, 255)
+    (23, 210, 255),  # rgb(255, 210, 23)
+    (255, 78, 0),    # rgb(0, 78, 255)
+    (23, 210, 255),  # rgb(255, 210, 23)
 ]
 
 ARROW_COLORS = {
@@ -20,7 +20,7 @@ ARROW_COLORS = {
 
 ARROW_NUM = 2
 ARROW_SIZE = 12
-ARROW_THICKNESS = 3
+ARROW_THICKNESS = 6
 
 def draw_overlay_centered(canvas, std_overlay, center, target, win_size, scale=1.0, opacity=1.0):
     if std_overlay is None:
@@ -106,12 +106,12 @@ def draw_points_and_arrows(canvas, std_landmarks_list, rt_landmarks_list, condit
 
         # 绘制标准点（配对配色）
         std_lm_pt = (int(std_lm_pt[0]), int(std_lm_pt[1]))  # 将点坐标转换为整数
-        draw_gradient_point(canvas, std_lm_pt, color, size=20, steps=3)
+        draw_transparent_circle(canvas, std_lm_pt, radius=35, color=color, opacity=0.3, thickness=2)
         
         # 绘制实时点（配对配色）
         if rt_lm_pt:
             rt_lm_pt = (int(rt_lm_pt[0]), int(rt_lm_pt[1]))
-            draw_gradient_point(canvas, rt_lm_pt, color, size=20, steps=3)
+            draw_gradient_point(canvas, rt_lm_pt, color, size=30, steps=2)
 
         # 绘制箭头
         # 获取箭头颜色
@@ -128,16 +128,36 @@ def draw_points_and_arrows(canvas, std_landmarks_list, rt_landmarks_list, condit
 
     return canvas
 
-def draw_gradient_point(canvas, point, color, size=20, steps=5):
-    """绘制渐变点"""
-    # print("画")
+def draw_transparent_circle(canvas, center, radius, color, opacity=0.5, thickness=2):
+    """在 canvas 上绘制一个透明填充但边缘不透明的圆
+    参数：
+      canvas   -- 要绘制的图像
+      center   -- 圆心坐标 (x, y)
+      radius   -- 半径
+      color    -- BGR 颜色元组，如 (0, 255, 0)
+      opacity  -- 填充透明度，范围 [0.0, 1.0]
+      thickness-- 边框线宽（正数），若设置为 -1 则为实心
+    """
+    # 在一个 overlay 上画填充圆
     overlay = canvas.copy()
+    cv2.circle(overlay, center, radius, color, -1)
+    # 将 overlay 以 opacity 叠加到原图
+    cv2.addWeighted(overlay, opacity, canvas, 1 - opacity, 0, canvas)
+    # 再在原图上绘制不透明的边框
+    cv2.circle(canvas, center, radius, color, thickness)
+
+def draw_gradient_point(canvas, point, color, size=20, steps=5, opacity=1.0):
+    """绘制渐变点，支持整体透明度"""
+    # 用原始画布做底板，每次循环都从底板 copy 出 overlay
+    base = canvas.copy()
     for i in range(steps):
-        radius = int(size * (i + 1) / steps)
-        alpha = 1.0 - (i / steps)
+        # 由外向内依次绘制，最外层最透明，最内层最不透明
+        t = (steps - i) / steps
+        radius = int(size * t)
+        alpha = opacity * t
+        overlay = base.copy()
         cv2.circle(overlay, point, radius, color, -1)
         cv2.addWeighted(overlay, alpha, canvas, 1 - alpha, 0, canvas)
-    # return canvas
 
 def draw_arrows_line(canvas, start, end, arrow_num, color, size=20, thickness=4):
     """从起点到终点绘制多个箭头"""
@@ -157,16 +177,8 @@ def draw_arrows_line(canvas, start, end, arrow_num, color, size=20, thickness=4)
         # 计算箭头尖端坐标
         current_arrow_tip = (int(start[0] + dx * t), int(start[1] + dy * t))
 
-        # 绘制箭头
+        # 绘制1个箭头
         draw_arrow(canvas, start, current_arrow_tip, color, thickness, size)
-        # cv2.arrowedLine(
-        #     canvas,
-        #     start,
-        #     arrow_tip,
-        #     color,
-        #     thickness=thickness,
-        #     tipLength=0.3
-        # )
 
 def draw_arrow(canvas, start, end, color, thickness, size):
     """绘制对号形状的动态箭头"""

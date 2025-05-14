@@ -17,6 +17,7 @@ sys.path.append(str(PY_ROOT))   # 添加 Python 根目录到模块搜索路径�
 from TaiJiGuiderSJTU import draw
 from Config import WIN_SIZE, STD_SPORTS_RESULTS_ROOT
 from utils.DataSender import DataSender
+import utils.CamUtils as CamUtils
 
 """
 备注：
@@ -37,12 +38,13 @@ from utils.DataSender import DataSender
 WIN_WIDTH, WIN_HEIGHT = WIN_SIZE
 
 POSE_ALIGN_LANDMARKS = [19, 20, 31, 32]  # 左指尖、右指尖、左脚尖、右脚尖
-PTS_CONDITION_THRESH = [125, 125, 250, 250] # 对应上面的 4 个点的判定阈值
+PTS_CONDITION_THRESH = [70, 70, 150, 150] # 对应上面的 4 个点的判定阈值
 RT_PTS_TO_CENTER = [11, 12, 23, 24]  # 左肩、右肩、左髋、右髋
 
-BENEATH = 120   # 标准中心相对实时中心降低高度（像素）
-LIGHTNESS = 0.5  # 画布亮度调整系数
-STD_SCALE = 0.4  # 标准对齐点/掩膜缩放系数
+LIGHTNESS = 0.8  # 画布亮度调整系数
+STD_SCALE = 0.45  # 标准对齐点/掩膜缩放系数
+STD_CENTER_Y_OFFSET = -120   # 标准中心相对实时中心降低高度（像素）
+STD_OVERLAY_OPACITY = 0.6  # 掩膜透明度
 
 MAX_SCORE = 100  # 最大分数
 
@@ -55,12 +57,13 @@ PYGAME_UI_CONFIG = {
         "位置": (180, 60),
     },
     "计分": {
-        "文字": "当前积分：",
+        "文字": "当前动作分：",
         "字体": str(Path(PY_ROOT) / "gameAssets" / "fonts" / "SmileySans-Oblique.ttf"),
         "字号": 40,
         "颜色": (255, 215, 255),  # RGB(255, 215, 255) 
         "位置": (WIN_WIDTH - 160, 60),
     },
+    # todo:: 招式得分
 }
 
 PATHS = {
@@ -69,9 +72,8 @@ PATHS = {
     "背景音乐": Path(PY_ROOT) / "gameAssets" / "sounds" / "SJTUbgm.mp3",
 }
 
-
 class Guider:
-    def __init__(self, paths=PATHS):
+    def __init__(self, paths=PATHS, debug=False):
         # config 配置
         win_topic = "AR太极拳助手"
         self.frame_rate = 60
@@ -102,7 +104,7 @@ class Guider:
         self.screen = None  # pygame 窗口
 
         # init 初始化工具
-        self.camera_init(resolution=(1280, 720))
+        self.camera = CamUtils.camera_init(resolution=(1280, 720))
         self.pose_detector_init()
         self.pygame_init(win_topic=win_topic, win_bgm_path=str(win_bgm_path))
 
@@ -114,6 +116,7 @@ class Guider:
         self.timer = None
         self.conditions = [False] * len(POSE_ALIGN_LANDMARKS)
         self.score = 0
+        self.debug = debug
         self.running = True
 
     def main_loop(self):
@@ -123,10 +126,29 @@ class Guider:
             # 获取 JPEG 字节数据
             frame_to_web = self.get_transmit_frame(self.screen)
             # 发送 JPEG 数据
-            self.send_jpeg_data(frame_to_web)
+            if not self.debug:
+                self.send_jpeg_data(frame_to_web)
             # 更新窗口显示
             pygame.display.flip()
-        self.camera.release()
+
+        return self.score
+
+    def main_loop_with_voice(self):
+        while self.running:
+            # 渲染 .screen
+            self.main_update()
+            # 获取 JPEG 字节数据
+            frame_to_web = self.get_transmit_frame(self.screen)
+            # 发送 JPEG 数据
+            if not self.debug:
+                self.send_jpeg_data(frame_to_web)
+            # 更新窗口显示
+            pygame.display.flip()
+
+            # 发送音频提示指令
+            self.send_voice_command()
+
+        return self.score
 
     def main_update(self, frame=None):
         # 可以从外部传实时帧
@@ -138,16 +160,11 @@ class Guider:
             """帧率控制"""
             self.frame_rate_clock.tick(self.frame_rate)
 
-            """获取实时画面帧"""
-            if frame is None:
-                # 外部未传帧
-                self.real_world_frame = self.camera_capture(camera=self.camera)  # 拍摄实时画面，已经拉伸到窗口大小并左右翻转
-            else:
-                # 外部传帧
-                self.real_world_frame = self.camera_capture(frame=frame)    # 拉伸到窗口大小并左右翻转
-            # 检查实时帧是否获取成功
-            if self.real_world_frame is None:
-                return None
+            """获取、处理实时画面帧"""
+            # （已翻转）（已拉伸到窗口分辨率）
+            self.real_world_frame = CamUtils.get_camera_processed_frame(camera=self.camera,
+                                                                    win_size=WIN_SIZE,
+                                                                    frame=frame)
             
             """主画布渲染"""
             # 获取对齐点列表 std_landmarks_list 和 rt_landmarks_list；
@@ -164,16 +181,17 @@ class Guider:
                                  rt_lm_list=self.rt_landmarks_list)
             
             """步进跳帧"""
-            # self.conditions = [True] * len(POSE_ALIGN_LANDMARKS)  # 调试
+            if self.debug:
+                self.conditions = [True] * len(POSE_ALIGN_LANDMARKS)  # 调试
             self.current_std_index = self.index_update(conditions=self.conditions, 
                                                        cur_index=self.current_std_index, 
-                                                       end_index=len(self.std_pose_lists))
+                                                       end_index=len(self.std_pose_lists)-1)
             
             """分数统计"""
             self.score = self.single_posture_score_calc(max_tot_score=MAX_SCORE,
                                                         tot_score=self.score,
                                                         conditions=self.conditions,
-                                                        time_range=(1, 8))    # 调整时间范围以调整判分宽松度（最佳，最差）
+                                                        time_range=(0, 2))    # 调整时间范围以调整判分宽松度（最佳，最差）
 
             """绘制 Pygame UI"""
             # 绘制已用时间、招式、实时总得分
@@ -235,7 +253,6 @@ class Guider:
         self.screen.blit(score_surface, score_rect)
 
 
-    
     def single_posture_score_calc(self, max_tot_score, tot_score, conditions, time_range):
         """
         针对 “一式” 的时间基准的分数计算
@@ -307,18 +324,19 @@ class Guider:
             # 所花时间越少，分数越高
             return max_score - (max_score - min_score) * ((time_used - best_time) / (worst_time - best_time))
 
-    @staticmethod
-    def index_update(conditions, cur_index, end_index):
+    def index_update(self, conditions, cur_index, end_index):
         """
         根据条件，步进跳帧
         """
-        if cur_index < end_index - 1:
+        if cur_index < end_index:
             if all(conditions):
                 # 如果所有条件都满足，跳到下一帧
                 cur_index += 1
                 # elif 三秒
         else:
-            cur_index = 0  # 循环播放
+            # print("最后一帧：",cur_index)   # 调试
+            if all(conditions):
+                self.running = False  # 退出
         
         return cur_index
     
@@ -349,10 +367,6 @@ class Guider:
         self.canvas = rt_frame.copy()  # 复制实时画面帧到画布
 
         """标准对齐点加载"""
-        if self.current_std_index >= len(self.std_pose_lists):
-            # todo:: 这里可以添加循环播放的逻辑；结束逻辑
-            pass
-        
         self.std_pose_list = self.std_pose_lists[self.current_std_index]  # 标准完整姿态列表，从 lists 中获取 list，格式同上
         self.std_landmarks_list = self.get_landmarks_list(self.std_pose_list, landmarks=POSE_ALIGN_LANDMARKS)   # 标准关键（对齐）点列表，格式同上
         self.std_overlay = self.get_current_std_overlay(paths=self.std_overlay_paths, overlay_idx=self.current_std_index)  # 标准帧路径，格式为 str
@@ -362,12 +376,12 @@ class Guider:
         self.rt_landmarks_list = self.get_landmarks_list(self.rt_pose_list, landmarks=POSE_ALIGN_LANDMARKS) # 实时关键（对齐）点列表，格式为： [4 * int(x, y)] 或 []
 
         """获取实时躯干位置；获取标准中心标点"""
-        self.rt_center = self.get_center_from_points_2d(self.rt_pose_list, from_pts_idx=RT_PTS_TO_CENTER, win_size=WIN_SIZE)  # tuple(float, float)
-        self.rt_center = (self.rt_center[0], self.rt_center[1] + BENEATH)   # 参数调整中心点位置，向下偏移 BENEATH 像素
+        self.rt_center = self.get_center_from_points_2d(self.rt_pose_list, from_pts_idx=RT_PTS_TO_CENTER, win_size=WIN_SIZE, y_offset=STD_CENTER_Y_OFFSET)  # tuple(float, float)
+        # self.rt_center = (self.rt_center[0], self.rt_center[1] + BENEATH)   # 参数调整中心点位置，向下偏移 BENEATH 像素
         self.std_center = (self.std_pose_list[0][0] * STD_SCALE, self.std_pose_list[0][1] * STD_SCALE)  # std_pose_list 的第一个元组是标点中心点 (3d to 2d)
 
         """将标准对齐点吸附到用户"""
-        self.align_pose_to_target_by_center_2d(self.std_landmarks_list, center=self.std_center, target=self.rt_center, scale=STD_SCALE)
+        self.align_pose_to_target_by_center_2d(self.std_landmarks_list, center=self.std_center, target=self.rt_center, scale=STD_SCALE, win_size=WIN_SIZE)
         # print(self.std_landmarks_list) # 调试
 
         """叠加掩膜到画布"""
@@ -376,7 +390,7 @@ class Guider:
                                                     center=self.std_center, target=self.rt_center, 
                                                     win_size=WIN_SIZE, 
                                                     scale=STD_SCALE, 
-                                                    opacity=0.4)  # 在画布上叠加掩膜，掩膜中心点与用户中心点对齐
+                                                    opacity=STD_OVERLAY_OPACITY)  # 在画布上叠加掩膜，掩膜中心点与用户中心点对齐
 
         """绘制 对齐点 + 箭头 到画布"""
         self.canvas = draw.draw_points_and_arrows(self.canvas, 
@@ -394,28 +408,12 @@ class Guider:
         """
         for event in pygame.event.get():
             if event.type == pygame.QUIT or pygame.key.get_pressed()[pygame.K_ESCAPE]:
+                # 按 Esc 退出当前播片实例。
                 self.running = False
-
-    def camera_init(self, resolution=(1280, 720)):
-        """
-        初始化摄像头
-        """
-        # 获取摄像头 0
-        self.camera = cv2.VideoCapture(0)
-        
-        # 尝试设置分辨率
-        self.camera.set(cv2.CAP_PROP_FRAME_WIDTH, resolution[0])
-        self.camera.set(cv2.CAP_PROP_FRAME_HEIGHT, resolution[1])
-
-        # 检查分辨率设置是否成功（分辨率不是随意取值，必须按照使用相机的几个固定的分辨率进行选择）
-        w = int(self.camera.get(cv2.CAP_PROP_FRAME_WIDTH))
-        h = int(self.camera.get(cv2.CAP_PROP_FRAME_HEIGHT))
-        if w != resolution[0] or h != resolution[1]:
-            print(f"摄像头分辨率设置失败，当前分辨率：{w}x{h}", file=sys.stderr)
-
-        # 检查摄像头是否打开
-        if not self.camera.isOpened():
-            raise RuntimeError("摄像头初始化失败")
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_q:
+                # 按 q 直接退出程序。
+                raise RuntimeError("已手动终止程序。")
+        return self.running
 
     def pose_detector_init(self):
         """
@@ -511,8 +509,9 @@ class Guider:
         # 标准姿态 列表列表；标准帧路径 列表
         return std_pose_lists, std_overlay_paths
 
-    # todo:: 存疑：我现在不管 std_pose_lists 是在哪个分辨率下得到的，而统一到最后再进行缩放
-    def load_std_pose_lists(self, json_path, landmarks=None) -> list[list[tuple]]:
+
+    @staticmethod
+    def load_std_pose_lists(json_path, landmarks=None) -> list[list[tuple]]:
         # 嵌套列表 [[33 * tuple(x, y, z=0)], ..., ] len(json)
         std_full_pose_lists = []
         # 只读模式打开 JSON 文件
@@ -578,35 +577,7 @@ class Guider:
         return frame_paths_list
 
     @staticmethod
-    def camera_capture(camera=None, frame=None) -> None | cv2.Mat | np.ndarray:
-        """
-        获取并处理现实实时画面，赋值到 self.real_world_frame
-        """
-        # 获取实时帧
-        if frame is None:
-            # 外部无统一传帧，从相机获取
-            if camera is not None:
-                success, frame = camera.read()
-                if not success:
-                    print("获取实时画面失败：实时帧读取不成功", file=sys.stderr)
-                    return None
-            else:
-                print("获取实时画面失败：相机为空", file=sys.stderr)
-                return None
-        else:
-            # 外部统一传帧
-            pass
-
-        # 左右翻转画面，存储实时帧资源
-        real_world_frame = cv2.flip(frame, 1)
-
-        # 将画面拉伸到窗口大小，！后续都基于这个分辨率！
-        real_world_frame = cv2.resize(real_world_frame, (WIN_WIDTH, WIN_HEIGHT))
-
-        return real_world_frame
-
-    @staticmethod
-    def get_center_from_points_2d(full_pose_list, from_pts_idx, win_size) -> tuple[float, float]:
+    def get_center_from_points_2d(full_pose_list, from_pts_idx, win_size, y_offset) -> tuple[float, float]:
         # 默认中心点为窗口中心
         if not from_pts_idx or not full_pose_list:
             return win_size[0] / 2, win_size[1] / 2
@@ -616,7 +587,7 @@ class Guider:
         y_sum = sum(full_pose_list[idx][1] for idx in from_pts_idx)
 
         center_x = x_sum / len(from_pts_idx)
-        center_y = y_sum / len(from_pts_idx)
+        center_y = y_sum / len(from_pts_idx) - y_offset
 
         center_2d = (center_x, center_y)
 
@@ -629,6 +600,7 @@ class Guider:
 
     def get_current_std_overlay(self, paths, overlay_idx):
         if overlay_idx < 0 or overlay_idx >= len(paths):
+            print(f"出错了！paths长度：{len(paths)}, 掩膜索引: {overlay_idx}，应为长度-1")
             raise IndexError("错误：掩膜索引超出范围！")
         return self._load_std_overlay(paths[overlay_idx])
         
@@ -645,19 +617,17 @@ class Guider:
         return overlay
 
     @staticmethod
-    def align_pose_to_target_by_center_2d(std_landmarks_list, center, target, scale=1.0):
+    def align_pose_to_target_by_center_2d(std_landmarks_list, center, target, scale=1.0, win_size=WIN_SIZE):
         """
         将标准对齐点列表 std_landmarks_list 根据中心点 center，吸附到目标点 target 上
         """
         if not std_landmarks_list:
             return
         if not target:
-            # todo:: 这里没能保持传参
-            target = (WIN_WIDTH // 2, WIN_HEIGHT // 2)
+            # 如果没有目标点，则使用窗口中心点作为目标
+            target = (win_size[0] // 2, win_size[1] // 2)
 
         if not center:
-            # todo::自行计算中心点
-            # center = self.get_center_from_points_2d(std_landmarks_list, from_pts_idx=POSE_ALIGN_LANDMARKS, win_size=WIN_SIZE)
             return
         
         # 计算偏移量
@@ -683,6 +653,10 @@ class Guider:
         """
         DataSender.send_frame(data)
 
+    def send_voice_command(self, command: any=None):
+        """默认是无语音的，等待重载"""
+        pass
+
 
 # @A last new line here:
 
@@ -698,9 +672,9 @@ if __name__ == "__main__":
         # 渲染 .screen
         TaiJiGuider.main_update()
         # 获取 JPEG 字节数据
-        frame_to_web = TaiJiGuider.get_transmit_frame(TaiJiGuider.screen)
+        # frame_to_web = TaiJiGuider.get_transmit_frame(TaiJiGuider.screen)
         # 发送 JPEG 数据
-        TaiJiGuider.send_jpeg_data(frame_to_web)
+        # TaiJiGuider.send_jpeg_data(frame_to_web)
         # 更新窗口显示
         pygame.display.flip()
     # 清理资源
