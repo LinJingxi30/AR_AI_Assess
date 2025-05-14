@@ -2,11 +2,13 @@
   "name": "3apose-app",
   "version": "1.0.0",
   "dependencies": {
+    "@socket.io/admin-ui": "^0.5.1",
     "bonjour": "^3.5.0",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
     "mathjs": "^14.4.0",
     "mqtt": "^5.10.4",
+    "qrcode-terminal": "^0.12.0",
     "socket.io": "^4.8.1",
     "stun": "^2.1.0"
   },

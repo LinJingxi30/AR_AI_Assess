@@ -1,13 +1,23 @@
 const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
+const { instrument } = require("@socket.io/admin-ui");
 const { spawn } = require('child_process');
 require('dotenv').config(); // 加载环境变量
 const path = require('path');
 
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server);
+const io = new Server(server,{
+  cors: {
+    origin: ["https://admin.socket.io"],
+    credentials: true
+  }
+});
+// Socket.IO Admin UI
+instrument(io, {
+  auth: false
+});
 
 // 设置静态文件目录
 app.use(express.static('Static'));
