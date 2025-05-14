@@ -41,7 +41,7 @@ POSE_ALIGN_LANDMARKS = [19, 20, 31, 32]  # 左指尖、右指尖、左脚尖、�
 PTS_CONDITION_THRESH = [70, 70, 150, 150] # 对应上面的 4 个点的判定阈值
 RT_PTS_TO_CENTER = [11, 12, 23, 24]  # 左肩、右肩、左髋、右髋
 
-LIGHTNESS = 0.6  # 画布亮度调整系数
+LIGHTNESS = 0.8  # 画布亮度调整系数
 STD_SCALE = 0.45  # 标准对齐点/掩膜缩放系数
 STD_CENTER_Y_OFFSET = -120   # 标准中心相对实时中心降低高度（像素）
 STD_OVERLAY_OPACITY = 0.6  # 掩膜透明度
@@ -130,7 +130,24 @@ class Guider:
                 self.send_jpeg_data(frame_to_web)
             # 更新窗口显示
             pygame.display.flip()
-        # self.camera.release()
+
+        return self.score
+
+    def main_loop_with_voice(self):
+        while self.running:
+            # 渲染 .screen
+            self.main_update()
+            # 获取 JPEG 字节数据
+            frame_to_web = self.get_transmit_frame(self.screen)
+            # 发送 JPEG 数据
+            if not self.debug:
+                self.send_jpeg_data(frame_to_web)
+            # 更新窗口显示
+            pygame.display.flip()
+
+            # 发送音频提示指令
+            self.send_voice_command()
+
         return self.score
 
     def main_update(self, frame=None):
@@ -364,7 +381,7 @@ class Guider:
         self.std_center = (self.std_pose_list[0][0] * STD_SCALE, self.std_pose_list[0][1] * STD_SCALE)  # std_pose_list 的第一个元组是标点中心点 (3d to 2d)
 
         """将标准对齐点吸附到用户"""
-        self.align_pose_to_target_by_center_2d(self.std_landmarks_list, center=self.std_center, target=self.rt_center, scale=STD_SCALE)
+        self.align_pose_to_target_by_center_2d(self.std_landmarks_list, center=self.std_center, target=self.rt_center, scale=STD_SCALE, win_size=WIN_SIZE)
         # print(self.std_landmarks_list) # 调试
 
         """叠加掩膜到画布"""
@@ -391,8 +408,11 @@ class Guider:
         """
         for event in pygame.event.get():
             if event.type == pygame.QUIT or pygame.key.get_pressed()[pygame.K_ESCAPE]:
+                # 按 Esc 退出当前播片实例。
                 self.running = False
-                # raise RuntimeError("已手动终止程序。")
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_q:
+                # 按 q 直接退出程序。
+                raise RuntimeError("已手动终止程序。")
         return self.running
 
     def pose_detector_init(self):
@@ -597,19 +617,17 @@ class Guider:
         return overlay
 
     @staticmethod
-    def align_pose_to_target_by_center_2d(std_landmarks_list, center, target, scale=1.0):
+    def align_pose_to_target_by_center_2d(std_landmarks_list, center, target, scale=1.0, win_size=WIN_SIZE):
         """
         将标准对齐点列表 std_landmarks_list 根据中心点 center，吸附到目标点 target 上
         """
         if not std_landmarks_list:
             return
         if not target:
-            # todo:: 这里没能保持传参
-            target = (WIN_WIDTH // 2, WIN_HEIGHT // 2)
+            # 如果没有目标点，则使用窗口中心点作为目标
+            target = (win_size[0] // 2, win_size[1] // 2)
 
         if not center:
-            # todo::自行计算中心点
-            # center = self.get_center_from_points_2d(std_landmarks_list, from_pts_idx=POSE_ALIGN_LANDMARKS, win_size=WIN_SIZE)
             return
         
         # 计算偏移量
@@ -635,7 +653,9 @@ class Guider:
         """
         DataSender.send_frame(data)
 
-
+    def send_voice_command(self, command: any=None):
+        """默认是无语音的，等待重载"""
+        pass
 
 
 # @A last new line here:
@@ -652,7 +672,7 @@ if __name__ == "__main__":
         # 渲染 .screen
         TaiJiGuider.main_update()
         # 获取 JPEG 字节数据
-        frame_to_web = TaiJiGuider.get_transmit_frame(TaiJiGuider.screen)
+        # frame_to_web = TaiJiGuider.get_transmit_frame(TaiJiGuider.screen)
         # 发送 JPEG 数据
         # TaiJiGuider.send_jpeg_data(frame_to_web)
         # 更新窗口显示

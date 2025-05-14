@@ -3,11 +3,10 @@ from pathlib import Path
 PY_ROOT = Path(__file__).resolve().parent.parent
 sys.path.append(str(PY_ROOT))   # 添加 Python 根目录到模块搜索路径中
 from guider import *
-from Config import STD_SPORTS_RESULTS_ROOT, WIN_SIZE
 
 # 重载常量
 PATHS = {
-    "标准 JSON 文件路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "C79-V2.1_points_align.json",
+    "标准 JSON 文件路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "pregame_align" / "pre.json",
     "标准掩膜图片路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "pregame_align",
     "背景音乐": Path(PY_ROOT) / "gameAssets" / "sounds" / "SJTUbgm.mp3",
 }
@@ -21,7 +20,7 @@ PTS_PAIR_COLORS = [
 
 PTS_CONDITION_THRESH = [[50], [50], [50], [50]] # 对应上面的 4 个点的判定阈值
 
-class AlignGuider(Guider):
+class PreAlignerPoints(Guider):
     def __init__(self, _paths=PATHS, debug=False):
         super().__init__(paths=_paths, debug=debug)  # 调用父类会初始化摄像头、mediapipe、pygame、加载 JSON……
         # 我们只关心这四个 landmark
@@ -65,10 +64,7 @@ class AlignGuider(Guider):
             self.current_std_index = self.index_update(conditions=self.conditions, 
                                                        cur_index=self.current_std_index, 
                                                        end_index=len(self.std_pose_lists)-1)
-            
-            """音频提示指令发送"""
-            # todo:: 逻辑写死什么时候发什么 if
-            self.send_voice_command(command=self.current_std_index+1)  # 发送当前帧的音频提示指令
+
 
             
             # print(self., self.)
@@ -85,8 +81,27 @@ class AlignGuider(Guider):
 
         return self.screen
     
-    def send_voice_command(self, command):
-        DataSender.send_control(command=command)
+    def send_voice_command(self, command: any=None):
+        """
+        音频提示指令发送
+        逻辑写死什么时候发什么
+        """
+        # 只在每个 index 首次到达时发送一次指令
+        if not hasattr(self, "_voice_sent"):
+            self._voice_sent = set()
+        if self.current_std_index == 1 and 1 not in self._voice_sent:
+            DataSender.send_control(command=4)
+            DataSender.send_control(command=5)
+            self._voice_sent.add(1)
+        if self.current_std_index == 2 and 2 not in self._voice_sent:
+            DataSender.send_control(command=8)
+            DataSender.send_control(command=9)
+            self._voice_sent.add(2)
+        if self.current_std_index == 3 and 3 not in self._voice_sent:
+            DataSender.send_control(command=6)
+            DataSender.send_control(command=10)
+            self._voice_sent.add(3)
+
     
     def canvas_render(self, rt_frame, conditions):
         """绘制实时画面帧"""
@@ -107,7 +122,7 @@ class AlignGuider(Guider):
         self.std_center = (self.std_pose_list[0][0] * STD_SCALE, self.std_pose_list[0][1] * STD_SCALE)  # std_pose_list 的第一个元组是标点中心点 (3d to 2d)
 
         """将标准对齐点吸附到用户"""
-        self.align_pose_to_target_by_center_2d(self.std_landmarks_list, center=self.std_center, target=self.rt_center, scale=STD_SCALE)
+        self.align_pose_to_target_by_center_2d(self.std_landmarks_list, center=self.std_center, target=self.rt_center, scale=STD_SCALE, win_size=WIN_SIZE)
         # print(self.std_landmarks_list) # 调试
 
         """叠加掩膜到画布"""
@@ -148,7 +163,7 @@ class AlignGuider(Guider):
         # self.canvas = canvas
 
 if __name__ == "__main__":
-    guide = AlignGuider()
+    guide = PreAlignerPoints()
     guide.running = True
     while guide.running:
         # 复用父类的 main_update：它会依次调用 window_events、camera_capture、canvas_render、condition_check、index_update、pygame_UI_render

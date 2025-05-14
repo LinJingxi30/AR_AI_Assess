@@ -15,13 +15,3 @@ import json
 #                 coord[1] *= 1.84  # 纵坐标调整
 #         fout.write(json.dumps(data) + "\n")
 
-
-from utils.CamUtils import CamUtils
-
-class UpperGuider:
-    def __init__(self):
-        self.camera = CamUtils.camera_init(resolution=(1280, 720))
-        self.running = True
-
-    def run(self):
-        while self.running:
