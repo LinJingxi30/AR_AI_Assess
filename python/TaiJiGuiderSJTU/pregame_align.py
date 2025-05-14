@@ -90,16 +90,16 @@ class PreAlignerPoints(Guider):
         if not hasattr(self, "_voice_sent"):
             self._voice_sent = set()
         if self.current_std_index == 1 and 1 not in self._voice_sent:
-            DataSender.send_control(command=4)
-            DataSender.send_control(command=5)
+            DataSender.send_control("PLAY_AUDIO",flag = 4)
+            DataSender.send_control("PLAY_AUDIO",flag = 5)
             self._voice_sent.add(1)
         if self.current_std_index == 2 and 2 not in self._voice_sent:
-            DataSender.send_control(command=8)
-            DataSender.send_control(command=9)
+            DataSender.send_control("PLAY_AUDIO",flag = 8)
+            DataSender.send_control("PLAY_AUDIO",flag = 9)
             self._voice_sent.add(2)
         if self.current_std_index == 3 and 3 not in self._voice_sent:
-            DataSender.send_control(command=6)
-            DataSender.send_control(command=10)
+            DataSender.send_control("PLAY_AUDIO",flag = 6)
+            DataSender.send_control("PLAY_AUDIO",flag = 10)
             self._voice_sent.add(3)
 
     

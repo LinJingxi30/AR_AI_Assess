@@ -1,12 +1,14 @@
 import sys
-from animator import Animator
-from guider import Guider
-from pregame_align import PreAlignerPoints
-import pygame
-
 from pathlib import Path
 PY_ROOT = Path(__file__).resolve().parent.parent
 sys.path.append(str(PY_ROOT))   # 添加 Python 根目录到模块搜索路径中
+sys.path.append(str(Path(__file__).resolve().parent)) 
+from guider import Guider
+from animator import Animator
+from pregame_align import PreAlignerPoints
+import pygame
+
+
 from Config import STD_SPORTS_RESULTS_ROOT
 import utils.CamUtils as CamUtils
 from utils.DataSender import DataSender
@@ -81,15 +83,15 @@ if __name__ == "__main__":
 
 
     # 0. 用户对齐指引
-    DataSender.send_control(command=1)
-    DataSender.send_control(command=2)
-    DataSender.send_control(command=3)
+    DataSender.send_control("PLAY_AUDIO",flag = 1)
+    DataSender.send_control("PLAY_AUDIO",flag = 2)
+    DataSender.send_control("PLAY_AUDIO",flag = 3)
     anim.animate_title(text="欢迎来到太极指导系统", duration=1.0)
 
     pre_align.main_loop_with_voice()
 
-    DataSender.send_control(command=11)
-    DataSender.send_control(command=12)
+    DataSender.send_control("PLAY_AUDIO",flag = 11)
+    DataSender.send_control("PLAY_AUDIO",flag = 12)
 
     anim.running = True
     anim.camera = CamUtils.camera_init(resolution=(1280,720))
@@ -99,7 +101,7 @@ if __name__ == "__main__":
 
     pre_clip.main_loop()
 
-    DataSender.send_control(command=14)
+    DataSender.send_control("PLAY_AUDIO",flag = 14)
 
     # 1. 招式一
     anim.running = True
