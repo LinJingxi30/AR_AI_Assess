@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-            
+# -*- coding: utf-8 -*-
 # @Author : LJX
 # @Time : 2025/4/29 21:12
 # @Content :
@@ -60,7 +60,7 @@ PYGAME_UI_CONFIG = {
         "文字": "当前动作分：",
         "字体": str(Path(PY_ROOT) / "gameAssets" / "fonts" / "SmileySans-Oblique.ttf"),
         "字号": 40,
-        "颜色": (255, 215, 255),  # RGB(255, 215, 255) 
+        "颜色": (255, 215, 255),  # RGB(255, 215, 255)
         "位置": (WIN_WIDTH - 160, 60),
     },
     # todo:: 招式得分
@@ -121,6 +121,11 @@ class Guider:
         self.debug = debug
         self.running = True
 
+        # 初始化保存路径
+        self.save_path = Path(PY_ROOT) / "differences.json"
+        # 清空文件内容
+        self.clear_json_file()
+
     def main_loop(self):
         while self.running:
             # 渲染 .screen
@@ -167,31 +172,36 @@ class Guider:
             self.real_world_frame = CamUtils.get_camera_processed_frame(camera=self.camera,
                                                                     win_size=WIN_SIZE,
                                                                     frame=frame)
-            
+
             """主画布渲染"""
             # 获取对齐点列表 std_landmarks_list 和 rt_landmarks_list；
             # 渲染标点、箭头、掩膜到画布
-            self.canvas_render(rt_frame=self.real_world_frame, 
+            self.canvas_render(rt_frame=self.real_world_frame,
                                conditions=self.conditions)
 
             """条件判定"""
             # 检查条件是否满足，更新 condition 列表
-            self.condition_check(conditions=self.conditions, 
+            self.condition_check(conditions=self.conditions,
                                  landmarks=POSE_ALIGN_LANDMARKS,
-                                 thresholds=PTS_CONDITION_THRESH, 
-                                 std_lm_list=self.std_landmarks_list, 
+                                 thresholds=PTS_CONDITION_THRESH,
+                                 std_lm_list=self.std_landmarks_list,
                                  rt_lm_list=self.rt_landmarks_list)
-            
+
+            """保存数据"""
+            self.save_data(self.conditions)
+
+
+
             """步进跳帧"""
             if self.debug:
                 self.conditions = [True] * len(POSE_ALIGN_LANDMARKS)  # 调试
             # if self.std_skips[self.current_std_index]:
             #     # 如果当前帧是自动不停播帧，跳过条件检查
             #     self.conditions = [True] * len(POSE_ALIGN_LANDMARKS)
-            self.current_std_index = self.index_update(conditions=self.conditions, 
-                                                       cur_index=self.current_std_index, 
+            self.current_std_index = self.index_update(conditions=self.conditions,
+                                                       cur_index=self.current_std_index,
                                                        end_index=len(self.std_pose_lists)-1)
-            
+
             """分数统计"""
             self.score = self.single_posture_score_calc(max_tot_score=MAX_SCORE,
                                                         tot_score=self.score,
@@ -277,7 +287,7 @@ class Guider:
 
             # 计算当前帧分数
             cur_score = self.single_frame_score_calc(time_used, cur_score_range, time_range)
-            
+
             # 更新总分
             tot_score += cur_score
 
@@ -342,9 +352,9 @@ class Guider:
             # print("最后一帧：",cur_index)   # 调试
             if all(conditions):
                 self.running = False  # 退出
-        
+
         return cur_index
-    
+
     @staticmethod
     def condition_check(conditions, landmarks, thresholds, std_lm_list, rt_lm_list):
         """
@@ -354,11 +364,11 @@ class Guider:
             # 如果没有标准或实时数据，条件不满足
             conditions[:] = [False] * len(landmarks)
             return
-        
+
         for idx, (std_pt, rt_pt) in enumerate(zip(std_lm_list, rt_lm_list)):
             # 计算距离
             distance = np.linalg.norm(np.array(std_pt) - np.array(rt_pt))
-            
+
             # 更新条件列表
             if distance < thresholds[idx]:
                 # 满足距离小于阈值条件
@@ -391,18 +401,18 @@ class Guider:
 
         """叠加掩膜到画布"""
         self.canvas = (self.canvas * LIGHTNESS).astype(np.uint8)  # 调整画布亮度
-        self.canvas = draw.draw_overlay_centered(self.canvas, self.std_overlay, 
-                                                    center=self.std_center, target=self.rt_center, 
-                                                    win_size=WIN_SIZE, 
-                                                    scale=STD_SCALE, 
+        self.canvas = draw.draw_overlay_centered(self.canvas, self.std_overlay,
+                                                    center=self.std_center, target=self.rt_center,
+                                                    win_size=WIN_SIZE,
+                                                    scale=STD_SCALE,
                                                     opacity=STD_OVERLAY_OPACITY)  # 在画布上叠加掩膜，掩膜中心点与用户中心点对齐
 
         """绘制 对齐点 + 箭头 到画布"""
-        self.canvas = draw.draw_points_and_arrows(self.canvas, 
-                                                  self.std_landmarks_list, 
-                                                  self.rt_landmarks_list, 
+        self.canvas = draw.draw_points_and_arrows(self.canvas,
+                                                  self.std_landmarks_list,
+                                                  self.rt_landmarks_list,
                                                   conditions)
-        
+
         # 调试：绘制较大的实时中心点（橙色）
         # cv2.circle(self.canvas, (int(self.rt_center[0]), int(self.rt_center[1])), 15, (0, 165, 255), -1)
 
@@ -465,7 +475,7 @@ class Guider:
         """
         # 转为 RGB 格式以便 Mediapipe 处理
         frame_rgb = cv2.cvtColor(frame_bgr, cv2.COLOR_BGR2RGB)
-        
+
         # Mediapipe 进行检测
         results = self.pose_detector.process(frame_rgb)
 
@@ -476,7 +486,7 @@ class Guider:
             h, w = frame_bgr.shape[:2]
             # 归一化坐标转换为实际坐标，忽略 z 轴（其因子是肩宽）
             pose_list = [(lm.x * w, lm.y * h, 0) for lm in results.pose_landmarks.landmark]
-        
+
         # 返回 [33 * tuple(x, y, z=0)] 或 []
         return pose_list
 
@@ -487,7 +497,7 @@ class Guider:
         """
         if not full_pose_list or not landmarks:
             return []
-        
+
         landmarks_list = []
         # 获取关键（对齐）点坐标列表
         if full_pose_list:
@@ -508,7 +518,7 @@ class Guider:
         # [[33 * tuple(x, y, z=0)], [...], ..., ]
         # std_pose_lists, std_skips = self.load_std_pose_lists(json_path, landmarks=POSE_ALIGN_LANDMARKS)        std_pose_lists = self.load_std_pose_lists(json_path, landmarks=POSE_ALIGN_LANDMARKS)
         std_pose_lists = self.load_std_pose_lists(json_path, landmarks=POSE_ALIGN_LANDMARKS)
-        
+
         # 标准帧路径合集列表
         # [str(path), str, ...]
         std_overlay_paths = self.load_std_frame_paths(frame_path)
@@ -594,7 +604,7 @@ class Guider:
         # 默认中心点为窗口中心
         if not from_pts_idx or not full_pose_list:
             return win_size[0] / 2, win_size[1] / 2
-        
+
         # 计算指定点的平均值作为中心点
         x_sum = sum(full_pose_list[idx][0] for idx in from_pts_idx)
         y_sum = sum(full_pose_list[idx][1] for idx in from_pts_idx)
@@ -616,17 +626,17 @@ class Guider:
             print(f"出错了！paths长度：{len(paths)}, 掩膜索引: {overlay_idx}，应为长度-1")
             raise IndexError("错误：掩膜索引超出范围！")
         return self._load_std_overlay(paths[overlay_idx])
-        
+
     @lru_cache(maxsize=10)
     def _load_std_overlay(self, path):
         """
         内部缓存最近 10 帧的掩膜图像
         """
         overlay = cv2.imread(path, cv2.IMREAD_UNCHANGED)
-        
+
         if overlay is None:
             raise FileNotFoundError(f"错误：无法缓存掩膜图像 {path}，找不到文件！")
-        
+
         return overlay
 
     @staticmethod
@@ -642,7 +652,7 @@ class Guider:
 
         if not center:
             return
-        
+
         # 计算偏移量
         offset_x = target[0] - center[0]
         offset_y = target[1] - center[1]
@@ -670,11 +680,46 @@ class Guider:
         """默认是无语音的，等待重载"""
         pass
 
+    def clear_json_file(self):
+        """
+        清空 JSON 文件内容
+        """
+        with open(self.save_path, 'w') as f:
+            f.write("")
+
+    def save_data(self, conditions):
+        """
+        当 conditions 的四个标准点全为 True 时，计算 std_landmarks_list 和 rt_landmarks_list 的差值，
+        并逐帧写入 JSON 文件，标记为左手、右手、左脚、右脚的坐标。
+        """
+        if all(conditions):
+            # 确保 std_landmarks_list 和 rt_landmarks_list 都存在且长度一致
+            if self.std_landmarks_list and self.rt_landmarks_list and len(self.std_landmarks_list) == len(self.rt_landmarks_list):
+                # 计算差值
+                differences = {
+                    "left_h": {"x": self.std_landmarks_list[0][0] - self.rt_landmarks_list[0][0],
+                           "y": self.std_landmarks_list[0][1] - self.rt_landmarks_list[0][1]},
+                    "right_h": {"x": self.std_landmarks_list[1][0] - self.rt_landmarks_list[1][0],
+                           "y": self.std_landmarks_list[1][1] - self.rt_landmarks_list[1][1]},
+                    "left_f": {"x": self.std_landmarks_list[2][0] - self.rt_landmarks_list[2][0],
+                           "y": self.std_landmarks_list[2][1] - self.rt_landmarks_list[2][1]},
+                    "right_f": {"x": self.std_landmarks_list[3][0] - self.rt_landmarks_list[3][0],
+                           "y": self.std_landmarks_list[3][1] - self.rt_landmarks_list[3][1]}
+                }
+
+                # 将当前帧的差值追加到 JSON 文件中
+                with open(self.save_path, 'a') as f:
+                    json.dump(differences, f, ensure_ascii=False)
+                    f.write("\n")  # 每帧数据占一行
+
+                print(f"差值已追加到 {self.save_path}")
+            else:
+                print("无法保存差值：std_landmarks_list 和 rt_landmarks_list 不匹配或为空。")
 
 # @A last new line here:
 
 if __name__ == "__main__":
-    
+
     # 创建 Guider 实例
     TaiJiGuider = Guider()
     # 开始运行
