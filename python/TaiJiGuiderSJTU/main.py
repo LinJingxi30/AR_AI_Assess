@@ -150,4 +150,7 @@ if __name__ == "__main__":
         config = ANIMATOR_CONFIG
     )
 
+    # 结束：发送动作分列表至前端
+    DataSender.send_control(command="MOVE_SCORES", data=[p1m1.score, p1m2.score, p1m3.score, p2m1.score, p2m2.score, p2m3.score])
+
     pygame.quit()

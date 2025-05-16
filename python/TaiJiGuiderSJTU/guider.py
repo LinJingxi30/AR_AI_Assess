@@ -82,6 +82,7 @@ class Guider:
         self.std_json_path = paths["标准 JSON 文件路径"]
         self.std_frame_path = paths["标准掩膜图片路径"]
         win_bgm_path = paths["背景音乐"]
+        self.differences_json_path = paths["标准 JSON 文件路径"] / ".." / "differences.json"
 
         # utils 工具
         self.camera = None
@@ -110,6 +111,7 @@ class Guider:
         self.pygame_init(win_topic=win_topic, win_bgm_path=str(win_bgm_path))
 
         # load 初始化加载资源
+        self.clear_difference_json()
         self.std_pose_lists, self.std_overlay_paths = self.load_std_resources(self.std_json_path, self.std_frame_path)
         # self.std_pose_lists, self.std_skips, self.std_overlay_paths = self.load_std_resources(self.std_json_path, self.std_frame_path)
 
@@ -120,12 +122,7 @@ class Guider:
         self.score = 0
         self.debug = debug
         self.running = True
-
-        # 初始化保存路径
-        self.save_path = Path(PY_ROOT) / "differences.json"
-        # 清空文件内容
-        self.clear_json_file()
-
+        
     def main_loop(self):
         while self.running:
             # 渲染 .screen
@@ -680,12 +677,13 @@ class Guider:
         """默认是无语音的，等待重载"""
         pass
 
-    def clear_json_file(self):
+    def clear_difference_json(self):
         """
-        清空 JSON 文件内容
+        清空 JSON 文件内容，如果文件不存在则创建新文件
         """
-        with open(self.save_path, 'w') as f:
-            f.write("")
+        # 直接以写入模式打开，不管文件是否存在，都会创建或清空
+        with open(self.differences_json_path, 'w') as f:
+            pass  # 打开后立即关闭即可清空内容或创建文件
 
     def save_data(self, conditions):
         """
@@ -708,13 +706,13 @@ class Guider:
                 }
 
                 # 将当前帧的差值追加到 JSON 文件中
-                with open(self.save_path, 'a') as f:
+                with open(self.differences_json_path, 'a') as f:
                     json.dump(differences, f, ensure_ascii=False)
                     f.write("\n")  # 每帧数据占一行
 
-                print(f"差值已追加到 {self.save_path}")
+                print(f"差值已追加到 {self.differences_json_path}", file=sys.stderr)
             else:
-                print("无法保存差值：std_landmarks_list 和 rt_landmarks_list 不匹配或为空。")
+                print("无法保存差值：std_landmarks_list 和 rt_landmarks_list 不匹配或为空。", file=sys.stderr)
 
 # @A last new line here:
 
