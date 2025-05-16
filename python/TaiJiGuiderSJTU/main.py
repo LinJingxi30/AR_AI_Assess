@@ -67,6 +67,22 @@ FULL_PATHS = {
     "POSTURE_2": POSTURE_2_PATHS,
 }
 
+ANIMATOR_CONFIG = {
+    # 招式X：xxxx
+    "标题": {
+        "字体": str(Path(PY_ROOT) / "gameAssets" / "fonts" / "SourceHanSerifCN-Bold.otf"),
+        "字号": 80,
+        "颜色": (255, 230, 0),  # pygame 用的直接 RGB(255, 230, 0)
+        "位置": (180, 60),
+    },
+    "计分": {
+        "文字": "当前动作分：",
+        "字体": str(Path(PY_ROOT) / "gameAssets" / "fonts" / "SmileySans-Oblique.ttf"),
+        "字号": 40,
+    },
+    # todo:: 招式得分
+}
+
 
 if __name__ == "__main__":
     # 创建实例
@@ -84,32 +100,29 @@ if __name__ == "__main__":
 
     # 0. 用户对齐指引
     DataSender.send_control("PLAY_AUDIO",flag = 1)
-    DataSender.send_control("PLAY_AUDIO",flag = 2)
-    DataSender.send_control("PLAY_AUDIO",flag = 3)
-    anim.animate_title(text="欢迎来到太极指导系统", duration=1.0)
+    anim.animate_title(text="欢迎来到太极指导系统", duration=1.0, config=ANIMATOR_CONFIG)
 
     pre_align.main_loop_with_voice()
 
-    DataSender.send_control("PLAY_AUDIO",flag = 11)
-    DataSender.send_control("PLAY_AUDIO",flag = 12)
+    DataSender.send_control("PLAY_AUDIO",flag = 6)
 
     anim.running = True
     anim.camera = CamUtils.camera_init(resolution=(1280,720))
-    anim.animate_title(text="3", duration=1.0)
-    anim.animate_title(text="2", duration=1.0)
-    anim.animate_title(text="1", duration=1.0)
+    anim.animate_title(text="3", duration=1.0, config=ANIMATOR_CONFIG)
+    anim.animate_title(text="2", duration=1.0, config=ANIMATOR_CONFIG)
+    anim.animate_title(text="1", duration=1.0, config=ANIMATOR_CONFIG)
 
     pre_clip.main_loop()
 
-    DataSender.send_control("PLAY_AUDIO",flag = 14)
+    DataSender.send_control("PLAY_AUDIO",flag = 8)
 
     # 1. 招式一
     anim.running = True
     anim.camera = CamUtils.camera_init(resolution=(1280,720))
-    anim.animate_title(text="3", duration=1.0)
-    anim.animate_title(text="2", duration=1.0)
-    anim.animate_title(text="1", duration=1.0)
-    anim.animate_title(text="招式一：AAAA！", duration=1.0)
+    anim.animate_title(text="3", duration=1.0, config=ANIMATOR_CONFIG)
+    anim.animate_title(text="2", duration=1.0, config=ANIMATOR_CONFIG)
+    anim.animate_title(text="1", duration=1.0, config=ANIMATOR_CONFIG)
+    anim.animate_title(text="招式一：AAAA！", duration=1.0, config=ANIMATOR_CONFIG)
     p1m1.main_loop()
     p1m2.main_loop()
     p1m3.main_loop()
@@ -119,20 +132,22 @@ if __name__ == "__main__":
         total_score=p1m1.score + p1m2.score + p1m3.score,
         move_scores=[p1m1.score, p1m2.score, p1m3.score],
         duration=2.5,
+        config = ANIMATOR_CONFIG
     )
 
     # 2. 招式二
     anim.running = True
-    anim.animate_title(text="招式二：BBBB！", duration=1.5)
+    anim.animate_title(text="招式二：BBBB！", duration=1.5, config=ANIMATOR_CONFIG)
     p2m1.main_loop()
     p2m2.main_loop()
     p2m3.main_loop()
     anim.camera = CamUtils.camera_init(resolution=(1280, 720))
     anim.running = True
     anim.animate_summary(
-        total_score=p2m1.score + p2m2.score + p2m3.score,
-        move_scores=[p2m1.score, p2m2.score, p2m3.score],
+        total_score=p1m1.score + p1m2.score + p1m3.score,
+        move_scores=[p1m1.score, p1m2.score, p1m3.score],
         duration=2.5,
+        config = ANIMATOR_CONFIG
     )
 
     pygame.quit()

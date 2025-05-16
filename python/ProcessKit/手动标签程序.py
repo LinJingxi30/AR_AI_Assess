@@ -64,6 +64,8 @@ class ImageMarker:
         self.jump_entry = tk.Entry(buttons_frame, width=5)
         self.jump_button = tk.Button(buttons_frame, text="跳转", command=self.jump_to_image)
         btn_help = tk.Button(buttons_frame, text="ⓘ使用说明", command=self.show_help, bg="#e0ced9", activebackground="#efced9")
+        # 新增自动续播按钮，颜色设置为橙色
+        btn_auto_skip = tk.Button(buttons_frame, text="自动续播本帧", command=self.auto_skip_current, bg="#ffa500", activebackground="#ffcc80")
 
         btn_clear_all.pack(side=tk.LEFT, padx=5)
         btn_clear_current.pack(side=tk.LEFT, padx=5)
@@ -74,6 +76,7 @@ class ImageMarker:
         self.jump_entry.pack(side=tk.LEFT, padx=5)
         self.jump_button.pack(side=tk.LEFT, padx=5)
         btn_help.pack(side=tk.LEFT, padx=5)
+        btn_auto_skip.pack(side=tk.LEFT, padx=5)  
 
         self.status_label = tk.Label(master, text="", fg="blue")
         self.status_label.pack(side=tk.BOTTOM, anchor=tk.W, pady=2, padx=5)
@@ -233,8 +236,15 @@ class ImageMarker:
         with open(self.json_file, 'w') as f:
             for image in image_order:
                 if image in self.annotations:
-                    points = self.annotations[image]
+                    points = self.annotations[image].copy()
+                    # 保证包含 "skip" 键
+                    if "skip" not in points:
+                        points["skip"] = False
                     sorted_points = dict(sorted(points.items(), key=lambda item: order_key.get(item[0], 999)))
+                    # "skip" 保持在最后
+                    if "skip" in sorted_points:
+                        cont_value = sorted_points.pop("skip")
+                        sorted_points["skip"] = cont_value
                     data = {"image": image, "points": sorted_points}
                     f.write(json.dumps(data) + "\n")
         current_text = self.status_label.cget("text")
@@ -338,17 +348,26 @@ class ImageMarker:
         self.canvas.create_text(img_x + 5, img_y + disp_h + 40, anchor=tk.SW,
                                 text=f"文件夹名称：{folder_name}", fill="black", font=("Helvetica", 12, "bold"))
 
+        # 处理上一中心的显示：向前查找上一个非自动续播的标注中心
+        valid_center = None
         if self.current_image_index > 0:
-            prev_image = self.image_paths[self.current_image_index - 1]
-            prev_name = os.path.basename(prev_image)
-            if prev_name in self.annotations:
-                pts = self.annotations[prev_name]
-                if "center" in pts:
-                    ox, oy = pts["center"]
-                    prev_x = int(ox * self.scale) + img_x
-                    prev_y = int(oy * self.scale) + img_y
-                    self.canvas.create_oval(prev_x - RADIAS, prev_y - RADIAS, prev_x + RADIAS, prev_y + RADIAS, outline='orange', width=3)
-                    self.canvas.create_text(prev_x, prev_y, text="上次中心", fill="orange", font=("Helvetica", 10, "bold"))
+            idx = self.current_image_index - 1
+            while idx >= 0:
+                prev_image = self.image_paths[idx]
+                prev_name = os.path.basename(prev_image)
+                if prev_name in self.annotations:
+                    pts = self.annotations[prev_name]
+                    # 如果标注不是自动续播状态，且中心点有效，则使用该中心
+                    if not pts.get("skip", False) and "center" in pts:
+                        valid_center = pts["center"]
+                        break
+                idx -= 1
+            if valid_center:
+                ox, oy = valid_center
+                prev_x = int(ox * self.scale) + img_x
+                prev_y = int(oy * self.scale) + img_y
+                self.canvas.create_oval(prev_x - RADIAS, prev_y - RADIAS, prev_x + RADIAS, prev_y + RADIAS, outline='orange', width=3)
+                self.canvas.create_text(prev_x, prev_y, text="上次中心", fill="orange", font=("Helvetica", 10, "bold"))
 
         self.points = []
         self.point_items = {}
@@ -694,6 +713,32 @@ class ImageMarker:
         txt.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
         btn = tk.Button(top, text="关闭", command=top.destroy)
         btn.pack(pady=5)
+
+    # 新增自动续播方法
+    def auto_skip_current(self):
+        image_path = self.image_paths[self.current_image_index]
+        image_name = os.path.basename(image_path)
+        # 提供后悔选项
+        if not messagebox.askyesno("确认", "确定自动续播本帧吗？此操作不可逆。"):
+            return
+        # 设置所有标注点均为 (-1,-1) 并标记 skip 为 True
+        new_annotation = {
+            "left_h": (-1, -1),
+            "right_h": (-1, -1),
+            "left_f": (-1, -1),
+            "right_f": (-1, -1),
+            "center": (-1, -1),
+            "skip": True
+        }
+        self.annotations[image_name] = new_annotation
+        self.write_annotations_file()
+        self.current_image_index += 1
+        if self.current_image_index < len(self.image_paths):
+            self.show_image()
+        else:
+            current_text = self.status_label.cget("text")
+            self.status_label.config(text=current_text + " | 所有图片标完！")
+        self.update_progress()
 
 
 if __name__ == "__main__":

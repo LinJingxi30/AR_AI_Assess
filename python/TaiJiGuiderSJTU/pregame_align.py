@@ -90,18 +90,42 @@ class PreAlignerPoints(Guider):
         if not hasattr(self, "_voice_sent"):
             self._voice_sent = set()
         if self.current_std_index == 1 and 1 not in self._voice_sent:
-            DataSender.send_control("PLAY_AUDIO",flag = 4)
-            DataSender.send_control("PLAY_AUDIO",flag = 5)
+            DataSender.send_control("PLAY_AUDIO",flag = 2)
             self._voice_sent.add(1)
         if self.current_std_index == 2 and 2 not in self._voice_sent:
-            DataSender.send_control("PLAY_AUDIO",flag = 8)
-            DataSender.send_control("PLAY_AUDIO",flag = 9)
+            DataSender.send_control("PLAY_AUDIO",flag = 4)
             self._voice_sent.add(2)
         if self.current_std_index == 3 and 3 not in self._voice_sent:
-            DataSender.send_control("PLAY_AUDIO",flag = 6)
-            DataSender.send_control("PLAY_AUDIO",flag = 10)
+            DataSender.send_control("PLAY_AUDIO",flag = 5)
             self._voice_sent.add(3)
 
+
+    def pygame_UI_render(self, canvas, CONFIGS):
+        """
+        绘制 Pygame UI
+        """
+        # 源：BGR 格式的 cv2 画布
+        # 转换为 RGB 格式
+        canvas_rgb = cv2.cvtColor(canvas, cv2.COLOR_BGR2RGB)
+        # 转换为 Pygame Surface 格式
+        self.pygame_surface = pygame.surfarray.make_surface(canvas_rgb.swapaxes(0, 1))
+        # 绘制到 Pygame 窗口
+        self.screen.blit(self.pygame_surface, (0, 0))
+
+        # # 绘制标题
+        # TITLE = CONFIGS["标题"]
+        # # 加载字体并设置字号
+        # font = pygame.font.Font(TITLE["字体"], TITLE["字号"])
+        # title_surface = font.render(TITLE["文字"], True, TITLE["颜色"])
+        # title_rect = title_surface.get_rect(center=TITLE["位置"])
+        # self.screen.blit(title_surface, title_rect)
+
+        # # 绘制计分
+        # SCORE = CONFIGS["计分"]
+        # font = pygame.font.Font(SCORE["字体"], SCORE["字号"])
+        # score_surface = font.render(f"{SCORE['文字']}{int(self.score)}分", True, SCORE["颜色"])
+        # score_rect = score_surface.get_rect(center=SCORE["位置"])
+        # self.screen.blit(score_surface, score_rect)
     
     def canvas_render(self, rt_frame, conditions):
         """绘制实时画面帧"""

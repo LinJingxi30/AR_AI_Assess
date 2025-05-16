@@ -8,7 +8,7 @@ import os
 # 统一窗口大小
 # win_width, win_height = 1920, 1080
 # win_width, win_height = 1600, 900
-win_width, win_height = 1280, 880
+win_width, win_height = 1280, 720
 # win_width, win_height = 640, 480
 WIN_SIZE = (win_width, win_height)
 FPS = 10

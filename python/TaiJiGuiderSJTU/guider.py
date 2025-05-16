@@ -50,7 +50,7 @@ MAX_SCORE = 100  # 最大分数
 
 PYGAME_UI_CONFIG = {
     "标题": {
-        "文字": "太极引导助手🥋",
+        "文字": "太极引导助手",
         "字体": str(Path(PY_ROOT) / "gameAssets" / "fonts" / "SmileySans-Oblique.ttf"),
         "字号": 60,
         "颜色": (100, 155, 255),  # RGB(100, 155, 255)
@@ -91,6 +91,7 @@ class Guider:
         # resource 资源
         self.std_pose_lists = None
         self.std_overlay_paths = None
+        self.std_skips = None   # 自动不停播列表（bool）, length = len(std_pose_lists)
         self.real_world_frame = None
         self.rt_pose_list = None
         self.std_pose_list = None
@@ -110,6 +111,7 @@ class Guider:
 
         # load 初始化加载资源
         self.std_pose_lists, self.std_overlay_paths = self.load_std_resources(self.std_json_path, self.std_frame_path)
+        # self.std_pose_lists, self.std_skips, self.std_overlay_paths = self.load_std_resources(self.std_json_path, self.std_frame_path)
 
         # state 状态
         self.current_std_index = 0
@@ -183,6 +185,9 @@ class Guider:
             """步进跳帧"""
             if self.debug:
                 self.conditions = [True] * len(POSE_ALIGN_LANDMARKS)  # 调试
+            # if self.std_skips[self.current_std_index]:
+            #     # 如果当前帧是自动不停播帧，跳过条件检查
+            #     self.conditions = [True] * len(POSE_ALIGN_LANDMARKS)
             self.current_std_index = self.index_update(conditions=self.conditions, 
                                                        cur_index=self.current_std_index, 
                                                        end_index=len(self.std_pose_lists)-1)
@@ -437,9 +442,10 @@ class Guider:
         pygame.mixer.init()
 
         # 加载背景音乐 bgm
-        pygame.mixer.music.load(win_bgm_path)
-        pygame.mixer.music.set_volume(1)        # 音量范围 0.0 - 1.0
-        pygame.mixer.music.play(-1)             # -1 表示循环播放
+        if win_bgm_path:
+            pygame.mixer.music.load(win_bgm_path)
+            pygame.mixer.music.set_volume(1)        # 音量范围 0.0 - 1.0
+            pygame.mixer.music.play(-1)             # -1 表示循环播放
 
         # 初始化窗口
         self.screen = pygame.display.set_mode(WIN_SIZE)
@@ -500,6 +506,7 @@ class Guider:
         """
         # 加载标准 JSON 数据 -> 标准姿态合集列表
         # [[33 * tuple(x, y, z=0)], [...], ..., ]
+        # std_pose_lists, std_skips = self.load_std_pose_lists(json_path, landmarks=POSE_ALIGN_LANDMARKS)        std_pose_lists = self.load_std_pose_lists(json_path, landmarks=POSE_ALIGN_LANDMARKS)
         std_pose_lists = self.load_std_pose_lists(json_path, landmarks=POSE_ALIGN_LANDMARKS)
         
         # 标准帧路径合集列表
@@ -507,6 +514,7 @@ class Guider:
         std_overlay_paths = self.load_std_frame_paths(frame_path)
 
         # 标准姿态 列表列表；标准帧路径 列表
+        # return std_pose_lists, std_skips, std_overlay_paths
         return std_pose_lists, std_overlay_paths
 
 
@@ -514,6 +522,7 @@ class Guider:
     def load_std_pose_lists(json_path, landmarks=None) -> list[list[tuple]]:
         # 嵌套列表 [[33 * tuple(x, y, z=0)], ..., ] len(json)
         std_full_pose_lists = []
+        std_skips = []
         # 只读模式打开 JSON 文件
         with open(json_path, 'r') as f:
             for line in f:
@@ -564,7 +573,11 @@ class Guider:
                 # 存储到嵌套列表中
                 std_full_pose_lists.append(pose_list)
 
+                # # 自动不停播列表（bool）
+                # std_skips.append(frame_dict["skip"])
+
         # [[33 * tuple(x, y, z=0)], ..., ] len(json)
+        # return std_full_pose_lists, std_skips
         return std_full_pose_lists
 
     @staticmethod

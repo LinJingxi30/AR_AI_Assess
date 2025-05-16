@@ -5,7 +5,28 @@ import utils.CamUtils as CamUtils
 from Config import WIN_SIZE
 
 class Animator(Guider):
-    """在 Guider 基础上，支持过渡动画 & 结算动画"""
+    """继承自 Guider 支持过渡动画 & 结算动画"""
+    def __init__(self, debug=False):
+        # config 配置
+        self.frame_rate = 30
+
+        # utils 工具
+        self.camera = None
+        self.frame_rate_clock = None
+
+        # resource 资源
+        self.pygame_surface = None  # pygame 画布
+        self.screen = None  # pygame 窗口
+
+        # init 初始化工具
+        self.camera = CamUtils.camera_init(resolution=(1280, 720))
+        self.pygame_init(win_bgm_path=None, win_topic="太极拳指导系统")
+
+        # state 状态
+        self.debug = debug
+        self.running = True
+
+
 
     def animate(self, duration_sec, draw_frame_func, fps=None):
         """通用动画框架：持续 duration_sec 秒，每帧调用 draw_frame_func(progress)"""
@@ -21,13 +42,17 @@ class Animator(Guider):
                 self.screen.blit(surf, (0,0))
                 progress = i / max(1, total_frames-1)
                 draw_frame_func(progress)
+                # 发送
+                frame_to_web = self.get_transmit_frame(self.screen)
+                if not self.debug:
+                    self.send_jpeg_data(frame_to_web)
                 pygame.display.flip()
 
-    def animate_title(self, text, duration=1.0):
+    def animate_title(self, text, duration=1.0, config=PYGAME_UI_CONFIG):
         """开始前淡入大标题"""
         if self.running:
-            font = pygame.font.Font(PYGAME_UI_CONFIG["标题"]["字体"], PYGAME_UI_CONFIG["标题"]["字号"]+20)
-            color = PYGAME_UI_CONFIG["标题"]["颜色"]
+            font = pygame.font.Font(config["标题"]["字体"], config["标题"]["字号"]+20)
+            color = config["标题"]["颜色"]
             pos = (WIN_SIZE[0]//2, WIN_SIZE[1]//2)
             def _draw(p):
                 surf = font.render(text, True, color)
@@ -38,7 +63,7 @@ class Animator(Guider):
         else:
             return
 
-    def animate_summary(self, total_score, move_scores:list[int], duration=0.5, bg_image_path=None):
+    def animate_summary(self, total_score, move_scores:list[int], duration=0.5, bg_image_path=None, config=PYGAME_UI_CONFIG):
         """结束后显示总分及三式得分"""
         if self.running:
             # 预载背景图（可省略）
@@ -48,8 +73,8 @@ class Animator(Guider):
                 bg = cv2.resize(bg, WIN_SIZE)
                 canvas_rgb = cv2.cvtColor(bg, cv2.COLOR_BGR2RGB)
                 bg_img = pygame.surfarray.make_surface(canvas_rgb.swapaxes(0,1))
-            font_t = pygame.font.Font(PYGAME_UI_CONFIG["标题"]["字体"], 50)
-            font_s = pygame.font.Font(PYGAME_UI_CONFIG["计分"]["字体"], 36)
+            font_t = pygame.font.Font(config["标题"]["字体"], 50)
+            font_s = pygame.font.Font(config["计分"]["字体"], 36)
             def _draw(p):
                 # 背景
                 if bg_img:
