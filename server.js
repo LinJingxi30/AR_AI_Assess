@@ -10,7 +10,7 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server,{
   cors: {
-    origin: ["https://admin.socket.io"],
+    origin: true,
     credentials: true
   }
 });
@@ -76,6 +76,30 @@ app.post('/update_room', (req, res) => {
     socket.join(room); // 加入新房间
     socket.emit('update_room', room); // 通知对应的 socket
     res.json({ success: true });
+});
+
+app.post('/api/chat', async (req, res) => {
+  const { prompt } = req.body;
+
+  const response = await fetch('http://localhost:11434/api/chat', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: 'deepseek-r1:14b',
+      messages: [{ role: 'user', content: prompt }],
+      stream: true,
+    }),
+  });
+
+  // 直接转发响应头
+  res.setHeader('Content-Type', response.headers.get('Content-Type') || 'application/octet-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+
+  // 直接 pipe 响应体
+  response.body.pipeTo(require('stream').Writable.toWeb(res)).catch(() => {
+    res.end();
+  });
 });
 
 // 广播连接信息到 admin 房间

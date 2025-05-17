@@ -4,9 +4,11 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>实时画面显示</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="js/chart.js"></script>
-    <script src="js/mqtt.min.js"></script>
+    <script src="js/util/tailwindcss.js"></script>
+    <script src="js/util/chart.js"></script>
+    <script src="js/util/mqtt.min.js"></script>
+    <script src="js/util/socket.io.min.js"></script>
+    <script src="js/util/marked.min.js"></script>
     <style>
      
     </style>
@@ -17,12 +19,18 @@
 
     <img id="live-feed" alt="实时画面" class="max-w-full max-h-full object-contain" />
 
+    <!-- 全屏按钮 -->
+    <button id="fullscreen-btn" class="fixed top-4 left-4 z-50 bg-gray-800 bg-opacity-70 text-white px-3 py-1 rounded hover:bg-opacity-90 transition-all text-sm shadow">
+      全屏
+    </button>
+
     <div id="chart-container" class="absolute top-4 right-4 bg-transparent p-4 rounded shadow-lg">
       <canvas id="health-chart" width="400" height="200"></canvas>
     </div>
 
-    <script src="js/socket.io.min.js"></script>
-    <script>
+    <script type="module">
+      import { createHealthChart } from './js/heart_chart.js';
+
       let { protocol, host } = window.location;
       let baseURL = protocol + "//" + host;
       let lastUrl;
@@ -66,6 +74,20 @@
         data = null;
       });
 
+      // 监听 process_status 事件
+      socket.on('process_status', (status) => {
+        if (status === '未运行') {
+          // 随机得分占位
+          const score = Math.floor(Math.random() * 100 + 1);
+          // 取当前图表数据用于回放
+          const labels = [...healthChart.data.labels];
+          const heartData = [...healthChart.data.datasets[0].data];
+          const oxygenData = [...healthChart.data.datasets[1].data];
+
+          showResultModal({ score, heartData, oxygenData, labels });
+        }
+      });
+
       socket.on("connect_error", (error) => {
         console.error("Socket.IO 连接错误:", error);
       });
@@ -90,79 +112,7 @@
 
       // 初始化Chart.js
       const ctx = document.getElementById('health-chart').getContext('2d');
-      const healthChart = new Chart(ctx, {
-        type: 'line',
-        data: {
-          labels: [], // 时间戳
-          datasets: [
-            {
-              label: '心率',
-              data: [],
-              borderColor: 'red',
-              borderWidth: 2,
-              fill: false,
-              yAxisID: 'y', // 绑定到左侧纵轴
-            },
-            {
-              label: '血氧',
-              data: [],
-              borderColor: 'blue',
-              borderWidth: 2,
-              fill: false,
-              yAxisID: 'y1', // 绑定到右侧纵轴
-            },
-          ],
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          animation: false,
-          scales: {
-            x: {
-              title: {
-                display: true,
-                text: '',
-                color: 'black', // 设置字体颜色为白色
-              },
-              ticks: {
-                color: 'black', // 设置刻度字体颜色为白色
-              },
-            },
-            y: {
-              title: {
-                display: true,
-                text: '心率',
-                color: 'black', // 设置字体颜色为白色
-              },
-              ticks: {
-                color: 'black', // 设置刻度字体颜色为白色
-              },
-              position: 'left', // 左侧纵轴
-            },
-            y1: {
-              title: {
-                display: true,
-                text: '血氧',
-                color: 'black', // 设置字体颜色为白色
-              },
-              ticks: {
-                color: 'black', // 设置刻度字体颜色为白色
-              },
-              position: 'right', // 右侧纵轴
-              grid: {
-                drawOnChartArea: false, // 不绘制网格线
-              },
-            },
-          },
-          plugins: {
-            legend: {
-              labels: {
-                color: 'black', // 设置图例字体颜色为白色
-              },
-            },
-          },
-        },
-      });
+      const healthChart = createHealthChart(ctx);
 
       // 连接到MQTT服务器
       const mqttClient = mqtt.connect('wss://ws.chainpray.top/mqtt'); // 替换为实际的MQTT服务器地址
@@ -205,6 +155,175 @@
       // 清理资源
       window.addEventListener('beforeunload', () => {
         mqttClient.end();
+      });
+
+      // 结算弹窗组件
+      function showResultModal({ score, heartData, oxygenData, labels }) {
+        // 避免重复弹窗
+        if (document.getElementById('result-modal')) return;
+
+        // 创建遮罩
+        const mask = document.createElement('div');
+        mask.id = 'result-modal';
+        mask.className = 'fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50';
+
+        // 弹窗内容，增大AI总结区域宽高
+        mask.innerHTML = `
+          <div class="bg-white rounded-lg shadow-2xl p-8 w-[90vw] h-[80vh] max-w-none relative flex flex-col">
+            <button id="close-modal-btn" class="absolute top-2 right-2 text-gray-400 hover:text-gray-700 text-2xl font-bold">&times;</button>
+            <h2 class="text-2xl font-bold mb-4 text-center text-gray-800">训练结算</h2>
+            <div class="flex flex-row gap-6 flex-1">
+              <!-- 得分区域 -->
+              <div class="flex-1 flex flex-col items-center justify-center border-r border-gray-200 pr-6 min-w-[120px]">
+                <span class="text-lg text-gray-600">总得分：</span>
+                <span class="text-3xl font-extrabold text-blue-600">${score}</span>
+              </div>
+              <!-- 回放图表区域 -->
+              <div class="flex-[2] flex flex-col items-center justify-center border-r border-gray-200 px-6 min-w-[260px]">
+                <h3 class="text-lg font-semibold mb-2 text-gray-700">心率/血氧数据回放</h3>
+                <canvas id="replay-chart" height="260"></canvas>
+              </div>
+              <!-- AI总结区域 -->
+              <div class="flex-[3] flex flex-col px-6 min-w-[340px]">
+                <h3 class="text-lg font-semibold mb-2 text-gray-700">训练成果总结</h3>
+                <div id="summary-content" class="bg-gray-100 rounded p-4 text-gray-700 text-base overflow-y-auto" style="max-height:60vh;"><span class="text-gray-400">AI总结生成中...</span></div>
+              </div>
+            </div>
+          </div>
+        `;
+
+        document.body.appendChild(mask);
+
+        // 关闭按钮
+        document.getElementById('close-modal-btn').onclick = () => {
+          mask.remove();
+        };
+
+        // 回放图表
+        setTimeout(() => {
+          const ctx = document.getElementById('replay-chart').getContext('2d');
+          new Chart(ctx, {
+            type: 'line',
+            data: {
+              labels: labels,
+              datasets: [
+                {
+                  label: '心率',
+                  data: heartData,
+                  borderColor: 'red',
+                  borderWidth: 2,
+                  fill: false,
+                  yAxisID: 'y',
+                },
+                {
+                  label: '血氧',
+                  data: oxygenData,
+                  borderColor: 'blue',
+                  borderWidth: 2,
+                  fill: false,
+                  yAxisID: 'y1',
+                },
+              ],
+            },
+            options: {
+              responsive: true,
+              animation: false,
+              scales: {
+                y: { position: 'left', title: { display: true, text: '心率' } },
+                y1: { position: 'right', title: { display: true, text: '血氧' }, grid: { drawOnChartArea: false } },
+              },
+              plugins: {
+                legend: { labels: { color: 'black' } },
+              },
+            },
+          });
+        }, 100);
+
+        // === 流式获取AI总结，处理<think>内容 ===
+        (async function () {
+          let summaryDiv = document.getElementById("summary-content");
+          summaryDiv.innerHTML = "<span class='text-gray-400'>总结生成中...</span>";
+          // 并行读取 prompt.txt 和 differences.json
+          const [promptTxtRes, diffJsonRes] = await Promise.all([
+            fetch("/others/prompt.txt"),
+            fetch("/others/differences.json")
+          ]);
+          const promptTxt = await promptTxtRes.text();
+          let diffJson = "";
+          try {
+            diffJson = JSON.stringify(await diffJsonRes.json(), null, 2);
+          } catch {
+            diffJson = "";
+          }
+          // 合并内容
+          const mergedPrompt = promptTxt + "\n\nDifferences:\n" + diffJson;
+
+          const response = await fetch("/api/chat", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                prompt: mergedPrompt
+            })
+          });
+
+          const reader = response.body.getReader();
+          const decoder = new TextDecoder("utf-8");
+
+          let accumulated = "";
+          let thinkFlag = 0;
+
+          summaryDiv.innerHTML = ""; // 清空旧内容
+
+          while (true) {
+            const { value, done } = await reader.read();
+            if (done) break;
+
+            const chunk = decoder.decode(value);
+            const lines = chunk.split("\n").filter(Boolean);
+            for (const line of lines) {
+              try {
+                const data = JSON.parse(line);
+                // console.log(data);
+                if (data.done) break;
+                if (data.message?.content?.includes("</think>")) 
+                  thinkFlag = 1;
+                if (!thinkFlag) {
+                  summaryDiv.innerHTML = "<div class='text-gray-500'>反馈分析报告生成中...</div>";
+                  continue;
+                }
+                const delta = data.message?.content || "";
+                accumulated += delta;
+
+                summaryDiv.innerHTML = marked.parse(accumulated);
+              } catch (err) {
+                console.warn("JSON parse error:", err, line) ;
+              }
+            }
+          }
+        })();
+      }
+
+      // 自动全屏函数
+      function launchFullscreen(element) {
+        if (element.requestFullscreen) {
+          element.requestFullscreen();
+        } else if (element.mozRequestFullScreen) {
+          element.mozRequestFullScreen();
+        } else if (element.webkitRequestFullscreen) {
+          element.webkitRequestFullscreen();
+        } else if (element.msRequestFullscreen) {
+          element.msRequestFullscreen();
+        }
+      }
+
+      window.addEventListener('DOMContentLoaded', () => {
+        // launchFullscreen(document.documentElement);
+        // 全屏按钮事件
+        document.getElementById('fullscreen-btn').onclick = () => {
+          launchFullscreen(document.documentElement);
+        };
       });
     </script>
   </body>

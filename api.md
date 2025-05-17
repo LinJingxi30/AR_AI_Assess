@@ -73,7 +73,7 @@ flag：音频控制标志位，int
   ```
 
 ### 6. `stop_capture`
-- **描述**: 停止捕捉
+- **描述**: 控制器发送停止指令
 - **事件类型**: `emit`
 - **数据格式**:
   ```json
@@ -82,18 +82,7 @@ flag：音频控制标志位，int
   }
   ```
 
-### 7. `capture_stopped`
-- **描述**: 当 Python 脚本结束时广播通知。
-- **事件类型**: `emit`
-- **数据格式**:
-  ```json
-  {
-    "message": "Capture process has stopped",
-    "code": 0
-  }
-  ```
-
-### 8. `get_process_status`
+### 7. `get_process_status`
 - **描述**: 获取当前房间的Python进程状态
 - **事件类型**: `emit`
 - **返回事件**: `process_status`

@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Ollama Chat - Stream Markdown</title>
+  <script src="js/util/marked.min.js"></script>
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 2em;
+      background-color: #f5f5f5;
+    }
+    textarea {
+      width: 100%;
+      height: 100px;
+      font-size: 1em;
+      padding: 10px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      resize: vertical;
+    }
+    button {
+      margin-top: 10px;
+      padding: 10px 20px;
+      font-size: 1em;
+      border: none;
+      background-color: #007bff;
+      color: white;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    #output {
+      margin-top: 20px;
+      padding: 1em;
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 0 5px rgba(0,0,0,0.1);
+    }
+    code {
+      background-color: #eee;
+      padding: 2px 4px;
+      border-radius: 4px;
+    }
+    pre code {
+      display: block;
+      background: #eee;
+      padding: 10px;
+      border-radius: 6px;
+      overflow-x: auto;
+    }
+  </style>
+</head>
+<body>
+  <h2>💬 Ollama Chat Streaming</h2>
+  <textarea id="prompt" placeholder="Type your question here..."></textarea><br>
+  <button onclick="sendPrompt()">Send</button>
+  <div id="output"></div>
+
+  <script>
+    async function sendPrompt() {
+      const output = document.getElementById("output");
+      output.innerHTML = "<em>Waiting for response...</em>";
+
+      // 并行读取 prompt.txt 和 differences.json
+      const [promptTxtRes, diffJsonRes] = await Promise.all([
+        fetch("/others/prompt.txt"),
+        fetch("/others/differences.json")
+      ]);
+      const promptTxt = await promptTxtRes.text();
+      let diffJson = "";
+      try {
+        diffJson = JSON.stringify(await diffJsonRes.json(), null, 2);
+      } catch {
+        diffJson = "";
+      }
+
+      // 合并内容
+      const mergedPrompt = promptTxt + "\n\nDifferences:\n" + diffJson;
+
+      const response = await fetch("/api/chat", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            prompt: mergedPrompt
+        })
+      });
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder("utf-8");
+
+      let accumulated = "";
+      let thinkFlag = 0;
+
+      output.innerHTML = ""; // 清空旧内容
+
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        
+        const chunk = decoder.decode(value);
+        const lines = chunk.split("\n").filter(Boolean);
+        for (const line of lines) {
+          try {
+            const data = JSON.parse(line);
+            console.log(data);
+            if (data.done) break;
+            if (data.message?.content?.includes("</think>")) 
+                thinkFlag = 1;
+            if (!thinkFlag) {
+                output.innerHTML = "<div class='text-gray-500'>反馈分析报告生成中...</div>";
+                continue
+            }
+                
+            const delta = data.message?.content || "";
+            accumulated += delta;
+
+            // 实时 Markdown 渲染
+            output.innerHTML = marked.parse(accumulated);
+          } catch (err) {
+            console.warn("JSON parse error:", err, line);
+          }
+        }
+      }
+    }
+  </script>
+</body>
+</html>
