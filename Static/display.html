@@ -24,6 +24,10 @@
       全屏
     </button>
 
+    <div id="spo2-alert" class="fixed top-0 left-1/2 -translate-x-1/2 z-50 bg-red-600 text-white px-8 py-3 rounded-b shadow-lg text-lg font-bold hidden">
+      检测到血氧异常，请注意健康！
+    </div>
+
     <div id="chart-container" class="absolute top-4 right-4 bg-transparent p-4 rounded shadow-lg">
       <canvas id="health-chart" width="400" height="200"></canvas>
     </div>
@@ -131,6 +135,8 @@
             audio.currentTime = 0;
             audio.play();
           }
+        }else if(data.command === "MOVE_SCORES") {
+          console.log(`${data.data}`);
         }
       });
 
@@ -196,6 +202,10 @@
 
       let startTime;
 
+      // 血氧异常检测参数
+      const SPO2_THRESHOLD = 94; // 血氧阈值
+      let spo2AlertTimer = null;
+
       mqttClient.on('message', (topic, message) => {
         if (!startTime) {
           startTime = Date.now(); // 记录开始时间
@@ -210,6 +220,17 @@
           healthChart.data.datasets[0].data.push(data.heart_rate);
         if (data.blood_oxygen !== undefined)   
           healthChart.data.datasets[1].data.push(data.blood_oxygen);
+
+        // ====== 血氧异常检测并弹窗提醒 ======
+        if (data.blood_oxygen !== undefined && data.blood_oxygen < SPO2_THRESHOLD) {
+          const alertDiv = document.getElementById('spo2-alert');
+          alertDiv.classList.remove('hidden');
+          // 自动消失
+          if (spo2AlertTimer) clearTimeout(spo2AlertTimer);
+          spo2AlertTimer = setTimeout(() => {
+            alertDiv.classList.add('hidden');
+          }, 4000);
+        }
 
         // 限制数据点数量
         if (healthChart.data.labels.length > 15) {
