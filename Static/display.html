@@ -28,8 +28,36 @@
       <canvas id="health-chart" width="400" height="200"></canvas>
     </div>
 
-    <script type="module">
-      import { createHealthChart } from './js/heart_chart.js';
+    <!-- 添加控制组件 -->
+    <div class="fixed bottom-4 right-4 z-20 flex gap-4">
+      <select id="main-mode-select" class="bg-white/80 rounded px-4 py-2">
+        <option value="">选择中心主题</option>
+        <option value="train">训练</option>
+        <option value="challenge">挑战</option>
+        <option value="fitness">健身</option>
+      </select>
+      <select id="sub-mode-select" class="bg-white/80 rounded px-4 py-2" disabled>
+        <option value="">请先选择中心主题</option>
+      </select>
+      <button id="start-btn" onclick="startCapture()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700" style="display:block">
+        开始运动
+      </button>
+      <button id="stop-btn" onclick="stopCapture()" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700" style="display:none">
+        结束运动
+      </button>
+    </div>
+
+    <!-- 音频元素 -->
+    <audio id="audio-1" src="./audio/语音1.mp3" preload="auto"></audio>
+    <audio id="audio-2" src="./audio/语音2.mp3" preload="auto"></audio>
+    <audio id="audio-3" src="./audio/语音3.mp3" preload="auto"></audio>
+    <audio id="audio-4" src="./audio/语音4.mp3" preload="auto"></audio>
+    <audio id="audio-5" src="./audio/语音5.mp3" preload="auto"></audio>
+    <audio id="audio-6" src="./audio/语音6.mp3" preload="auto"></audio> 
+    <audio id="audio-7" src="./audio/语音7.mp3" preload="auto"></audio>
+    <audio id="audio-8" src="./audio/语音8.mp3" preload="auto"></audio>
+    <script src="./js/heart_chart.js"></script>
+    <script >
 
       let { protocol, host } = window.location;
       let baseURL = protocol + "//" + host;
@@ -41,6 +69,20 @@
         reconnectionAttempts: 5,
       });
       let roomID ;
+
+      function startCapture() {
+        const mainMode = mainModeSelect.value;
+        const subMode = subModeSelect.value;
+        if (!mainMode || !subMode) {
+          alert("请选择中心主题和子模式！");
+          return;
+        }
+        socket.emit("start_capture", { mainMode, subMode });
+      }
+
+      function stopCapture() {
+        socket.emit("stop_capture");
+      }
 
       socket.on('connect', () => {
         // 默认加入 和id相同名字的 房间
@@ -74,9 +116,40 @@
         data = null;
       });
 
+      // 监听控制消息
+      socket.on("control", (data) => {
+        console.log("接收到控制消息:", data);
+        if (data.command === "PLAY_AUDIO") {
+          console.log(`播放音频: ${data.flag}`);
+          const audio = audioElements[data.flag];
+          if (audio) {
+            // 停止所有其他音频
+            Object.values(audioElements).forEach(a => {
+              if (a !== audio) a.pause();
+            });
+            // 播放指定音频
+            audio.currentTime = 0;
+            audio.play();
+          }
+        }
+      });
+
       // 监听 process_status 事件
       socket.on('process_status', (status) => {
-        if (status === '未运行') {
+        const startBtn = document.getElementById("start-btn");
+        const stopBtn = document.getElementById("stop-btn");
+        if (status === '运行中') {
+          startBtn.style.display = "none";
+          stopBtn.style.display = "block";
+          mainModeSelect.style.display = "none";
+          subModeSelect.style.display = "none";
+          
+        }else if(status === "未运行") {
+          startBtn.style.display = "block";
+          stopBtn.style.display = "none";
+          mainModeSelect.style.display = "block";
+          subModeSelect.style.display = "block";
+
           // 随机得分占位
           const score = Math.floor(Math.random() * 100 + 1);
           // 取当前图表数据用于回放
@@ -304,6 +377,39 @@
           }
         })();
       }
+
+      // 添加模式映射
+      const modeMap = {
+        train: ["真人", "虚拟人物", "练习模式"],
+        challenge: ["限时", "无尽"],
+        fitness: ["单人", "多人"]
+      };
+
+      const mainModeSelect = document.getElementById("main-mode-select");
+      const subModeSelect = document.getElementById("sub-mode-select");
+      const audioElements = {
+        1: document.getElementById("audio-1"),
+        2: document.getElementById("audio-2"),
+        3: document.getElementById("audio-3"),
+        4: document.getElementById("audio-4"),
+        5: document.getElementById("audio-5"),
+        6: document.getElementById("audio-6"),
+        7: document.getElementById("audio-7"),
+        8: document.getElementById("audio-8"),
+      };
+
+      function updateSubModes() {
+        const mainMode = mainModeSelect.value;
+        const subModes = modeMap[mainMode] || [];
+        
+        subModeSelect.innerHTML = subModes.length
+          ? subModes.map(subMode => `<option value="${subMode}">${subMode}</option>`).join('')
+          : '<option value="">请先选择中心主题</option>';
+        
+        subModeSelect.disabled = !subModes.length;
+      }
+
+      mainModeSelect.addEventListener("change", updateSubModes);
 
       // 自动全屏函数
       function launchFullscreen(element) {

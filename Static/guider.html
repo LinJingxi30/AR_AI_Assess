@@ -22,7 +22,7 @@
       <canvas id="health-chart" width="400" height="200"></canvas>
     </div>
 
-    <!-- 添加音频控制组件 -->
+    <!-- 添加控制组件 -->
     <div class="fixed bottom-4 right-4 z-20 flex gap-4">
       <select id="main-mode-select" class="bg-white/80 rounded px-4 py-2">
         <option value="">选择中心主题</option>
@@ -114,6 +114,24 @@
         data = null;
       });
 
+      // 监听控制消息
+      socket.on("control", (data) => {
+        console.log("接收到控制消息:", data);
+        if (data.command === "PLAY_AUDIO") {
+          console.log(`播放音频: ${data.flag}`);
+          const audio = audioElements[data.flag];
+          if (audio) {
+            // 停止所有其他音频
+            Object.values(audioElements).forEach(a => {
+              if (a !== audio) a.pause();
+            });
+            // 播放指定音频
+            audio.currentTime = 0;
+            audio.play();
+          }
+        }
+      });
+
       socket.on("connect_error", (error) => {
         console.error("Socket.IO 连接错误:", error);
       });
@@ -121,7 +139,6 @@
       socket.on("disconnect", () => {
         console.warn("Socket.IO 断开连接，尝试重连...");
         liveFeed.src = "";
-        frameQueue = [];
         isProcessing = false;
       });
 
@@ -131,9 +148,7 @@
 
       // 清理资源
       window.addEventListener('beforeunload', () => {
-        clearInterval(fpsInterval);
         socket.disconnect();
-        frameQueue = [];
       });
 
       // 添加模式映射
@@ -181,23 +196,7 @@
         socket.emit("stop_capture");
       }
 
-      // 监听控制消息
-      socket.on("control", (data) => {
-        console.log("接收到控制消息:", data);
-        if (data.command === "PLAY_AUDIO") {
-          console.log(`播放音频: ${data.flag}`);
-          const audio = audioElements[data.flag];
-          if (audio) {
-            // 停止所有其他音频
-            Object.values(audioElements).forEach(a => {
-              if (a !== audio) a.pause();
-            });
-            // 播放指定音频
-            audio.currentTime = 0;
-            audio.play();
-          }
-        }
-      });
+      
 
       mainModeSelect.addEventListener("change", updateSubModes);
     </script>

@@ -1,6 +1,6 @@
 // 心率/血氧图表模块
 
-export function createHealthChart(ctx) {
+function createHealthChart(ctx) {
   return new Chart(ctx, {
     type: 'line',
     data: {
