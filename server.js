@@ -5,6 +5,8 @@ const { instrument } = require("@socket.io/admin-ui");
 const { spawn } = require('child_process');
 require('dotenv').config(); // 加载环境变量
 const path = require('path');
+const { v4: uuidv4 } = require('uuid');
+const jwt = require('jsonwebtoken');
 
 const app = express();
 const server = http.createServer(app);
@@ -160,13 +162,15 @@ io.on('connection', (socket) => {
             return;
         }
 
+        // 生成唯一ID
+        const uniqueId = uuidv4();
+        
         const scriptPath = path.join('python', PYTHON_SCRIPTS[mainMode]?.[subMode]);
-        if (!scriptPath) {
-            console.error(`未找到对应的脚本: mainMode=${mainMode}, subMode=${subMode}`);
-            return;
-        }
-
-        const pythonProcess = spawn(PYTHON_INTERPRETER, [scriptPath]);
+        const pythonProcess = spawn(PYTHON_INTERPRETER, [
+            scriptPath,
+            '--unique_id', uniqueId
+        ]);
+        
         pythonProcesses.set(room, pythonProcess);
 
         broadcastProcessStatus(room, '启动中');
@@ -297,5 +301,29 @@ const PORT = 8000;
 server.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);
 });
+
+// const authRoutes = require('./routes/auth');
+// const { authenticateToken, checkPermission } = require('./middleware/auth');
+
+// // 添加认证路由
+// app.use('/auth', authRoutes);
+
+// // 保护需要认证的路由
+// app.use('/connections', authenticateToken, checkPermission('view_connections'));
+// app.use('/update_room', authenticateToken, checkPermission('manage_rooms'));
+
+// // 保护 Socket.IO 连接
+// io.use((socket, next) => {
+//     const token = socket.handshake.auth.token;
+//     if (!token) {
+//         return next(new Error('Authentication error'));
+//     }
+
+//     jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key', (err, decoded) => {
+//         if (err) return next(new Error('Authentication error'));
+//         socket.user = decoded;
+//         next();
+//     });
+// });
 
 

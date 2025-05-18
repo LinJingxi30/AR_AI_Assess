@@ -7,6 +7,7 @@ from guider import Guider
 from animator import Animator
 from pregame_align import PreAlignerPoints
 import pygame
+import argparse
 
 
 from Config import STD_SPORTS_RESULTS_ROOT
@@ -103,8 +104,18 @@ ANIMATOR_CONFIG = {
 }
 
 
+# 添加命令行参数解析
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--unique_id", required=True, help="运动记录的唯一ID")
+    return parser.parse_args()
+
 if __name__ == "__main__":
-    # 创建实例
+    # 解析命令行参数
+    args = parse_args()
+    unique_id = args.unique_id
+    
+    # 创建实例时传入unique_id
     DEBUG = 0
     anim = Animator()
     pre_align = PreAlignerPoints(_paths=PRE_GAME_ALIGN_PATHS, debug=DEBUG)
