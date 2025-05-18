@@ -93,6 +93,8 @@ class ImageMarker:
         self.image_paths = []
         self.current_image_index = 0
         self.annotations = {}
+        # 新增自动续播标记属性
+        self.auto_skip = False
         self.drag_data = {}
         self.point_items = {}
         self.text_items = {}
@@ -267,6 +269,10 @@ class ImageMarker:
             "right_f": self.points[3],
             "center": self.points[4]
         }
+        # 当处于自动续播模式，增加skip标记
+        if self.auto_skip:
+            new_annotation["skip"] = True
+            self.auto_skip = False
         self.annotations[image_name] = new_annotation
         self.write_annotations_file()
         self.current_image_index += 1
@@ -718,27 +724,25 @@ class ImageMarker:
     def auto_skip_current(self):
         image_path = self.image_paths[self.current_image_index]
         image_name = os.path.basename(image_path)
-        # 提供后悔选项
+        # 如果当前图片已标注，直接更新skip字段
+        if image_name in self.annotations:
+            if not messagebox.askyesno("确认", "该图片已标注，确定自动续播并将skip置为True吗？"):
+                return
+            self.annotations[image_name]["skip"] = True
+            self.write_annotations_file()
+            self.current_image_index += 1
+            if self.current_image_index < len(self.image_paths):
+                self.show_image()
+            else:
+                current_text = self.status_label.cget("text")
+                self.status_label.config(text=current_text + " | 所有图片标完！")
+            self.update_progress()
+            return
+        # 对于未标注的图片，按原流程设置自动续播标志，提示用户手动完成标注
         if not messagebox.askyesno("确认", "确定自动续播本帧吗？此操作不可逆。"):
             return
-        # 设置所有标注点均为 (-1,-1) 并标记 skip 为 True
-        new_annotation = {
-            "left_h": (-1, -1),
-            "right_h": (-1, -1),
-            "left_f": (-1, -1),
-            "right_f": (-1, -1),
-            "center": (-1, -1),
-            "skip": True
-        }
-        self.annotations[image_name] = new_annotation
-        self.write_annotations_file()
-        self.current_image_index += 1
-        if self.current_image_index < len(self.image_paths):
-            self.show_image()
-        else:
-            current_text = self.status_label.cget("text")
-            self.status_label.config(text=current_text + " | 所有图片标完！")
-        self.update_progress()
+        self.auto_skip = True
+        messagebox.showinfo("提示", "自动续播激活，请手动标注当前图片的五个点以完成标注。")
 
 
 if __name__ == "__main__":

@@ -81,7 +81,7 @@ app.post('/update_room', (req, res) => {
 app.post('/api/chat', async (req, res) => {
   const { prompt } = req.body;
 
-  const response = await fetch('http://localhost:11434/api/chat', {
+  const response = await fetch('http://ollama.chainpray.top:11434/api/chat', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({

@@ -38,7 +38,8 @@ import utils.CamUtils as CamUtils
 WIN_WIDTH, WIN_HEIGHT = WIN_SIZE
 
 POSE_ALIGN_LANDMARKS = [19, 20, 31, 32]  # 左指尖、右指尖、左脚尖、右脚尖
-PTS_CONDITION_THRESH = [70, 70, 150, 150] # 对应上面的 4 个点的判定阈值
+# PTS_CONDITION_THRESH = [70, 70, 150, 150] # 对应上面的 4 个点的判定阈值
+PTS_CONDITION_THRESH = [70, 70, 250, 250] # 对应上面的 4 个点的判定阈值
 RT_PTS_TO_CENTER = [11, 12, 23, 24]  # 左肩、右肩、左髋、右髋
 
 LIGHTNESS = 0.8  # 画布亮度调整系数
@@ -112,8 +113,8 @@ class Guider:
 
         # load 初始化加载资源
         self.clear_difference_json()
-        self.std_pose_lists, self.std_overlay_paths = self.load_std_resources(self.std_json_path, self.std_frame_path)
-        # self.std_pose_lists, self.std_skips, self.std_overlay_paths = self.load_std_resources(self.std_json_path, self.std_frame_path)
+        # self.std_pose_lists, self.std_overlay_paths = self.load_std_resources(self.std_json_path, self.std_frame_path)
+        self.std_pose_lists, self.std_skips, self.std_overlay_paths = self.load_std_resources(self.std_json_path, self.std_frame_path)
 
         # state 状态
         self.current_std_index = 0
@@ -130,8 +131,7 @@ class Guider:
             # 获取 JPEG 字节数据
             frame_to_web = self.get_transmit_frame(self.screen)
             # 发送 JPEG 数据
-            if not self.debug:
-                self.send_jpeg_data(frame_to_web)
+            self.send_jpeg_data(frame_to_web)
             # 更新窗口显示
             pygame.display.flip()
 
@@ -187,14 +187,12 @@ class Guider:
             """保存数据"""
             self.save_data(self.conditions)
 
-
-
             """步进跳帧"""
             if self.debug:
                 self.conditions = [True] * len(POSE_ALIGN_LANDMARKS)  # 调试
-            # if self.std_skips[self.current_std_index]:
-            #     # 如果当前帧是自动不停播帧，跳过条件检查
-            #     self.conditions = [True] * len(POSE_ALIGN_LANDMARKS)
+            if self.std_skips[self.current_std_index]:
+                # 如果当前帧是自动不停播帧，跳过条件检查
+                self.conditions = [True] * len(POSE_ALIGN_LANDMARKS)
             self.current_std_index = self.index_update(conditions=self.conditions,
                                                        cur_index=self.current_std_index,
                                                        end_index=len(self.std_pose_lists)-1)
@@ -513,16 +511,16 @@ class Guider:
         """
         # 加载标准 JSON 数据 -> 标准姿态合集列表
         # [[33 * tuple(x, y, z=0)], [...], ..., ]
-        # std_pose_lists, std_skips = self.load_std_pose_lists(json_path, landmarks=POSE_ALIGN_LANDMARKS)        std_pose_lists = self.load_std_pose_lists(json_path, landmarks=POSE_ALIGN_LANDMARKS)
-        std_pose_lists = self.load_std_pose_lists(json_path, landmarks=POSE_ALIGN_LANDMARKS)
+        std_pose_lists, std_skips = self.load_std_pose_lists(json_path, landmarks=POSE_ALIGN_LANDMARKS)
+        # std_pose_lists = self.load_std_pose_lists(json_path, landmarks=POSE_ALIGN_LANDMARKS)
 
         # 标准帧路径合集列表
         # [str(path), str, ...]
         std_overlay_paths = self.load_std_frame_paths(frame_path)
 
         # 标准姿态 列表列表；标准帧路径 列表
-        # return std_pose_lists, std_skips, std_overlay_paths
-        return std_pose_lists, std_overlay_paths
+        return std_pose_lists, std_skips, std_overlay_paths
+        # return std_pose_lists, std_overlay_paths
 
 
     @staticmethod
@@ -580,12 +578,14 @@ class Guider:
                 # 存储到嵌套列表中
                 std_full_pose_lists.append(pose_list)
 
-                # # 自动不停播列表（bool）
-                # std_skips.append(frame_dict["skip"])
+                # 自动不停播列表（bool）
+                # 尝试获取 frame_dict["points"] 字典中的 "skip" 键，如果不存在则返回默认值 False，
+                # 因此即使 JSON 中缺少 "skip" 键，也不会报错。
+                std_skips.append(frame_dict["points"].get("skip", False))   # 标签程序写不好，嵌套在points里了
 
         # [[33 * tuple(x, y, z=0)], ..., ] len(json)
-        # return std_full_pose_lists, std_skips
-        return std_full_pose_lists
+        return std_full_pose_lists, std_skips
+        # return std_full_pose_lists
 
     @staticmethod
     def load_std_frame_paths(frame_path) -> list[str]:
@@ -713,6 +713,7 @@ class Guider:
                 print(f"差值已追加到 {self.differences_json_path}", file=sys.stderr)
             else:
                 print("无法保存差值：std_landmarks_list 和 rt_landmarks_list 不匹配或为空。", file=sys.stderr)
+                # raise ValueError("无法保存差值：std_landmarks_list 和 rt_landmarks_list 不匹配或为空。")
 
 # @A last new line here:
 
