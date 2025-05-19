@@ -7,18 +7,19 @@ require('dotenv').config(); // 加载环境变量
 const path = require('path');
 const { v4: uuidv4 } = require('uuid');
 const jwt = require('jsonwebtoken');
+const fs = require('fs').promises;
 
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server,{
-  cors: {
-    origin: true,
-    credentials: true
-  }
+const io = new Server(server, {
+    cors: {
+        origin: true,
+        credentials: true
+    }
 });
 // Socket.IO Admin UI
 instrument(io, {
-  auth: false
+    auth: false
 });
 
 // 设置静态文件目录
@@ -80,28 +81,58 @@ app.post('/update_room', (req, res) => {
     res.json({ success: true });
 });
 
+async function getMergedPrompt(prompt,uuid) {
+    try {
+        // 并行读取文件
+        const [promptText, diffJson] = await Promise.all([
+            fs.readFile(path.join(__dirname, 'Static/others/prompt.txt'), 'utf8'),
+            fs.readFile(path.join(__dirname, `python/StdSportsResults/TajJi/differences-${uuid}.json`), 'utf8')
+        ]);
+
+        // 解析 differences.json
+        let diffData = "";
+        try {
+            diffData = JSON.stringify(JSON.parse(diffJson), null, 2);
+        } catch (err) {
+            console.warn('解析 differences.json 失败:', err);
+        }
+
+        // 合并内容
+        return promptText + "\n\nDifferences:\n" + diffData + "\nhealthData\n" + prompt;
+    } catch (err) {
+        console.error('读取提示文件失败:', err);
+        return "";
+    }
+}
+
+// 修改 chat API endpoint
 app.post('/api/chat', async (req, res) => {
-  const { prompt } = req.body;
+    const { prompt,uuid } = req.body;
 
-  const response = await fetch('http://ollama.chainpray.top:11434/api/chat', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      model: 'deepseek-r1:14b',
-      messages: [{ role: 'user', content: prompt }],
-      stream: true,
-    }),
-  });
+    try {
+        const mergedPrompt = await getMergedPrompt(prompt,uuid);
 
-  // 直接转发响应头
-  res.setHeader('Content-Type', response.headers.get('Content-Type') || 'application/octet-stream');
-  res.setHeader('Cache-Control', 'no-cache');
-  res.setHeader('Connection', 'keep-alive');
+        const response = await fetch('http://ollama.chainpray.top:11434/api/chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                model: 'deepseek-r1:14b',
+                messages: [{ role: 'user', content: mergedPrompt }],
+                stream: true,
+            }),
+        });
 
-  // 直接 pipe 响应体
-  response.body.pipeTo(require('stream').Writable.toWeb(res)).catch(() => {
-    res.end();
-  });
+        res.setHeader('Content-Type', response.headers.get('Content-Type') || 'application/octet-stream');
+        res.setHeader('Cache-Control', 'no-cache');
+        res.setHeader('Connection', 'keep-alive');
+
+        response.body.pipeTo(require('stream').Writable.toWeb(res)).catch(() => {
+            res.end();
+        });
+    } catch (err) {
+        console.error('处理聊天请求失败:', err);
+        res.status(500).json({ error: '内部服务器错误' });
+    }
 });
 
 // 广播连接信息到 admin 房间
@@ -114,8 +145,13 @@ function broadcastConnections() {
 }
 
 // 广播子进程状态到房间
-function broadcastProcessStatus(room, status) {
-    io.to(room).emit('process_status', status);
+function broadcastProcessStatus(room) {
+    let started = pythonProcesses.has(room) ? 1 : 0;
+    let uuid = pythonProcesses.get(room)?.uniqueId || null;
+    io.to(room).emit('process_status', {
+        started,
+        uuid
+    });
 }
 
 // Socket.IO 连接处理
@@ -145,9 +181,10 @@ io.on('connection', (socket) => {
     socket.on('get_process_status', () => {
         const room = connections.get(socket.id)?.room;
         if (!room) return;
-        
-        const status = pythonProcesses.has(room) ? '运行中' : '未运行';
-        socket.emit('process_status', status);
+
+        const started = pythonProcesses.has(room) ? 1 : 0;
+        const uuid = pythonProcesses.get(room)?.uniqueId || null;
+        socket.emit('process_status', { started, uuid });
     });
 
     // 处理开始捕捉的请求
@@ -158,22 +195,24 @@ io.on('connection', (socket) => {
         console.log(`Socket ${socket.id} requested to start capture in room: ${room}, mainMode: ${mainMode}, subMode: ${subMode}`);
 
         if (pythonProcesses.has(room)) {
-            broadcastProcessStatus(room, '已启动');
             return;
         }
 
         // 生成唯一ID
         const uniqueId = uuidv4();
-        
+
         const scriptPath = path.join('python', PYTHON_SCRIPTS[mainMode]?.[subMode]);
         const pythonProcess = spawn(PYTHON_INTERPRETER, [
             scriptPath,
             '--unique_id', uniqueId
         ]);
-        
+
+        // 将 uniqueId 设置为 pythonProcess 的属性
+        pythonProcess.uniqueId = uniqueId;
+
         pythonProcesses.set(room, pythonProcess);
 
-        broadcastProcessStatus(room, '启动中');
+        broadcastProcessStatus(room);  // 修改这里，传入 uniqueId
 
         // 初始化缓冲区和帧状态
         let buffer = Buffer.alloc(0);  // 用于存储接收到的数据
@@ -224,7 +263,7 @@ io.on('connection', (socket) => {
                             io.to(room).emit('control', frameState.header);
                             frameState = null;
                             continue;
-                        }else if (frameState.header.type === 'image') {
+                        } else if (frameState.header.type === 'image') {
                             frameState.expectedLength = frameState.header.length;
                             frameState.receivedLength = 0;
                         } else {
@@ -270,10 +309,8 @@ io.on('connection', (socket) => {
         pythonProcess.on('close', (code) => {
             console.log(`Python脚本退出 (${room})，代码: ${code}`);
             pythonProcesses.delete(room);
-            broadcastProcessStatus(room, '未运行');
+            broadcastProcessStatus(room);
         });
-
-        broadcastProcessStatus(room, '运行中');
     });
 
     // 处理停止捕捉的请求
@@ -285,7 +322,7 @@ io.on('connection', (socket) => {
         pythonProcess.kill();
         pythonProcesses.delete(room);
 
-        broadcastProcessStatus(room, '已停止');
+        broadcastProcessStatus(room);
     });
 
     socket.on('disconnect', () => {

@@ -72,13 +72,14 @@
         socket.emit("get_process_status");
       });
       socket.on("process_status", (status) => {
-        processStatus.textContent = `子进程状态: ${status}`;
-        if(status === "运行中") {
+        const { started, uuid } = data;
+        processStatus.textContent = `子进程状态: ${started ? "运行中" : "未运行"} (${uuid})`;
+        if(started ) {
           startBtn.style.display = "none";
           stopBtn.style.display = "block";
           mainModeSelect.style.display = "none";
           subModeSelect.style.display = "none";
-        } else if(status === "未运行") {
+        } else {
           startBtn.style.display = "block";
           stopBtn.style.display = "none";
           mainModeSelect.style.display = "block";

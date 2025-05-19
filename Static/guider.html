@@ -77,12 +77,13 @@
       });
 
       socket.on("process_status", (status) => {
-        if(status === "运行中") {
+        const { started, uuid } = data;
+        if(started) {
           startBtn.style.display = "none";
           stopBtn.style.display = "block";
           mainModeSelect.style.display = "none";
           subModeSelect.style.display = "none";
-        } else if(status === "未运行") {
+        } else{
           startBtn.style.display = "block";
           stopBtn.style.display = "none";
           mainModeSelect.style.display = "block";

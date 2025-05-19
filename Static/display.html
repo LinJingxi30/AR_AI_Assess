@@ -94,6 +94,7 @@
           roomID = sessionStorage.getItem("roomID");
           socket.emit("join_room", { room: roomID });
         }
+        socket.emit("get_process_status"); // 连接时获取状态
       });
 
       socket.on("update_room", (room) => {
@@ -140,30 +141,43 @@
         }
       });
 
+      // 添加一个变量来存储 uuid
+      let currentUuid = null;
+
       // 监听 process_status 事件
-      socket.on('process_status', (status) => {
+      socket.on('process_status', (data) => {
+        const { started, uuid } = data;
+        currentUuid = uuid; // 保存 uuid
         const startBtn = document.getElementById("start-btn");
         const stopBtn = document.getElementById("stop-btn");
-        if (status === '运行中') {
-          startBtn.style.display = "none";
-          stopBtn.style.display = "block";
-          mainModeSelect.style.display = "none";
-          subModeSelect.style.display = "none";
-          
-        }else if(status === "未运行") {
-          startBtn.style.display = "block";
-          stopBtn.style.display = "none";
-          mainModeSelect.style.display = "block";
-          subModeSelect.style.display = "block";
+        
+        if (started) {
+            startBtn.style.display = "none";
+            stopBtn.style.display = "block";
+            mainModeSelect.style.display = "none";
+            subModeSelect.style.display = "none";
+            
+        } else {
+            startBtn.style.display = "block";  
+            stopBtn.style.display = "none";
+            mainModeSelect.style.display = "block";
+            subModeSelect.style.display = "block";
 
-          // 随机得分占位
-          const score = Math.floor(Math.random() * 100 + 1);
-          // 取当前图表数据用于回放
-          const labels = [...healthChart.data.labels];
-          const heartData = [...healthChart.data.datasets[0].data];
-          const oxygenData = [...healthChart.data.datasets[1].data];
+            // 使用保存的 uuid
+            if (currentUuid) {
+                const score = Math.floor(Math.random() * 100 + 1);
+                const labels = [...healthChart.data.labels];
+                const heartData = [...healthChart.data.datasets[0].data];
+                const oxygenData = [...healthChart.data.datasets[1].data];
 
-          showResultModal({ score, heartData, oxygenData, labels });
+                showResultModal({ 
+                    score, 
+                    heartData, 
+                    oxygenData, 
+                    labels,
+                    uuid: currentUuid
+                });
+            }
         }
       });
 
@@ -252,7 +266,7 @@
       });
 
       // 结算弹窗组件
-      function showResultModal({ score, heartData, oxygenData, labels }) {
+      async function showResultModal({ score, heartData, oxygenData, labels, uuid }) {
         // 避免重复弹窗
         if (document.getElementById('result-modal')) return;
 
@@ -337,28 +351,16 @@
         (async function () {
           let summaryDiv = document.getElementById("summary-content");
           summaryDiv.innerHTML = "<span class='text-gray-400'>总结生成中...</span>";
-          // 并行读取 prompt.txt 和 differences.json
-          const [promptTxtRes, diffJsonRes] = await Promise.all([
-            fetch("/others/prompt.txt"),
-            fetch("/others/differences.json")
-          ]);
-          const promptTxt = await promptTxtRes.text();
-          let diffJson = "";
-          try {
-            diffJson = JSON.stringify(await diffJsonRes.json(), null, 2);
-          } catch {
-            diffJson = "";
-          }
-          // 合并内容
-          const mergedPrompt = promptTxt + "\n\nDifferences:\n" + diffJson;
 
           const response = await fetch("/api/chat", {
-            method: "POST",
+            method: "POST", 
             headers: {
               "Content-Type": "application/json"
             },
             body: JSON.stringify({
-                prompt: mergedPrompt
+              // prompt: `请根据以下数据生成一份训练总结：\n\n心率数据：${heartData.join(", ")}\n血氧数据：${oxygenData.join(", ")}\n\n请注意，数据可能包含异常值，请进行合理分析。`,
+              prompt:'',
+              uuid: uuid
             })
           });
 
@@ -379,7 +381,6 @@
             for (const line of lines) {
               try {
                 const data = JSON.parse(line);
-                // console.log(data);
                 if (data.done) break;
                 if (data.message?.content?.includes("</think>")) 
                   thinkFlag = 1;
@@ -392,7 +393,7 @@
 
                 summaryDiv.innerHTML = marked.parse(accumulated);
               } catch (err) {
-                console.warn("JSON parse error:", err, line) ;
+                console.warn("JSON parse error:", err, line);
               }
             }
           }
