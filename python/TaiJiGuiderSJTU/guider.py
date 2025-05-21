@@ -42,8 +42,8 @@ POSE_ALIGN_LANDMARKS = [19, 20, 31, 32]  # 左指尖、右指尖、左脚尖、�
 PTS_CONDITION_THRESH = [70, 70, 250, 250] # 对应上面的 4 个点的判定阈值
 RT_PTS_TO_CENTER = [11, 12, 23, 24]  # 左肩、右肩、左髋、右髋
 
-LIGHTNESS = 0.8  # 画布亮度调整系数
-STD_SCALE = 0.45  # 标准对齐点/掩膜缩放系数
+LIGHTNESS = 0.9  # 画布亮度调整系数
+STD_SCALE = 0.38  # 标准对齐点/掩膜缩放系数
 STD_CENTER_Y_OFFSET = -120   # 标准中心相对实时中心降低高度（像素）
 STD_OVERLAY_OPACITY = 0.6  # 掩膜透明度
 
@@ -84,6 +84,7 @@ class Guider:
         self.std_frame_path = paths["标准掩膜图片路径"]
         win_bgm_path = paths["背景音乐"]
         self.differences_json_path = paths["标准 JSON 文件路径"] / ".." / "differences.json"
+        self.user_replay_json_path = paths["标准 JSON 文件路径"] / ".." / "user_replay.json"
 
         # utils 工具
         self.camera = None
@@ -185,7 +186,7 @@ class Guider:
                                  rt_lm_list=self.rt_landmarks_list)
 
             """保存数据"""
-            self.save_data(self.conditions)
+            self.user_evaluation_data_save(self.conditions)
 
             """步进跳帧"""
             if self.debug:
@@ -684,13 +685,23 @@ class Guider:
         # 直接以写入模式打开，不管文件是否存在，都会创建或清空
         with open(self.differences_json_path, 'w') as f:
             pass  # 打开后立即关闭即可清空内容或创建文件
+        with open(self.user_replay_json_path, 'w') as f:
+            pass
 
-    def save_data(self, conditions):
+    def user_evaluation_data_save(self, conditions):
         """
         当 conditions 的四个标准点全为 True 时，计算 std_landmarks_list 和 rt_landmarks_list 的差值，
         并逐帧写入 JSON 文件，标记为左手、右手、左脚、右脚的坐标。
         """
         if all(conditions):
+
+            # Replay 实时重映
+            with open(self.user_replay_json_path, 'a') as f:
+                rt_pose_lists = [list(pt) for pt in self.rt_pose_list]
+                # [[x, y, z], ...*33]
+                json.dump({"full_pose_3d": rt_pose_lists}, f, ensure_ascii=False)
+                f.write("\n")
+
             # 确保 std_landmarks_list 和 rt_landmarks_list 都存在且长度一致
             if self.std_landmarks_list and self.rt_landmarks_list and len(self.std_landmarks_list) == len(self.rt_landmarks_list):
                 # 计算差值
