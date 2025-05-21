@@ -71,7 +71,7 @@
         }
         socket.emit("get_process_status");
       });
-      socket.on("process_status", (status) => {
+      socket.on("process_status", (data) => {
         const { started, uuid } = data;
         processStatus.textContent = `子进程状态: ${started ? "运行中" : "未运行"} (${uuid})`;
         if(started ) {

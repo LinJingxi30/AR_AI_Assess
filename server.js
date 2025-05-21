@@ -198,10 +198,14 @@ io.on('connection', (socket) => {
             return;
         }
 
+        // 判断对应模式是否存在
+        if (!PYTHON_SCRIPTS[mainMode] || !PYTHON_SCRIPTS[mainMode][subMode]) {
+            console.error(`模式 ${mainMode} 或 ${subMode} 不存在`);
+            return;
+        }
+        const scriptPath = path.join('python', PYTHON_SCRIPTS[mainMode][subMode]);
         // 生成唯一ID
         const uniqueId = uuidv4();
-
-        const scriptPath = path.join('python', PYTHON_SCRIPTS[mainMode]?.[subMode]);
         const pythonProcess = spawn(PYTHON_INTERPRETER, [
             scriptPath,
             '--unique_id', uniqueId
@@ -322,7 +326,7 @@ io.on('connection', (socket) => {
         pythonProcess.kill();
         pythonProcesses.delete(room);
 
-        broadcastProcessStatus(room);
+        // broadcastProcessStatus(room);
     });
 
     socket.on('disconnect', () => {

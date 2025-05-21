@@ -147,7 +147,10 @@
       // 监听 process_status 事件
       socket.on('process_status', (data) => {
         const { started, uuid } = data;
-        currentUuid = uuid; // 保存 uuid
+        console.log(`子进程状态: ${started} uuid (${uuid})`);
+        if (uuid) {
+          currentUuid = uuid;
+        }
         const startBtn = document.getElementById("start-btn");
         const stopBtn = document.getElementById("stop-btn");
         
