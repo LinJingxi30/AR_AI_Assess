@@ -188,10 +188,9 @@ if __name__ == "__main__":
     p3m1 = Guider(paths=FULL_PATHS["POSTURE_3"]["MOVE_1"], debug=DEBUG)
     p3m2 = Guider(paths=FULL_PATHS["POSTURE_3"]["MOVE_2"], debug=DEBUG)
 
-
     # 0. 用户对齐指引
     DataSender.send_control("PLAY_AUDIO",flag = 1)
-    anim.animate_title(text="欢迎来到太极指导系统", duration=1.0, config=ANIMATOR_CONFIG)
+    anim.animate_title(text="欢迎来到3A·元运动指南", duration=1.0, config=ANIMATOR_CONFIG)
 
     pre_align.main_loop_with_voice()
 
@@ -256,7 +255,7 @@ if __name__ == "__main__":
     )
 
     # 把 differences-<id>.json 文件合并生成
-    user_jsons_combine(id=unique_id, save_path=Path(STD_SPORTS_RESULTS_ROOT))
+    user_jsons_combine(id=unique_id, save_path=Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi")
     # todo:: 前端怎样拿到这个json？
 
     # 结束：发送动作分列表至前端

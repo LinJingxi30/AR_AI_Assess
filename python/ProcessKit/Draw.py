@@ -267,21 +267,63 @@ def draw_alpha_skeleton(canvas, sket, custom_config=DRAW_SKET_OVERALL_CONFIG, al
 
 
 if __name__ == "__main__":
-    pose_detector = PoseDetector()
-    cap = cv2.VideoCapture(0)  # 使用摄像头
+    # pose_detector = PoseDetector()
+    # cap = cv2.VideoCapture(0)  # 使用摄像头
 
-    while True:
-        ret, frame = cap.read()
-        frame = cv2.resize(frame, (WIN_SIZE[0], WIN_SIZE[1]))
+    # while True:
+    #     ret, frame = cap.read()
+    #     frame = cv2.resize(frame, (WIN_SIZE[0], WIN_SIZE[1]))
 
-        frame = cv2.flip(frame, 1)
-        frame = pose_detector.findPose(frame, draw=True)
-        sketList, _ = pose_detector.findPosition(frame, draw=False)
-        draw_skeleton111(frame, sket=sketList, custom_config=alpha_DRAW_SKET_OVERALL_CONFIG)
-        # frame = draw_game_over(score=666)
+    #     frame = cv2.flip(frame, 1)
+    #     frame = pose_detector.findPose(frame, draw=True)
+    #     sketList, _ = pose_detector.findPosition(frame, draw=False)
+    #     draw_skeleton111(frame, sket=sketList, custom_config=alpha_DRAW_SKET_OVERALL_CONFIG)
+    #     # frame = draw_game_over(score=666)
 
-        cv2.imshow("Game Over", frame)
-        if cv2.waitKey(50) & 0xFF == 27:
-            break
-    cv2.destroyAllWindows()
+    #     cv2.imshow("Game Over", frame)
+    #     if cv2.waitKey(50) & 0xFF == 27:
+    #         break
+    # cv2.destroyAllWindows()
     
+    import json
+
+    # replay 文件路径，根据实际情况修改
+    replay_file = Path(r"e:\Github\repositories\media_pipe\python\ProcessKit\user_replay.json")
+
+    # 读取 replay 文件中所有帧数据（假设每行一个JSON对象）
+    frames = []
+    with open(replay_file, 'r', encoding='utf-8') as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                data = json.loads(line)
+                # 获取每一帧的full_pose_3d数据, 它应该是一个33个点的列表，每个点为[x,y,z]
+                pose3d = data.get("full_pose_3d")
+                if pose3d and len(pose3d) == 33:
+                    frames.append(pose3d)
+            except Exception as e:
+                print(f"解析错误: {e}")
+
+    if not frames:
+        print("未找到有效帧数据！")
+        exit(0)
+
+    # 播放帧数据
+    cv2.namedWindow("Skeleton Replay", cv2.WINDOW_NORMAL)
+    for pose in frames:
+        # 创建一个空白画布
+        canvas = np.zeros((WIN_SIZE[1], WIN_SIZE[0], 3), dtype=np.uint8)
+        # 绘制骨架，draw_skeleton111要求输入的骨架数据格式为 3*33列表，若当前帧数据符合要求可直接传入
+        drawn = draw_skeleton(canvas, pose, custom_config=alpha_DRAW_SKET_OVERALL_CONFIG)
+        cv2.imshow("Skeleton Replay", drawn)
+        # 设置帧率（单位：帧/秒）
+        fps = 15  # 可根据需要修改帧率
+        delay = int(1000 / fps)
+        key = cv2.waitKey(delay)
+        # 按ESC键退出
+        if key == 27:
+            break
+
+    cv2.destroyAllWindows()
