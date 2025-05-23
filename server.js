@@ -88,8 +88,9 @@ async function getMergedPrompt(prompt, uuid) {
     try {
         // 并行读取文件
         // 并行读取文件，如果文件不存在则返回空字符串
-        const [promptText, diffJson] = await Promise.all([
-            fs.readFile(path.join(__dirname, 'Static/others/prompt.txt'), 'utf8').catch(() => ''),
+        const [promptText1,promptText2, diffJson] = await Promise.all([
+            fs.readFile(path.join(__dirname, 'Static/others/prompt1.txt'), 'utf8').catch(() => ''),
+            fs.readFile(path.join(__dirname, 'Static/others/prompt2.txt'), 'utf8').catch(() => ''),
             fs.readFile(path.join(__dirname, `python/StdSportsResults/TaiJi/differences-${uuid}.json`), 'utf8').catch(() => '')
         ]);
 
@@ -102,7 +103,7 @@ async function getMergedPrompt(prompt, uuid) {
         }
 
         // 合并内容
-        return promptText + "\n\差异数据:\n" + diffData;
+        return promptText1 + "\n下面是标志动作差异的json数据:\n" + diffData + "\n" + promptText2;
     } catch (err) {
         console.error('读取提示文件失败:', err);
         return "";
@@ -302,12 +303,12 @@ io.on('connection', (socket) => {
                         // 使用 sharp 处理图像
                         try {
                             const processedBuffer = await sharp(imageBuffer)
-                                // .resize(640, 480) // 降低分辨率
-                                .jpeg({ quality: 70 }) // 使用 JPEG 格式并设置压缩质量
+                                .resize(1280,720) // 降低分辨率
+                                .jpeg({ quality: 60 }) // 使用 webp 格式并设置压缩质量
                                 .toBuffer();
 
                             // 发送处理后的图像帧
-                            io.to(room).emit('frame', processedBuffer);
+                            io.to(room).emit('frame', imageBuffer);
                         } catch (err) {
                             console.error('图像处理失败:', err);
                             // 如果处理失败，发送原始图像

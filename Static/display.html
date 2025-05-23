@@ -144,7 +144,7 @@
           if (Array.isArray(data.data) && data.data.length > 0) {
             const sum = data.data.reduce((acc, val) => acc + val, 0);
             const avg = sum / data.data.length;
-            currentScore = avg;
+            currentScore = Math.floor(avg);
           }
         }
       });

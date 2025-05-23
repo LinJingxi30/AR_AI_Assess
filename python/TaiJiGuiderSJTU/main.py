@@ -125,7 +125,7 @@ def user_jsons_combine(id, save_path):
     将生成的 JSON 数据写入 save_path 目录下的 differences-<id>.json 文件中。
     """
     combined_data = {
-        "description": "",
+        "description": "下面是用户动作数据和标准动作数据的差异，数据格式是：p1,p2,p3...表示不同的招式，m1,m2,m3...表示不同的动作",
         "data": {}
     }
     # 定义 posture 映射，比如 POSTURE_1 -> p1, POSTURE_2 -> p2, POSTURE_3 -> p3
@@ -182,11 +182,11 @@ if __name__ == "__main__":
     p1m1 = Guider(paths=FULL_PATHS["POSTURE_1"]["MOVE_1"], debug=DEBUG)
     p1m2 = Guider(paths=FULL_PATHS["POSTURE_1"]["MOVE_2"], debug=DEBUG)
     p1m3 = Guider(paths=FULL_PATHS["POSTURE_1"]["MOVE_3"], debug=DEBUG)
-    p2m1 = Guider(paths=FULL_PATHS["POSTURE_2"]["MOVE_1"], debug=DEBUG)
-    p2m2 = Guider(paths=FULL_PATHS["POSTURE_2"]["MOVE_2"], debug=DEBUG)
-    p2m3 = Guider(paths=FULL_PATHS["POSTURE_2"]["MOVE_3"], debug=DEBUG)
-    p3m1 = Guider(paths=FULL_PATHS["POSTURE_3"]["MOVE_1"], debug=DEBUG)
-    p3m2 = Guider(paths=FULL_PATHS["POSTURE_3"]["MOVE_2"], debug=DEBUG)
+    # p2m1 = Guider(paths=FULL_PATHS["POSTURE_2"]["MOVE_1"], debug=DEBUG)
+    # p2m2 = Guider(paths=FULL_PATHS["POSTURE_2"]["MOVE_2"], debug=DEBUG)
+    # p2m3 = Guider(paths=FULL_PATHS["POSTURE_2"]["MOVE_3"], debug=DEBUG)
+    # p3m1 = Guider(paths=FULL_PATHS["POSTURE_3"]["MOVE_1"], debug=DEBUG)
+    # p3m2 = Guider(paths=FULL_PATHS["POSTURE_3"]["MOVE_2"], debug=DEBUG)
 
     # 0. 用户对齐指引
     DataSender.send_control("PLAY_AUDIO",flag = 1)
@@ -225,40 +225,40 @@ if __name__ == "__main__":
         config = ANIMATOR_CONFIG
     )
 
-    # 2. 招式二
-    anim.running = True
-    anim.animate_title(text="招式二：左右野马分鬃！", duration=1.5, config=ANIMATOR_CONFIG)
-    p2m1.main_loop()
-    p2m2.main_loop()
-    p2m3.main_loop()
-    anim.camera = CamUtils.camera_init(resolution=(1280, 720))
-    anim.running = True
-    anim.animate_summary(
-        total_score=p2m1.score + p2m2.score + p2m3.score,
-        move_scores=[p2m1.score, p2m2.score, p2m3.score],
-        duration=2.5,
-        config = ANIMATOR_CONFIG
-    )
+    # # 2. 招式二
+    # anim.running = True
+    # anim.animate_title(text="招式二：左右野马分鬃！", duration=1.5, config=ANIMATOR_CONFIG)
+    # p2m1.main_loop()
+    # p2m2.main_loop()
+    # p2m3.main_loop()
+    # anim.camera = CamUtils.camera_init(resolution=(1280, 720))
+    # anim.running = True
+    # anim.animate_summary(
+    #     total_score=p2m1.score + p2m2.score + p2m3.score,
+    #     move_scores=[p2m1.score, p2m2.score, p2m3.score],
+    #     duration=2.5,
+    #     config = ANIMATOR_CONFIG
+    # )
 
-    # 3. 招式三
-    anim.running = True
-    anim.animate_title(text="招式三：白鹤亮翅！", duration=1.5, config=ANIMATOR_CONFIG)
-    p3m1.main_loop()
-    p3m2.main_loop()
-    anim.camera = CamUtils.camera_init(resolution=(1280, 720))
-    anim.running = True
-    anim.animate_summary(
-        total_score=p3m1.score + p3m2.score,
-        move_scores=[p3m1.score, p3m2.score],
-        duration=2.5,
-        config = ANIMATOR_CONFIG
-    )
+    # # 3. 招式三
+    # anim.running = True
+    # anim.animate_title(text="招式三：白鹤亮翅！", duration=1.5, config=ANIMATOR_CONFIG)
+    # p3m1.main_loop()
+    # p3m2.main_loop()
+    # anim.camera = CamUtils.camera_init(resolution=(1280, 720))
+    # anim.running = True
+    # anim.animate_summary(
+    #     total_score=p3m1.score + p3m2.score,
+    #     move_scores=[p3m1.score, p3m2.score],
+    #     duration=2.5,
+    #     config = ANIMATOR_CONFIG
+    # )
 
     # 把 differences-<id>.json 文件合并生成
     user_jsons_combine(id=unique_id, save_path=Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi")
     # todo:: 前端怎样拿到这个json？
 
     # 结束：发送动作分列表至前端
-    DataSender.send_control(command="MOVE_SCORES", data=[p1m1.score, p1m2.score, p1m3.score, p2m1.score, p2m2.score, p2m3.score, p3m1.score, p3m2.score])
+    DataSender.send_control(command="MOVE_SCORES", data=[p1m1.score, p1m2.score, p1m3.score])
 
     pygame.quit()
