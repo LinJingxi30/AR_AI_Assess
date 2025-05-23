@@ -18,7 +18,7 @@ PTS_PAIR_COLORS = [
     [(23, 210, 255)],  
 ]
 
-PTS_CONDITION_THRESH = [[50], [50], [50], [50]] # 对应上面的 4 个点的判定阈值
+PTS_CONDITION_THRESH = [[70], [70], [150], [150]] # 对应上面的 4 个点的判定阈值
 
 class PreAlignerPoints(Guider):
     def __init__(self, _paths=PATHS, debug=False):

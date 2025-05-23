@@ -104,6 +104,55 @@ ANIMATOR_CONFIG = {
 }
 
 
+def combine_simple(id, save_path):
+    """
+    遍历 FULL_PATHS 中所有 posture 和 move，
+    简化每一帧的数据为如下格式，每帧一行：
+    
+    {
+       "frame": "C0076_0021.png",
+       "points": {
+           "left_h": [822, 930],
+           "right_h": [484, 899],
+           "left_f": [712, 1543],
+           "right_f": [624, 1546]
+       }
+    }
+    保存到 save_path 目录下的 differences_simple-<id>.json 文件中。
+    """
+    output_file = Path(save_path) / f"differences-{id}.json"
+    with open(output_file, "w", encoding="utf-8") as fout:
+        # 遍历所有 posture 和 move
+        for posture_key, moves in FULL_PATHS.items():
+            for move_key, move_info in moves.items():
+                json_path = move_info.get("标准 JSON 文件路径")
+                if json_path and Path(json_path).exists():
+                    with open(json_path, "r", encoding="utf-8") as fin:
+                        for line in fin:
+                            line = line.strip()
+                            if not line:
+                                continue
+                            try:
+                                record = json.loads(line)
+                                # 从记录中提取 image 和需要的关键点
+                                frame_id = record.get("image", "")
+                                pts = record.get("points", {})
+                                simplified = {
+                                    "frame": frame_id,
+                                    "points": {
+                                        "left_h": pts.get("left_h"),
+                                        "right_h": pts.get("right_h"),
+                                        "left_f": pts.get("left_f"),
+                                        "right_f": pts.get("right_f")
+                                    }
+                                }
+                                fout.write(json.dumps(simplified, ensure_ascii=False, separators=(',', ':')) + "\n")
+                                # fout.write(json.dumps(simplified, ensure_ascii=False) + "\n")
+                            except Exception as e:
+                                print(f"解析 {json_path} 出错：{e}", file=sys.stderr)
+    print(f"简化后的 JSON 合并文件已保存到 {output_file}", file=sys.stderr)
+
+
 def user_jsons_combine(id, save_path):
     """
     遍历 FULL_PATHS 中所有 posture 和 move，
@@ -182,9 +231,9 @@ if __name__ == "__main__":
     p1m1 = Guider(paths=FULL_PATHS["POSTURE_1"]["MOVE_1"], debug=DEBUG)
     p1m2 = Guider(paths=FULL_PATHS["POSTURE_1"]["MOVE_2"], debug=DEBUG)
     p1m3 = Guider(paths=FULL_PATHS["POSTURE_1"]["MOVE_3"], debug=DEBUG)
-    # p2m1 = Guider(paths=FULL_PATHS["POSTURE_2"]["MOVE_1"], debug=DEBUG)
-    # p2m2 = Guider(paths=FULL_PATHS["POSTURE_2"]["MOVE_2"], debug=DEBUG)
-    # p2m3 = Guider(paths=FULL_PATHS["POSTURE_2"]["MOVE_3"], debug=DEBUG)
+    p2m1 = Guider(paths=FULL_PATHS["POSTURE_2"]["MOVE_1"], debug=DEBUG)
+    p2m2 = Guider(paths=FULL_PATHS["POSTURE_2"]["MOVE_2"], debug=DEBUG)
+    p2m3 = Guider(paths=FULL_PATHS["POSTURE_2"]["MOVE_3"], debug=DEBUG)
     # p3m1 = Guider(paths=FULL_PATHS["POSTURE_3"]["MOVE_1"], debug=DEBUG)
     # p3m2 = Guider(paths=FULL_PATHS["POSTURE_3"]["MOVE_2"], debug=DEBUG)
 
@@ -225,20 +274,20 @@ if __name__ == "__main__":
         config = ANIMATOR_CONFIG
     )
 
-    # # 2. 招式二
-    # anim.running = True
-    # anim.animate_title(text="招式二：左右野马分鬃！", duration=1.5, config=ANIMATOR_CONFIG)
-    # p2m1.main_loop()
-    # p2m2.main_loop()
-    # p2m3.main_loop()
-    # anim.camera = CamUtils.camera_init(resolution=(1280, 720))
-    # anim.running = True
-    # anim.animate_summary(
-    #     total_score=p2m1.score + p2m2.score + p2m3.score,
-    #     move_scores=[p2m1.score, p2m2.score, p2m3.score],
-    #     duration=2.5,
-    #     config = ANIMATOR_CONFIG
-    # )
+    # 2. 招式二
+    anim.running = True
+    anim.animate_title(text="招式二：左右野马分鬃！", duration=1.5, config=ANIMATOR_CONFIG)
+    p2m1.main_loop()
+    p2m2.main_loop()
+    p2m3.main_loop()
+    anim.camera = CamUtils.camera_init(resolution=(1280, 720))
+    anim.running = True
+    anim.animate_summary(
+        total_score=p2m1.score + p2m2.score + p2m3.score,
+        move_scores=[p2m1.score, p2m2.score, p2m3.score],
+        duration=2.5,
+        config = ANIMATOR_CONFIG
+    )
 
     # # 3. 招式三
     # anim.running = True
@@ -255,10 +304,10 @@ if __name__ == "__main__":
     # )
 
     # 把 differences-<id>.json 文件合并生成
-    user_jsons_combine(id=unique_id, save_path=Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi")
-    # todo:: 前端怎样拿到这个json？
+    # user_jsons_combine(id=unique_id, save_path=Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi")
+    combine_simple(id=unique_id, save_path=Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi")
 
     # 结束：发送动作分列表至前端
-    DataSender.send_control(command="MOVE_SCORES", data=[p1m1.score, p1m2.score, p1m3.score])
+    DataSender.send_control(command="MOVE_SCORES", data=[p1m1.score, p1m2.score, p1m3.score, p2m1.score, p2m2.score, p2m3.score])
 
     pygame.quit()

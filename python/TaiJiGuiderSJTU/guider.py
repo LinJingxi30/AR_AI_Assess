@@ -39,11 +39,11 @@ WIN_WIDTH, WIN_HEIGHT = WIN_SIZE
 
 POSE_ALIGN_LANDMARKS = [19, 20, 31, 32]  # 左指尖、右指尖、左脚尖、右脚尖
 # PTS_CONDITION_THRESH = [70, 70, 150, 150] # 对应上面的 4 个点的判定阈值
-PTS_CONDITION_THRESH = [70, 70, 250, 250] # 对应上面的 4 个点的判定阈值
+PTS_CONDITION_THRESH = [80, 80, 250, 250] # 对应上面的 4 个点的判定阈值
 RT_PTS_TO_CENTER = [11, 12, 23, 24]  # 左肩、右肩、左髋、右髋
 
 LIGHTNESS = 0.9  # 画布亮度调整系数
-STD_SCALE = 0.38  # 标准对齐点/掩膜缩放系数
+STD_SCALE = 0.4  # 标准对齐点/掩膜缩放系数
 STD_CENTER_Y_OFFSET = -120   # 标准中心相对实时中心降低高度（像素）
 STD_OVERLAY_OPACITY = 0.6  # 掩膜透明度
 
