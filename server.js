@@ -10,6 +10,8 @@ const { v4: uuidv4 } = require('uuid');
 const jwt = require('jsonwebtoken');
 const fs = require('fs').promises;
 const sharp = require('sharp');
+const dgram = require('dgram');
+const UDPBroadcaster = require('./components/UDPBroadcaster');
 
 const app = express();
 const server = http.createServer(app);
@@ -303,12 +305,12 @@ io.on('connection', (socket) => {
                         // 使用 sharp 处理图像
                         try {
                             const processedBuffer = await sharp(imageBuffer)
-                                .resize(1280,720) // 降低分辨率
+                                .resize(1080,720) // 降低分辨率
                                 .jpeg({ quality: 60 }) // 使用 webp 格式并设置压缩质量
                                 .toBuffer();
 
                             // 发送处理后的图像帧
-                            io.to(room).emit('frame', imageBuffer);
+                            io.to(room).emit('frame', processedBuffer);
                         } catch (err) {
                             console.error('图像处理失败:', err);
                             // 如果处理失败，发送原始图像
@@ -354,18 +356,34 @@ io.on('connection', (socket) => {
 });
 
 const PORT = 8000;
-// 启动服务器
+
+// 创建并配置 UDP 广播器
+const broadcaster = new UDPBroadcaster({
+    port: 9999,
+    interval: 1000,
+    serviceName: 'arsport',
+    servicePort: PORT
+});
 
 server.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);
+    // 启动 UDP 广播
+    broadcaster.start();
+
     // 注册 Bonjour/mDNS 服务
-    bonjour.publish({
-        name: 'arsport',
-        type: 'http',
-        port: PORT,
-        host: 'arsport.local', // 可选，不指定也可以
-    });
+    // bonjour.publish({
+    //     name: 'arsport',
+    //     type: 'http',
+    //     port: PORT,
+    //     host: 'arsport.local', // 可选，不指定也可以
+    // });
     console.log('mDNS service published as arsport.local');
+});
+
+// 在服务器关闭时停止广播
+process.on('SIGINT', () => {
+    broadcaster.stop();
+    process.exit();
 });
 
 // const authRoutes = require('./routes/auth');
