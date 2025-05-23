@@ -74,6 +74,10 @@
       });
       let roomID ;
 
+      // 添加一个变量来存储 uuid
+      let currentUuid = null;
+      let currentScore = null;
+
       function startCapture() {
         const mainMode = mainModeSelect.value;
         const subMode = subModeSelect.value;
@@ -137,12 +141,15 @@
             audio.play();
           }
         }else if(data.command === "MOVE_SCORES") {
-          console.log(`${data.data}`);
+          if (Array.isArray(data.data) && data.data.length > 0) {
+            const sum = data.data.reduce((acc, val) => acc + val, 0);
+            const avg = sum / data.data.length;
+            currentScore = avg;
+          }
         }
       });
 
-      // 添加一个变量来存储 uuid
-      let currentUuid = null;
+      
 
       // 监听 process_status 事件
       socket.on('process_status', (data) => {
@@ -168,7 +175,7 @@
 
             // 使用保存的 uuid
             if (currentUuid) {
-                const score = Math.floor(Math.random() * 100 + 1);
+                const score = currentScore || 100;
                 const labels = [...healthChart.data.labels];
                 const heartData = [...healthChart.data.datasets[0].data];
                 const oxygenData = [...healthChart.data.datasets[1].data];

@@ -9,6 +9,7 @@ const path = require('path');
 const { v4: uuidv4 } = require('uuid');
 const jwt = require('jsonwebtoken');
 const fs = require('fs').promises;
+const sharp = require('sharp');
 
 const app = express();
 const server = http.createServer(app);
@@ -86,9 +87,10 @@ app.post('/update_room', (req, res) => {
 async function getMergedPrompt(prompt, uuid) {
     try {
         // 并行读取文件
+        // 并行读取文件，如果文件不存在则返回空字符串
         const [promptText, diffJson] = await Promise.all([
-            fs.readFile(path.join(__dirname, 'Static/others/prompt.txt'), 'utf8'),
-            fs.readFile(path.join(__dirname, `python/StdSportsResults/TajJi/differences-${uuid}.json`), 'utf8')
+            fs.readFile(path.join(__dirname, 'Static/others/prompt.txt'), 'utf8').catch(() => ''),
+            fs.readFile(path.join(__dirname, `python/StdSportsResults/TaiJi/differences-${uuid}.json`), 'utf8').catch(() => '')
         ]);
 
         // 解析 differences.json
@@ -100,7 +102,7 @@ async function getMergedPrompt(prompt, uuid) {
         }
 
         // 合并内容
-        return promptText + "\n\nDifferences:\n" + diffData + "\nhealthData\n" + prompt;
+        return promptText + "\n\差异数据:\n" + diffData;
     } catch (err) {
         console.error('读取提示文件失败:', err);
         return "";
@@ -110,9 +112,10 @@ async function getMergedPrompt(prompt, uuid) {
 // 修改 chat API endpoint
 app.post('/api/chat', async (req, res) => {
     const { prompt, uuid } = req.body;
-
+    console.log('UUid:', uuid);
     try {
         const mergedPrompt = await getMergedPrompt(prompt, uuid);
+        console.log('Merged Prompt:', mergedPrompt);
 
         const response = await fetch('http://ollama.chainpray.top:11434/api/chat', {
             method: 'POST',
@@ -224,7 +227,7 @@ io.on('connection', (socket) => {
         let buffer = Buffer.alloc(0);  // 用于存储接收到的数据
         let frameState = null;  // 用于跟踪当前帧的处理状态
 
-        pythonProcess.stdout.on('data', (chunk) => {
+        pythonProcess.stdout.on('data', async(chunk) => {
             // console.log('收到数据块，长度:', chunk.length);
             // 将新接收的数据追加到缓冲区
             buffer = Buffer.concat([buffer, chunk]);
@@ -295,10 +298,21 @@ io.on('connection', (socket) => {
 
                     // 检查是否接收完整帧
                     if (frameState.receivedLength >= frameState.expectedLength) {
-                        // 合并所有接收到的数据块
                         const imageBuffer = Buffer.concat(frameState.receivedBuffer);
-                        // 发送完整的图像帧
-                        io.to(room).emit('frame', imageBuffer);
+                        // 使用 sharp 处理图像
+                        try {
+                            const processedBuffer = await sharp(imageBuffer)
+                                // .resize(640, 480) // 降低分辨率
+                                .jpeg({ quality: 70 }) // 使用 JPEG 格式并设置压缩质量
+                                .toBuffer();
+
+                            // 发送处理后的图像帧
+                            io.to(room).emit('frame', processedBuffer);
+                        } catch (err) {
+                            console.error('图像处理失败:', err);
+                            // 如果处理失败，发送原始图像
+                            io.to(room).emit('frame', imageBuffer);
+                        }
                         frameState = null;
                     }
                 } else {
