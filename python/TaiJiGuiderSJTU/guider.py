@@ -43,8 +43,8 @@ PTS_CONDITION_THRESH = [80, 80, 250, 250] # 对应上面的 4 个点的判定阈
 RT_PTS_TO_CENTER = [11, 12, 23, 24]  # 左肩、右肩、左髋、右髋
 
 LIGHTNESS = 0.9  # 画布亮度调整系数
-STD_SCALE = 0.4  # 标准对齐点/掩膜缩放系数
-STD_CENTER_Y_OFFSET = -120   # 标准中心相对实时中心降低高度（像素）
+STD_SCALE = 1  # 标准对齐点/掩膜缩放系数
+STD_CENTER_Y_OFFSET = 10   # 标准中心相对实时中心纵向偏移高度（像素）(上正下负)
 STD_OVERLAY_OPACITY = 0.6  # 掩膜透明度
 
 MAX_SCORE = 100  # 最大分数
