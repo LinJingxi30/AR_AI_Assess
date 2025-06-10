@@ -202,6 +202,9 @@ io.on('connection', (socket) => {
 
         console.log(`Socket ${socket.id} requested to start capture in room: ${room}, mainMode: ${mainMode}, subMode: ${subMode}`);
 
+         // 广播 start_capture 事件到房间
+        io.to(room).emit('start_capture', { mainMode, subMode });
+
         if (pythonProcesses.has(room)) {
             return;
         }
