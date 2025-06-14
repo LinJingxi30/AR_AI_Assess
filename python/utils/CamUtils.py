@@ -1,12 +1,12 @@
 import sys
 import cv2
 
-def camera_init(resolution=(1280, 720)):
+def camera_init(source = 0,resolution=(1280, 720)):
     """
     初始化摄像头
     """
     # 获取摄像头 0
-    camera = cv2.VideoCapture(0)
+    camera = cv2.VideoCapture(source)
     
     # 尝试设置分辨率
     camera.set(cv2.CAP_PROP_FRAME_WIDTH, resolution[0])

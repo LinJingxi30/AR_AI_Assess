@@ -20,14 +20,15 @@ THIS_VIS_CONFIG = this_config.VISUAL_CONFIG
 WIN_WIDTH, WIN_HEIGHT = WIN_SIZE
 
 
-def get_sport_type(sport_str = ["TaiChi", "Aerobics", "Yoga"]):
+def get_sport_type(sport_str = ["TaiChi", "Aerobics", "Yoga"],source = 0):
     """
     在屏幕上横向显示三个红色圆点，并等待右手触摸其中一个点，
     一旦检测到左右手（关键点索引15，16）进入某个圆点的范围，就返回对应的数字（1、2或3）。
     显示窗口的尺寸由全局变量 WIN_SIZE 定义。
     """
+
     # 初始化摄像头和姿态检测器
-    cap = cv2.VideoCapture(0)
+    cap = cv2.VideoCapture(source)
     detector = PoseDetector()
     clock = pygame.time.Clock()
 

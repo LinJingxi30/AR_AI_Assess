@@ -28,63 +28,69 @@ PRE_GAME_CLIP_PATHS = {
 }
 
 POSTURE_1_PATHS = {
-    "MOVE_1": {
-        "标准 JSON 文件路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "Posture_1" / "move_1" / "std1-1.json",
-        "标准掩膜图片路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "Posture_1" / "move_1",
-        "背景音乐": Path(PY_ROOT) / "gameAssets" / "sounds" / "SJTUbgm.mp3",
-    },
-    "MOVE_2": {
-        "标准 JSON 文件路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "Posture_1" / "move_2" / "std1-2.json",
-        "标准掩膜图片路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "Posture_1" / "move_2",
-        "背景音乐": Path(PY_ROOT) / "gameAssets" / "sounds" / "SJTUbgm.mp3",
-    },
-    "MOVE_3": {
-        "标准 JSON 文件路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "Posture_1" / "move_3" / "std1-3.json",
-        "标准掩膜图片路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "Posture_1" / "move_3",
-        "背景音乐": Path(PY_ROOT) / "gameAssets" / "sounds" / "SJTUbgm.mp3",
-    },
+    "标准 JSON 文件路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "p1" / "p1.json",
+    "标准掩膜图片路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "p1",
+    "背景音乐": Path(PY_ROOT) / "gameAssets" / "sounds" / "SJTUbgm.mp3",
 }
 
 POSTURE_2_PATHS = {
-    "MOVE_1": {
-        "标准 JSON 文件路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "Posture_2" / "move_1" / "std2-1.json",
-        "标准掩膜图片路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "Posture_2" / "move_1",
-        "背景音乐": Path(PY_ROOT) / "gameAssets" / "sounds" / "SJTUbgm.mp3",
-    },
-    "MOVE_2": {
-        "标准 JSON 文件路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "Posture_2" / "move_2" / "std2-2.json",
-        "标准掩膜图片路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "Posture_2" / "move_2",
-        "背景音乐": Path(PY_ROOT) / "gameAssets" / "sounds" / "SJTUbgm.mp3",
-    },
-    "MOVE_3": {
-        "标准 JSON 文件路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "Posture_2" / "move_3" / "std2-3.json",
-        "标准掩膜图片路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "Posture_2" / "move_3",
-        "背景音乐": Path(PY_ROOT) / "gameAssets" / "sounds" / "SJTUbgm.mp3",
-    },
+    "标准 JSON 文件路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "p2" / "p2.json",
+    "标准掩膜图片路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "p2",
+    "背景音乐": Path(PY_ROOT) / "gameAssets" / "sounds" / "SJTUbgm.mp3",
 }
 
 POSTURE_3_PATHS = {
-    "MOVE_1": {
-        "标准 JSON 文件路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "Posture_3" / "move_1" / "std3-1.json",
-        "标准掩膜图片路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "Posture_3" / "move_1",
-        "背景音乐": Path(PY_ROOT) / "gameAssets" / "sounds" / "SJTUbgm.mp3",
-    },
-    "MOVE_2": {
-        "标准 JSON 文件路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "Posture_3" / "move_2" / "std3-2.json",
-        "标准掩膜图片路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "Posture_3" / "move_2",
-        "背景音乐": Path(PY_ROOT) / "gameAssets" / "sounds" / "SJTUbgm.mp3",
-    },
-    # "MOVE_3": {
-    #     "标准 JSON 文件路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "Posture_3" / "move_3" / "std3-3.json",
-    #     "标准掩膜图片路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "Posture_3" / "move_3",
-    #     "背景音乐": Path(PY_ROOT) / "gameAssets" / "sounds" / "SJTUbgm.mp3",
-    # },
+    "标准 JSON 文件路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "p3" / "p3.json",
+    "标准掩膜图片路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "p3",
+    "背景音乐": Path(PY_ROOT) / "gameAssets" / "sounds" / "SJTUbgm.mp3",
+}
+
+POSTURE_4_PATHS = {
+    "标准 JSON 文件路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "p4" / "p4.json",
+    "标准掩膜图片路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "p4",
+    "背景音乐": Path(PY_ROOT) / "gameAssets" / "sounds" / "SJTUbgm.mp3",
+}
+
+POSTURE_5_PATHS = {
+    "标准 JSON 文件路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "p5" / "p5.json",
+    "标准掩膜图片路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "p5",
+    "背景音乐": Path(PY_ROOT) / "gameAssets" / "sounds" / "SJTUbgm.mp3",
+}
+
+POSTURE_6_PATHS = {
+    "标准 JSON 文件路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "p6" / "p6.json",
+    "标准掩膜图片路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "p6",
+    "背景音乐": Path(PY_ROOT) / "gameAssets" / "sounds" / "SJTUbgm.mp3",
+}
+
+POSTURE_7_PATHS = {
+    "标准 JSON 文件路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "p7" / "p7.json",
+    "标准掩膜图片路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "p7",
+    "背景音乐": Path(PY_ROOT) / "gameAssets" / "sounds" / "SJTUbgm.mp3",
+}
+
+POSTURE_8_PATHS = {
+    "标准 JSON 文件路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "p8" / "p8.json",
+    "标准掩膜图片路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "p8",
+    "背景音乐": Path(PY_ROOT) / "gameAssets" / "sounds" / "SJTUbgm.mp3",
+}
+
+POSTURE_9_PATHS = {
+    "标准 JSON 文件路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "p9" / "p9.json",
+    "标准掩膜图片路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "p9",
+    "背景音乐": Path(PY_ROOT) / "gameAssets" / "sounds" / "SJTUbgm.mp3",
 }
 
 FULL_PATHS = {
     "POSTURE_1": POSTURE_1_PATHS,
     "POSTURE_2": POSTURE_2_PATHS,
     "POSTURE_3": POSTURE_3_PATHS,
+    "POSTURE_4": POSTURE_4_PATHS,
+    "POSTURE_5": POSTURE_5_PATHS,
+    "POSTURE_6": POSTURE_6_PATHS,
+    "POSTURE_7": POSTURE_7_PATHS,
+    "POSTURE_8": POSTURE_8_PATHS,
+    "POSTURE_9": POSTURE_9_PATHS,
 }
 
 ANIMATOR_CONFIG = {
@@ -216,24 +222,30 @@ def user_jsons_combine(id, save_path):
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--unique_id", required=True, help="运动记录的唯一ID")
+    parser.add_argument("--rtmp_url", required=False, help="RTMP流地址")
     return parser.parse_args()
 
 if __name__ == "__main__":
     # 解析命令行参数
     args = parse_args()
     unique_id = args.unique_id
+    rtmp_url = args.rtmp_url
 
     # 创建实例时传入unique_id
     DEBUG = 0
     anim = Animator()
     pre_align = PreAlignerPoints(_paths=PRE_GAME_ALIGN_PATHS, debug=DEBUG)
     pre_clip = Guider(paths=PRE_GAME_CLIP_PATHS, debug=DEBUG)
-    p1m1 = Guider(paths=FULL_PATHS["POSTURE_1"]["MOVE_1"], debug=DEBUG)
-    p1m2 = Guider(paths=FULL_PATHS["POSTURE_1"]["MOVE_2"], debug=DEBUG)
-    p1m3 = Guider(paths=FULL_PATHS["POSTURE_1"]["MOVE_3"], debug=DEBUG)
-    p2m1 = Guider(paths=FULL_PATHS["POSTURE_2"]["MOVE_1"], debug=DEBUG)
-    p2m2 = Guider(paths=FULL_PATHS["POSTURE_2"]["MOVE_2"], debug=DEBUG)
-    p2m3 = Guider(paths=FULL_PATHS["POSTURE_2"]["MOVE_3"], debug=DEBUG)
+    p1 = Guider(paths=FULL_PATHS["POSTURE_1"], debug=DEBUG)
+    p2 = Guider(paths=FULL_PATHS["POSTURE_2"], debug=DEBUG)
+    p3 = Guider(paths=FULL_PATHS["POSTURE_3"], debug=DEBUG)
+    p4 = Guider(paths=FULL_PATHS["POSTURE_4"], debug=DEBUG)
+    p5 = Guider(paths=FULL_PATHS["POSTURE_5"], debug=DEBUG)
+    p6 = Guider(paths=FULL_PATHS["POSTURE_6"], debug=DEBUG)
+    p7 = Guider(paths=FULL_PATHS["POSTURE_7"], debug=DEBUG)
+    p8 = Guider(paths=FULL_PATHS["POSTURE_8"], debug=DEBUG)
+    p9 = Guider(paths=FULL_PATHS["POSTURE_9"], debug=DEBUG)
+    
     # p3m1 = Guider(paths=FULL_PATHS["POSTURE_3"]["MOVE_1"], debug=DEBUG)
     # p3m2 = Guider(paths=FULL_PATHS["POSTURE_3"]["MOVE_2"], debug=DEBUG)
 
@@ -246,7 +258,11 @@ if __name__ == "__main__":
     DataSender.send_control("PLAY_AUDIO",flag = 6)
 
     anim.running = True
-    anim.camera = CamUtils.camera_init(resolution=(1280,720))
+    # 摄像头初始化，支持 RTMP 流
+    if rtmp_url:
+        anim.camera = CamUtils.camera_init(source=rtmp_url, resolution=(1280,720))
+    else:
+        anim.camera = CamUtils.camera_init(resolution=(1280,720))
     anim.animate_title(text="3", duration=1.0, config=ANIMATOR_CONFIG)
     anim.animate_title(text="2", duration=1.0, config=ANIMATOR_CONFIG)
     anim.animate_title(text="1", duration=1.0, config=ANIMATOR_CONFIG)
@@ -262,52 +278,125 @@ if __name__ == "__main__":
     anim.animate_title(text="2", duration=1.0, config=ANIMATOR_CONFIG)
     anim.animate_title(text="1", duration=1.0, config=ANIMATOR_CONFIG)
     anim.animate_title(text="招式一：起势！", duration=1.0, config=ANIMATOR_CONFIG)
-    p1m1.main_loop()
-    p1m2.main_loop()
-    p1m3.main_loop()
+    p1.main_loop()
     anim.camera = CamUtils.camera_init(resolution=(1280, 720))
     anim.running = True
     anim.animate_summary(
-        total_score=p1m1.score + p1m2.score + p1m3.score,
-        move_scores=[p1m1.score, p1m2.score, p1m3.score],
+        total_score=p1.score,
+        move_scores=[p1.score],
         duration=2.5,
         config = ANIMATOR_CONFIG
     )
 
     # 2. 招式二
     anim.running = True
-    anim.animate_title(text="招式二：左右野马分鬃！", duration=1.5, config=ANIMATOR_CONFIG)
-    p2m1.main_loop()
-    p2m2.main_loop()
-    p2m3.main_loop()
+    anim.animate_title(text="招式二：金刚转体！", duration=1.5, config=ANIMATOR_CONFIG)
+    p2.main_loop()
     anim.camera = CamUtils.camera_init(resolution=(1280, 720))
     anim.running = True
     anim.animate_summary(
-        total_score=p2m1.score + p2m2.score + p2m3.score,
-        move_scores=[p2m1.score, p2m2.score, p2m3.score],
+        total_score=p2.score,
+        move_scores=[p2.score],
         duration=2.5,
         config = ANIMATOR_CONFIG
     )
 
-    # # 3. 招式三
-    # anim.running = True
-    # anim.animate_title(text="招式三：白鹤亮翅！", duration=1.5, config=ANIMATOR_CONFIG)
-    # p3m1.main_loop()
-    # p3m2.main_loop()
-    # anim.camera = CamUtils.camera_init(resolution=(1280, 720))
-    # anim.running = True
-    # anim.animate_summary(
-    #     total_score=p3m1.score + p3m2.score,
-    #     move_scores=[p3m1.score, p3m2.score],
-    #     duration=2.5,
-    #     config = ANIMATOR_CONFIG
-    # )
+    # 3. 招式三
+    anim.running = True
+    anim.animate_title(text="招式三：左右云手！", duration=1.5, config=ANIMATOR_CONFIG)
+    p3.main_loop()
+    anim.camera = CamUtils.camera_init(resolution=(1280, 720))
+    anim.running = True
+    anim.animate_summary(
+        total_score=p3.score,
+        move_scores=[p3.score],
+        duration=2.5,
+        config = ANIMATOR_CONFIG
+    )
+
+    # 4. 招式三
+    anim.running = True
+    anim.animate_title(text="招式四：左右卷肱！", duration=1.5, config=ANIMATOR_CONFIG)
+    p4.main_loop()
+    anim.camera = CamUtils.camera_init(resolution=(1280, 720))
+    anim.running = True
+    anim.animate_summary(
+        total_score=p4.score,
+        move_scores=[p4.score],
+        duration=2.5,
+        config = ANIMATOR_CONFIG
+    )
+
+    # 5. 招式三
+    anim.running = True
+    anim.animate_title(text="招式五：丁步抱球！", duration=1.5, config=ANIMATOR_CONFIG)
+    p5.main_loop()
+    anim.camera = CamUtils.camera_init(resolution=(1280, 720))
+    anim.running = True
+    anim.animate_summary(
+        total_score=p5.score,
+        move_scores=[p5.score],
+        duration=2.5,
+        config = ANIMATOR_CONFIG
+    )
+
+    # 6. 招式三
+    anim.running = True
+    anim.animate_title(text="招式六：野马分鬃！", duration=1.5, config=ANIMATOR_CONFIG)
+    p6.main_loop()
+    anim.camera = CamUtils.camera_init(resolution=(1280, 720))
+    anim.running = True
+    anim.animate_summary(
+        total_score=p6.score,
+        move_scores=[p6.score],
+        duration=2.5,
+        config = ANIMATOR_CONFIG
+    )
+
+    # 7. 招式三
+    anim.running = True
+    anim.animate_title(text="招式七：白鹤亮翅！", duration=1.5, config=ANIMATOR_CONFIG)
+    p7.main_loop()
+    anim.camera = CamUtils.camera_init(resolution=(1280, 720))
+    anim.running = True
+    anim.animate_summary(
+        total_score=p7.score,
+        move_scores=[p7.score],
+        duration=2.5,
+        config = ANIMATOR_CONFIG
+    )
+
+    # 8. 招式三
+    anim.running = True
+    anim.animate_title(text="招式八：金鸡独立！", duration=1.5, config=ANIMATOR_CONFIG)
+    p8.main_loop()
+    anim.camera = CamUtils.camera_init(resolution=(1280, 720))
+    anim.running = True
+    anim.animate_summary(
+        total_score=p8.score,
+        move_scores=[p8.score],
+        duration=2.5,
+        config = ANIMATOR_CONFIG
+    )
+
+    # 9. 招式三
+    anim.running = True
+    anim.animate_title(text="招式九：收势！", duration=1.5, config=ANIMATOR_CONFIG)
+    p9.main_loop()
+    anim.camera = CamUtils.camera_init(resolution=(1280, 720))
+    anim.running = True
+    anim.animate_summary(
+        total_score=p9.score,
+        move_scores=[p9.score],
+        duration=2.5,
+        config = ANIMATOR_CONFIG
+    )
 
     # 把 differences-<id>.json 文件合并生成
     # user_jsons_combine(id=unique_id, save_path=Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi")
     combine_simple(id=unique_id, save_path=Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi")
 
     # 结束：发送动作分列表至前端
-    DataSender.send_control(command="MOVE_SCORES", data=[p1m1.score, p1m2.score, p1m3.score, p2m1.score, p2m2.score, p2m3.score])
+    DataSender.send_control(command="MOVE_SCORES", data=[p1.score, p2.score, p3.score, p4.score, p5.score, p6.score, p7.score, p8.score, p9.score])
 
     pygame.quit()

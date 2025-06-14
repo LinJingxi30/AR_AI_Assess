@@ -21,6 +21,7 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_agg import FigureCanvasAgg
 from matplotlib.font_manager import FontProperties
 from utils.DataSender import DataSender
+import argparse
 
 
 VISUAL_CONFIG = {
@@ -82,7 +83,18 @@ def load_and_resize_image(image_path):
         img = cv2.resize(img, (250, 250))
     return img
 
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--unique_id", required=False, help="运动记录的唯一ID")
+    parser.add_argument("--rtmp_url", required=False, help="RTMP流地址")
+    return parser.parse_args()
 def main():
+    args = parse_args()
+    if args.rtmp_url:
+        rtmp_url = args.rtmp_url
+    else:
+        rtmp_url = "rtmp://localhost/live/part1"
+
     # 初始化运动类型和图片相关变量
     sport_options = {
         "TaiChi": "StdSportsResults/trans_fram/taichi1",
@@ -99,14 +111,16 @@ def main():
     images_played = False
 
     # 先运行选择模式
-    sport_type = get_sport_type()
+    sport_type = get_sport_type(source = rtmp_url)
     if sport_type is None:
         print("未选择运动类型，程序退出", file=sys.stderr)
         return
     sport_type = "TaiChi"
 
     # 初始化主循环使用的摄像头
-    cap = cv2.VideoCapture(0)
+
+    cap = cv2.VideoCapture(rtmp_url)
+
     if not cap.isOpened():
         print("无法打开摄像头", file=sys.stderr)
         return

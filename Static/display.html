@@ -463,6 +463,16 @@
           launchFullscreen(document.documentElement);
         };
       });
+
+      socket.on("start_capture", ({ mainMode, subMode }) => {
+        // 关闭结算弹窗
+        const resultModal = document.getElementById('result-modal');
+        if (resultModal) {
+          resultModal.remove();
+        }
+        
+        console.log(`接收到开始捕捉事件: ${mainMode} - ${subMode}`);
+      });
     </script>
   </body>
 </html>
