@@ -11,7 +11,7 @@ const { spawn } = require('child_process');
  * @param {bool} saveBat 选项 { saveBat?: boolean }
  * @returns {Promise<{proc: ChildProcess, rtmpUrls: string[]}>}
  */
-async function startRtmpStreams(n, cameraName, fps = 25, saveBat = 0) {
+async function startRtmpStreams(n, cameraName, fps = 30, saveBat = 0) {
   return new Promise((resolve, reject) => {
     if (typeof n !== 'number' || n <= 0) {
       return reject(new Error('n 必须是大于0的数字'));

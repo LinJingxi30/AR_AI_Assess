@@ -430,7 +430,7 @@ app.post('/api/start_rtmp', async (req, res) => {
     }
     try {
         
-        const { proc, rtmpUrls } = await startRtmpStreams(n, cameraName, fps || 25);
+        const { proc, rtmpUrls } = await startRtmpStreams(n, cameraName, fps || 10);
         rtmpState.proc = proc;
         rtmpState.rtmpUrls = rtmpUrls;
         rtmpState.n = n;

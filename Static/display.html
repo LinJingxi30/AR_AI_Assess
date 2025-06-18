@@ -462,6 +462,7 @@
         document.getElementById('fullscreen-btn').onclick = () => {
           launchFullscreen(document.documentElement);
         };
+        requestWakeLock(); // 请求息屏锁
       });
 
       socket.on("start_capture", ({ mainMode, subMode }) => {
@@ -472,6 +473,37 @@
         }
         
         console.log(`接收到开始捕捉事件: ${mainMode} - ${subMode}`);
+      });
+
+      let wakeLock = null;
+
+      async function requestWakeLock() {
+        try {
+          wakeLock = await navigator.wakeLock.request('screen');
+          console.log('已开启防止息屏');
+          
+          wakeLock.addEventListener('release', () => {
+            console.log('息屏锁已释放');
+          });
+          
+        } catch (err) {
+          console.error(`无法获取息屏锁: ${err.name}, ${err.message}`);
+        }
+      }
+
+      // 在页面可见性改变时重新请求
+      document.addEventListener('visibilitychange', async () => {
+        if (wakeLock !== null && document.visibilityState === 'visible') {
+          await requestWakeLock();
+        }
+      });
+
+      // 在 beforeunload 事件中释放息屏锁
+      window.addEventListener('beforeunload', () => {
+        if (wakeLock !== null) {
+          wakeLock.release();
+          wakeLock = null;
+        }
       });
     </script>
   </body>
