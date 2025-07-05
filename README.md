@@ -75,3 +75,13 @@ ProcessKit/
 - display.html为AR眼镜端全屏展示页面
 - 控制器和展示端需要在一个Room内才能启动python程序
 
+## 一切多
+### 启动流程
+- 首先运行tool/nignx.exe
+- 然后在tool文件夹下启动命令行，运行`ffmpeg -list_devices true -f dshow -i dummy`查看摄像头设备名称
+- 启动server.js,进入[监控页面](http://localhost:8000/dashboard.html)，将上一步的摄像头名称填入并启动推流
+- 注意切割后画面处理后默认推入room1~roomN房间，请在监控页手动修改眼镜端所在房间
+### 额外注意事项
+- 不同摄像头支持的帧率并不一致/连续，请根据实际情况选择最合适的帧率
+- 笔记本自带摄像头在多切推流时存在明显的帧率低于设置值，请尽量使用外接摄像头
+- 可以在startRtmpStreams中设置参数saveBat=1，保存ffmpeg脚本，然后手动运行来测试推流帧率

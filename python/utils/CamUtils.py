@@ -55,7 +55,7 @@ def camera_capture(camera=None):
 
 def camera_frame_process(target_reso=None, frame=None):
     """
-    处理实时画面帧：翻转 + 拉伸到指定分辨率
+    处理实时画面帧：翻转 + 等比缩放填充到指定分辨率（contain模式）
     """
     if frame is None:
         raise ValueError("实时帧不能为空")
@@ -65,7 +65,24 @@ def camera_frame_process(target_reso=None, frame=None):
     # 左右翻转画面
     processed_frame = cv2.flip(frame, 1)
 
-    # 将画面拉伸到指定分辨率
-    processed_frame = cv2.resize(processed_frame, target_reso)
+    # 获取原始和目标尺寸
+    h, w = processed_frame.shape[:2]
+    target_w, target_h = target_reso
 
-    return processed_frame
+    # 计算缩放比例，保持比例
+    scale = min(target_w / w, target_h / h)
+    new_w, new_h = int(w * scale), int(h * scale)
+
+    # 等比缩放
+    resized = cv2.resize(processed_frame, (new_w, new_h))
+
+    # 计算填充边界
+    top = (target_h - new_h) // 2
+    bottom = target_h - new_h - top
+    left = (target_w - new_w) // 2
+    right = target_w - new_w - left
+
+    # 填充黑边
+    bordered = cv2.copyMakeBorder(resized, top, bottom, left, right, cv2.BORDER_CONSTANT, value=[0, 0, 0])
+
+    return bordered

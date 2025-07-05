@@ -231,24 +231,27 @@ if __name__ == "__main__":
     unique_id = args.unique_id
     rtmp_url = args.rtmp_url
 
+    video_source = rtmp_url if rtmp_url else None
+    camera = CamUtils.camera_init(source=video_source, resolution=(1280, 720))
+
     # 创建实例时传入unique_id
     DEBUG = 0
-    anim = Animator()
-    pre_align = PreAlignerPoints(_paths=PRE_GAME_ALIGN_PATHS, debug=DEBUG)
-    pre_clip = Guider(paths=PRE_GAME_CLIP_PATHS, debug=DEBUG)
-    p1 = Guider(paths=FULL_PATHS["POSTURE_1"], debug=DEBUG)
-    p2 = Guider(paths=FULL_PATHS["POSTURE_2"], debug=DEBUG)
-    p3 = Guider(paths=FULL_PATHS["POSTURE_3"], debug=DEBUG)
-    p4 = Guider(paths=FULL_PATHS["POSTURE_4"], debug=DEBUG)
-    p5 = Guider(paths=FULL_PATHS["POSTURE_5"], debug=DEBUG)
-    p6 = Guider(paths=FULL_PATHS["POSTURE_6"], debug=DEBUG)
-    p7 = Guider(paths=FULL_PATHS["POSTURE_7"], debug=DEBUG)
-    p8 = Guider(paths=FULL_PATHS["POSTURE_8"], debug=DEBUG)
-    p9 = Guider(paths=FULL_PATHS["POSTURE_9"], debug=DEBUG)
+    anim = Animator(camera = camera)
+    pre_align = PreAlignerPoints(camera = camera,_paths=PRE_GAME_ALIGN_PATHS, debug=DEBUG)
+    pre_clip = Guider(camera = camera,paths=PRE_GAME_CLIP_PATHS, debug=DEBUG)
+    p1 = Guider(camera = camera,paths=FULL_PATHS["POSTURE_1"], debug=DEBUG)
+    p2 = Guider(camera = camera,paths=FULL_PATHS["POSTURE_2"], debug=DEBUG)
+    p3 = Guider(camera = camera,paths=FULL_PATHS["POSTURE_3"], debug=DEBUG)
+    p4 = Guider(camera = camera,paths=FULL_PATHS["POSTURE_4"], debug=DEBUG)
+    p5 = Guider(camera = camera,paths=FULL_PATHS["POSTURE_5"], debug=DEBUG)
+    p6 = Guider(camera = camera,paths=FULL_PATHS["POSTURE_6"], debug=DEBUG)
+    p7 = Guider(camera = camera,paths=FULL_PATHS["POSTURE_7"], debug=DEBUG)
+    p8 = Guider(camera = camera,paths=FULL_PATHS["POSTURE_8"], debug=DEBUG)
+    p9 = Guider(camera = camera,paths=FULL_PATHS["POSTURE_9"], debug=DEBUG)
     
     # p3m1 = Guider(paths=FULL_PATHS["POSTURE_3"]["MOVE_1"], debug=DEBUG)
     # p3m2 = Guider(paths=FULL_PATHS["POSTURE_3"]["MOVE_2"], debug=DEBUG)
-
+    sys.stderr.write(f"Start\n")
     # 0. 用户对齐指引
     DataSender.send_control("PLAY_AUDIO",flag = 1)
     anim.animate_title(text="欢迎来到3A·元运动指南", duration=1.0, config=ANIMATOR_CONFIG)
@@ -259,10 +262,7 @@ if __name__ == "__main__":
 
     anim.running = True
     # 摄像头初始化，支持 RTMP 流
-    if rtmp_url:
-        anim.camera = CamUtils.camera_init(source=rtmp_url, resolution=(1280,720))
-    else:
-        anim.camera = CamUtils.camera_init(resolution=(1280,720))
+    # anim.camera = CamUtils.camera_init(source=video_source, resolution=(1280,720))
     anim.animate_title(text="3", duration=1.0, config=ANIMATOR_CONFIG)
     anim.animate_title(text="2", duration=1.0, config=ANIMATOR_CONFIG)
     anim.animate_title(text="1", duration=1.0, config=ANIMATOR_CONFIG)
@@ -273,13 +273,13 @@ if __name__ == "__main__":
 
     # 1. 招式一
     anim.running = True
-    anim.camera = CamUtils.camera_init(resolution=(1280,720))
+    # anim.camera = CamUtils.camera_init(source=rtmp_url,resolution=(1280,720))
     anim.animate_title(text="3", duration=1.0, config=ANIMATOR_CONFIG)
     anim.animate_title(text="2", duration=1.0, config=ANIMATOR_CONFIG)
     anim.animate_title(text="1", duration=1.0, config=ANIMATOR_CONFIG)
     anim.animate_title(text="招式一：起势！", duration=1.0, config=ANIMATOR_CONFIG)
     p1.main_loop()
-    anim.camera = CamUtils.camera_init(resolution=(1280, 720))
+    # anim.camera = CamUtils.camera_init(source=rtmp_url,resolution=(1280, 720))
     anim.running = True
     anim.animate_summary(
         total_score=p1.score,
@@ -292,7 +292,7 @@ if __name__ == "__main__":
     anim.running = True
     anim.animate_title(text="招式二：金刚转体！", duration=1.5, config=ANIMATOR_CONFIG)
     p2.main_loop()
-    anim.camera = CamUtils.camera_init(resolution=(1280, 720))
+    # anim.camera = CamUtils.camera_init(source=rtmp_url,resolution=(1280, 720))
     anim.running = True
     anim.animate_summary(
         total_score=p2.score,
@@ -305,7 +305,7 @@ if __name__ == "__main__":
     anim.running = True
     anim.animate_title(text="招式三：左右云手！", duration=1.5, config=ANIMATOR_CONFIG)
     p3.main_loop()
-    anim.camera = CamUtils.camera_init(resolution=(1280, 720))
+    # anim.camera = CamUtils.camera_init(source=rtmp_url,resolution=(1280, 720))
     anim.running = True
     anim.animate_summary(
         total_score=p3.score,
@@ -318,7 +318,7 @@ if __name__ == "__main__":
     anim.running = True
     anim.animate_title(text="招式四：左右卷肱！", duration=1.5, config=ANIMATOR_CONFIG)
     p4.main_loop()
-    anim.camera = CamUtils.camera_init(resolution=(1280, 720))
+    # anim.camera = CamUtils.camera_init(source=rtmp_url,resolution=(1280, 720))
     anim.running = True
     anim.animate_summary(
         total_score=p4.score,
@@ -331,7 +331,7 @@ if __name__ == "__main__":
     anim.running = True
     anim.animate_title(text="招式五：丁步抱球！", duration=1.5, config=ANIMATOR_CONFIG)
     p5.main_loop()
-    anim.camera = CamUtils.camera_init(resolution=(1280, 720))
+    # anim.camera = CamUtils.camera_init(source=rtmp_url,resolution=(1280, 720))
     anim.running = True
     anim.animate_summary(
         total_score=p5.score,
@@ -344,7 +344,7 @@ if __name__ == "__main__":
     anim.running = True
     anim.animate_title(text="招式六：野马分鬃！", duration=1.5, config=ANIMATOR_CONFIG)
     p6.main_loop()
-    anim.camera = CamUtils.camera_init(resolution=(1280, 720))
+    # anim.camera = CamUtils.camera_init(source=rtmp_url,resolution=(1280, 720))
     anim.running = True
     anim.animate_summary(
         total_score=p6.score,
@@ -357,7 +357,7 @@ if __name__ == "__main__":
     anim.running = True
     anim.animate_title(text="招式七：白鹤亮翅！", duration=1.5, config=ANIMATOR_CONFIG)
     p7.main_loop()
-    anim.camera = CamUtils.camera_init(resolution=(1280, 720))
+    # anim.camera = CamUtils.camera_init(source=rtmp_url,resolution=(1280, 720))
     anim.running = True
     anim.animate_summary(
         total_score=p7.score,
@@ -370,7 +370,7 @@ if __name__ == "__main__":
     anim.running = True
     anim.animate_title(text="招式八：金鸡独立！", duration=1.5, config=ANIMATOR_CONFIG)
     p8.main_loop()
-    anim.camera = CamUtils.camera_init(resolution=(1280, 720))
+    # anim.camera = CamUtils.camera_init(source=rtmp_url,resolution=(1280, 720))
     anim.running = True
     anim.animate_summary(
         total_score=p8.score,
@@ -383,7 +383,7 @@ if __name__ == "__main__":
     anim.running = True
     anim.animate_title(text="招式九：收势！", duration=1.5, config=ANIMATOR_CONFIG)
     p9.main_loop()
-    anim.camera = CamUtils.camera_init(resolution=(1280, 720))
+    # anim.camera = CamUtils.camera_init(source=rtmp_url,resolution=(1280, 720))
     anim.running = True
     anim.animate_summary(
         total_score=p9.score,

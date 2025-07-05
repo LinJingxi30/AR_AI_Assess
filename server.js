@@ -443,7 +443,7 @@ app.post('/api/start_rtmp', async (req, res) => {
             const uuid = uuidv4();
             const room = `room${i + 1}`;
             const rtmpUrl = rtmpUrls[i];
-            const pyPath = path.join('python',  'RealPractice.py');
+            const pyPath = path.join('python',  'TaiJiGuiderSJTU/main.py');
             const pyProc = spawn(
                 PYTHON_INTERPRETER,
                 [pyPath, '--unique_id', uuid, '--rtmp_url', rtmpUrl],

@@ -6,12 +6,12 @@ from Config import WIN_SIZE
 
 class Animator(Guider):
     """继承自 Guider 支持过渡动画 & 结算动画"""
-    def __init__(self, debug=False):
+    def __init__(self,camera, debug=False):
         # config 配置
         self.frame_rate = 30
 
         # utils 工具
-        self.camera = None
+        self.camera = camera
         self.frame_rate_clock = None
 
         # resource 资源
@@ -19,7 +19,6 @@ class Animator(Guider):
         self.screen = None  # pygame 窗口
 
         # init 初始化工具
-        self.camera = CamUtils.camera_init(resolution=(1280, 720))
         self.pygame_init(win_bgm_path=None, win_topic="太极拳指导系统")
 
         # state 状态

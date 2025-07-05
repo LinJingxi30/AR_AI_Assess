@@ -74,7 +74,7 @@ PATHS = {
 }
 
 class Guider:
-    def __init__(self, paths=PATHS, debug=False):
+    def __init__(self,camera, paths=PATHS, debug=False):
         # config 配置
         win_topic = "AR太极拳助手"
         self.frame_rate = 60
@@ -87,7 +87,7 @@ class Guider:
         self.user_replay_json_path = paths["标准 JSON 文件路径"] / ".." / "user_replay.json"
 
         # utils 工具
-        self.camera = None
+        self.camera = camera
         self.pose_detector = None
         self.frame_rate_clock = None
 
@@ -108,7 +108,6 @@ class Guider:
         self.screen = None  # pygame 窗口
 
         # init 初始化工具
-        self.camera = CamUtils.camera_init(resolution=(1280, 720))
         self.pose_detector_init()
         self.pygame_init(win_topic=win_topic, win_bgm_path=str(win_bgm_path))
 
@@ -170,6 +169,8 @@ class Guider:
             self.real_world_frame = CamUtils.get_camera_processed_frame(camera=self.camera,
                                                                     win_size=WIN_SIZE,
                                                                     frame=frame)
+            # cv2.imshow("实时画面", self.real_world_frame)  # 调试：显示实时画面
+            # sys.stderr.write("实时画面帧已处理\n")
 
             """主画布渲染"""
             # 获取对齐点列表 std_landmarks_list 和 rt_landmarks_list；
