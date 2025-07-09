@@ -35,7 +35,7 @@ class Animator(Guider):
             if self.window_events():
                 self.frame_rate_clock.tick(fps)
                 # 背景实时帧
-                bg = CamUtils.get_camera_processed_frame(self.camera, win_size=WIN_SIZE)
+                bg = self.camera.get_camera_processed_frame(win_size=WIN_SIZE)
                 canvas_rgb = cv2.cvtColor(bg, cv2.COLOR_BGR2RGB)
                 surf = pygame.surfarray.make_surface(canvas_rgb.swapaxes(0,1))
                 self.screen.blit(surf, (0,0))
@@ -80,7 +80,7 @@ class Animator(Guider):
                     self.screen.blit(bg_img,(0,0))
                 else:
                     # 实时背景
-                    bg = CamUtils.get_camera_processed_frame(self.camera, win_size=WIN_SIZE)
+                    bg = self.camera.get_camera_processed_frame(win_size=WIN_SIZE)
                     canvas_rgb = cv2.cvtColor(bg, cv2.COLOR_BGR2RGB)
                     surfbg = pygame.surfarray.make_surface(canvas_rgb.swapaxes(0,1))
                     self.screen.blit(surfbg,(0,0))
