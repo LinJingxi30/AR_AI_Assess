@@ -2,8 +2,9 @@ import cv2
 import socket
 import sys
 import json
+import threading  # 添加并行支持
 
-def split_and_send_camera_to_udp(camera_index=0, n=2, resolution=(1280, 720), jpeg_quality=80):
+def split_and_send_camera_to_udp(camera_index=0, n=2, resolution=(1280, 720), jpeg_quality=10):
     """
     读取本地摄像头，将画面横向切成n份，分别发送到n个UDP端口。
     自动分配端口，并通过stdout输出端口信息。
@@ -35,13 +36,33 @@ def split_and_send_camera_to_udp(camera_index=0, n=2, resolution=(1280, 720), jp
                 break
             h, w = frame.shape[:2]
             seg_w = w // n
+            # 并行发送函数
+            def send_segment(seg, sock, target):
+                try:
+                    _, buf = cv2.imencode('.jpg', seg, [cv2.IMWRITE_JPEG_QUALITY, jpeg_quality])
+                    data = buf.tobytes()
+                    sock.sendto(data, target)
+                except Exception as e:
+                    print(f"发送失败: {e}", file=sys.stderr)
+
+            threads = []
             for i in range(n):
                 x1 = i * seg_w
                 x2 = (i + 1) * seg_w if i < n - 1 else w
                 seg = frame[:, x1:x2]
-                _, buf = cv2.imencode('.jpg', seg, [cv2.IMWRITE_JPEG_QUALITY, jpeg_quality])
-                data = buf.tobytes()
-                socks[i].sendto(data, udp_targets[i])
+                
+                # 为每个片段创建发送线程
+                t = threading.Thread(
+                    target=send_segment, 
+                    args=(seg, socks[i], udp_targets[i])
+                )
+                t.daemon = True  # 设为守护线程
+                t.start()
+                threads.append(t)
+            
+            # 等待所有发送线程完成
+            for t in threads:
+                t.join()
     finally:
         cap.release()
         for s in socks:
@@ -54,7 +75,7 @@ if __name__ == "__main__":
     parser.add_argument('--camera_index', type=int, default=0)
     parser.add_argument('--n', type=int, default=2)
     parser.add_argument('--resolution', type=str, default='1280x720')
-    parser.add_argument('--jpeg_quality', type=int, default=80)
+    parser.add_argument('--jpeg_quality', type=int, default=60)
     args = parser.parse_args()
 
     n = args.n
