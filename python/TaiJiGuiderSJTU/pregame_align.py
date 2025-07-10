@@ -21,8 +21,8 @@ PTS_PAIR_COLORS = [
 PTS_CONDITION_THRESH = [[70], [70], [150], [150]] # 对应上面的 4 个点的判定阈值
 
 class PreAlignerPoints(Guider):
-    def __init__(self,camera, _paths=PATHS, debug=False):
-        super().__init__(camera=camera,paths=_paths, debug=debug)  # 调用父类会初始化摄像头、mediapipe、pygame、加载 JSON……
+    def __init__(self, camera, _paths=PATHS, debug=False):
+        super().__init__(camera=camera, paths=_paths, debug=debug)  # 调用父类会初始化摄像头、mediapipe、pygame、加载 JSON……
         # 我们只关心这四个 landmark
         self.POSE_ALIGN_LANDMARK = None
         self.POSE_ALIGN_LANDMARKS = [[19], [20], [31], [32]]

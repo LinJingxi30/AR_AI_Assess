@@ -193,5 +193,120 @@ def draw_arrow(canvas, start, end, color, thickness, size):
                         int(end[1] - size * (dy + dx)))
     cv2.line(canvas, checkmark_point1, end, color, thickness)
     cv2.line(canvas, checkmark_point2, end, color, thickness)
+
+from PIL import ImageFont, ImageDraw, Image
+
+def draw_button(canvas, position, size, text, color=(0, 255, 0), text_color=(255, 255, 255), font_scale=1, thickness=2, font_path="simhei.ttf"):
+    """在画布上绘制一个按钮，支持中文"""
+    x, y = position
+    w, h = size
+    # 绘制按钮矩形
+    # 创建一个 overlay 用于绘制半透明圆角矩形
+    overlay = canvas.copy()
+    radius = min(w, h) // 4  # 圆角半径可调
+    # 绘制圆角矩形（填充，全部半透明，无不透明边框）
+    cv2.rectangle(overlay, (x + radius, y), (x + w - radius, y + h), color, -1)
+    cv2.rectangle(overlay, (x, y + radius), (x + w, y + h - radius), color, -1)
+    cv2.ellipse(overlay, (x + radius, y + radius), (radius, radius), 180, 0, 90, color, -1)
+    cv2.ellipse(overlay, (x + w - radius, y + radius), (radius, radius), 270, 0, 90, color, -1)
+    cv2.ellipse(overlay, (x + radius, y + h - radius), (radius, radius), 90, 0, 90, color, -1)
+    cv2.ellipse(overlay, (x + w - radius, y + h - radius), (radius, radius), 0, 0, 90, color, -1)
+    # 叠加半透明
+    cv2.addWeighted(overlay, 0.6, canvas, 0.4, 0, canvas)
+    # 将OpenCV的BGR图像转换为PIL的RGB图像
+    img_pil = Image.fromarray(cv2.cvtColor(canvas, cv2.COLOR_BGR2RGB))
+    draw = ImageDraw.Draw(img_pil)
+    try:
+        font = ImageFont.truetype(font_path, int(32 * font_scale))
+    except:
+        font = ImageFont.load_default()
+    # 使用 textbbox 获取文本边界框
+    bbox = draw.textbbox((0, 0), text, font=font)
+    text_width = bbox[2] - bbox[0]
+    text_height = bbox[3] - bbox[1]
+    text_x = x + (w - text_width) // 2
+    text_y = y + (h - text_height) // 2
+    draw.text((text_x, text_y), text, font=font, fill=(text_color[2], text_color[1], text_color[0]))
+    # 转回OpenCV的BGR格式
+    canvas[:,:,:] = cv2.cvtColor(np.array(img_pil), cv2.COLOR_RGB2BGR)
+
+def draw_multiple_buttons(canvas, buttons_texts, size, color=(0, 255, 0), text_color=(255, 255, 255), font_scale=1, thickness=2):
+    """在画布上绘制多个按钮
+    参数：
+        canvas       -- 要绘制的图像
+        buttons_texts-- 按钮文本列表
+        size         -- 每个按钮的大小 (width, height)
+        color        -- 按钮颜色
+        text_color   -- 按钮文本颜色
+        font_scale   -- 文本缩放比例
+        thickness    -- 文本线宽
+    """
+    button_width, button_height = size
+    num_buttons = len(buttons_texts)
+    # buttons_positions = []
+
+    # 计算按钮间距
+    spacing = canvas.shape[1] // (num_buttons + 1)  # 3 个按钮间距为 w / 4
+
+    for i, text in enumerate(buttons_texts):
+        # 计算每个按钮的位置
+        x = (i + 1) * spacing - button_width // 2       # 水平均分布
+        y = canvas.shape[0] // 2 - button_height // 2  # 垂直居中
+        draw_button(canvas, (x, y), size, text, color, text_color, font_scale, thickness)
+        # buttons_positions.append((x, y))
+
+    # 返回的是按钮位置列表！！！
+    # return buttons_positions
+
+def draw_pose_with_buttons(canvas, buttons_config, rt_landmarks_list, condition, colors=PTS_PAIR_COLORS):
+    """在画布上绘制姿态和按钮"""
+    # 绘制姿态点
+    for idx, rt_lm_pt in enumerate(rt_landmarks_list):
+        if rt_lm_pt:
+            rt_lm_pt = (int(rt_lm_pt[0]), int(rt_lm_pt[1]))
+
+            if condition[idx]:
+                color = ARROW_COLORS["achieve"]
+            else:
+                color = colors[idx % len(colors)]
+
+            draw_gradient_point(canvas, rt_lm_pt, color, size=30, steps=2)
+
+    # 绘制按钮
+    draw_multiple_buttons(canvas, 
+                          buttons_config["texts"], 
+                          size=buttons_config["size"], 
+                          color=buttons_config["color"],
+                          text_color=buttons_config["text_color"], 
+                          font_scale=buttons_config["font_scale"], 
+                          thickness=buttons_config["thickness"])
+    
+    return canvas
+
+
+if __name__ == "__main__":
+    # 测试按钮绘制：
+    canvas = np.zeros((720, 1280, 3), dtype=np.uint8)  # 创建一个黑色画布
+    TEST_BUTTONS_CONFIG = {
+        "texts": ["太极操", "八法五步", "24式太极拳"],
+        "size": (200, 100),
+        "color": (155, 155, 0),
+        "text_color": (255, 255, 255),
+        "font_scale": 1,
+        "thickness": 2
+    }
+    TEST_RT_LANDMARKS_LIST = [(100, 100), (200, 200), (300, 300), (400, 400)]
+    TEST_CONDITION = [True, False, True, False]  # 条件列表
+    TEST_COLORS = [(255, 0, 0), (0, 255, 0), (0, 0, 255), (255, 255, 0)]  # 测试颜色列表
+    canvas = draw_pose_with_buttons(canvas, 
+                                    buttons_config=TEST_BUTTONS_CONFIG, 
+                                    rt_landmarks_list=TEST_RT_LANDMARKS_LIST, 
+                                    condition=TEST_CONDITION, 
+                                    colors=PTS_PAIR_COLORS)
+    cv2.imshow("Test Buttons", canvas)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
+
+
     
 # @A last new line here:

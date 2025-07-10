@@ -440,7 +440,7 @@ class Guider:
             min_tracking_confidence=0.7
         )
 
-    def pygame_init(self, win_bgm_path, win_topic):
+    def pygame_init(self, win_bgm_path=None, win_topic="AR太极拳助手"):
         """
         初始化 Pygame
         窗口、音频、反馈系统
