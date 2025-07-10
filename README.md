@@ -1,10 +1,58 @@
-# 3D pose 
+# 3D pose
+
+## 4.29 汇报
+### 已完成
+1. 手部姿态识别转移到指尖
+2. 标准点跟随用户中心
+3. 教练轮廓发光，跟随用户中心
+4. 可自定义“式”，在用户做完一式之前循环播放教练招式切片
+
+## 打包流程
+### python
+使用嵌入式python打包后分发，避免用户安装python环境
+- 首先从[官网下载](https://www.python.org/downloads/windows/)对应版本的embbeddable package
+- 解压到项目文件夹下/python中，修改/python下一个后缀是`.pth`的文件，将import site前的#删除（这行代码用来导入依赖的）
+- 下面来安装pip可执行文件来安装依赖，先新建get-pip.py,将[这个网页内容](https://bootstrap.pypa.io/get-pip.py)写入，然后打开命令行到python目录中运行`python.exe get-pip.py`，安装完成后出现Lib和Scripts文件夹
+- 命令行进入项目文件夹，运行`python/Scripts/pip.exe install -r requirements.txt`安装依赖
+- 然后保证项目文件夹中没有.env文件，nodejs会优先使用嵌入python作为解释器
+### nodejs
+- 运行npm run build开始打包，注意需要先打包Python环境
+- 使用pkg打包，输出目录为dist，
+  
+然后将dist下exe文件和Static,pyhon和env三个文件夹放在同一个目录下双击exe即可
+**执行pack.bat可以一键 构建嵌入式python并安装依赖+nodejs打包 最终在dist/下获得exe文件**
+
+
+
 ### config文件夹
 - `common_data.py` 为通用（公用）数据文件，比如骨架连接关系，避免重复定义的代码段
 
+## stdProcess 标准帧采样遮罩处理
+- 在 stdProcess\\`config.py` 进行配置
+- 标准采样遮罩帧生成完整脚本：stdProcess\\`StandardGenerate.py`
+- 运行后在 stdProcess 文件夹内进行存取
+
+## ProcessKit 库
+- 全局通用处理脚本，统一放到`ProcessKit`文件夹中
+- `Draw` 模块中的 `draw_skeleton` 方法，可以方便地通过config字典配置画法（将config字典传入函数中），
+  字典格式参见 Config\\`common_data.py` 中的 `DRAW_SKET_OVERALL_CONFIG` 字典
+```
+ProcessKit/
+├── __init__.py
+├── Draw.py
+├── Images2Masks.py
+├── j2pcExample.py
+├── Json2Images.py
+├── Json2PreviewClass.py
+├── JsonDiffSampler.py
+└── Video2Json.py
+```
+
+<!-- 
 ## 绘制预览区
 - 已经封装成库 j2pc/Json2PreviewClass.py (json to preview class version)
-- 使用示例 `j2pcExample.py`
+- **使用示例 `j2pcExample.py`**
+  
 ### 方法
 - `get_json_frames`: 从json文件中解包帧数据
 - `draw_pose_at_pos`: 以指定坐标为中心点绘制骨架（这个别地方可以用）
@@ -15,10 +63,26 @@
 - `CoordsGenerator`: 骨架步进平移坐标生成器
 - `PreviewCoordsGenerator`: 预览坐标生成器（包含上面这个CoordsGenerator类）
 ### TODO
-- 时间戳强制同步未实现
+- 时间戳强制同步未实现 -->
+
     
 ## 前端
+### 启动
+安装nodejs(version>18.0)后运行`npm install`安装依赖；运行`npm run start`启动服务器在8000端口；在浏览器输入本机ip:8000进入系统
 - static下为静态资源html,css,js,json,mp4等
-- mul.html为眼睛Client展示
-- dashboard.html为控制台
-- backendCapServer.py服务运行在8000端口，可以直接通过localhost:8000/mul.html访问
+- dashboard.html为socketio接入情况的控制台，同时可以设置房间分组
+- control.html为选择动作和控制python程序与结束的控制器
+- display.html为AR眼镜端全屏展示页面
+- 控制器和展示端需要在一个Room内才能启动python程序
+
+## 一切多
+### 启动流程
+- 首先运行tool/nignx.exe
+- 然后在tool文件夹下启动命令行，运行`ffmpeg -list_devices true -f dshow -i dummy`查看摄像头设备名称
+- 启动server.js,进入[监控页面](http://localhost:8000/dashboard.html)，将上一步的摄像头名称填入并启动推流
+- 注意切割后画面处理后默认推入room1~roomN房间，请在监控页手动修改眼镜端所在房间
+### 额外注意事项
+- 不同摄像头支持的帧率并不一致/连续，请根据实际情况选择最合适的帧率
+- 笔记本自带摄像头在多切推流时存在明显的帧率低于设置值，请尽量使用外接摄像头
+- 可以在startRtmpStreams中设置参数saveBat=1，保存ffmpeg脚本，然后手动运行来测试推流帧率
+## ** PS：api/start_rtmp接口实现改为UDP推流，python代码使用--rtmp_url "UDP://127.0.0.1:1935"使用udp作为frame获取来源 **
