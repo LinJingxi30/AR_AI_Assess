@@ -85,3 +85,4 @@ ProcessKit/
 - 不同摄像头支持的帧率并不一致/连续，请根据实际情况选择最合适的帧率
 - 笔记本自带摄像头在多切推流时存在明显的帧率低于设置值，请尽量使用外接摄像头
 - 可以在startRtmpStreams中设置参数saveBat=1，保存ffmpeg脚本，然后手动运行来测试推流帧率
+## ** PS：api/start_rtmp接口实现改为UDP推流，python代码使用--rtmp_url "UDP://127.0.0.1:1935"使用udp作为frame获取来源 **

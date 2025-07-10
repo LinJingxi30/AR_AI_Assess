@@ -12,7 +12,7 @@ import argparse
 
 
 from Config import STD_SPORTS_RESULTS_ROOT
-import utils.CamUtils as CamUtils
+from utils.CamUtils import CameraUtil
 from utils.DataSender import DataSender
 
 PRE_GAME_ALIGN_PATHS = {
@@ -231,8 +231,8 @@ if __name__ == "__main__":
     unique_id = args.unique_id
     rtmp_url = args.rtmp_url
 
-    video_source = rtmp_url if rtmp_url else None
-    camera = CamUtils.camera_init(source=video_source, resolution=(1280, 720))
+    video_source = rtmp_url if rtmp_url else 0
+    camera = CameraUtil(source=video_source, resolution=(1280, 720))
 
     # 创建实例时传入unique_id
     DEBUG = 0

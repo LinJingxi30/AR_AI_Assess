@@ -167,9 +167,10 @@ class Guider:
 
             """获取、处理实时画面帧"""
             # （已翻转）（已拉伸到窗口分辨率）
-            self.real_world_frame = CamUtils.get_camera_processed_frame(camera=self.camera,
-                                                                    win_size=WIN_SIZE,
-                                                                    frame=frame)
+            self.real_world_frame = self.camera.get_camera_processed_frame(
+                frame=frame,
+                win_size=WIN_SIZE
+            )
             # cv2.imshow("实时画面", self.real_world_frame)  # 调试：显示实时画面
             # sys.stderr.write("实时画面帧已处理\n")
 

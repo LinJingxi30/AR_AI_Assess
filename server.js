@@ -430,13 +430,61 @@ app.post('/api/start_rtmp', async (req, res) => {
     }
     try {
         
-        const { proc, rtmpUrls } = await startRtmpStreams(n, cameraName, fps || 10);
+        // const { proc, rtmpUrls } = await startRtmpStreams(n, cameraName, fps || 10);
+
+        const pyPath = path.join('python', 'utils', 'Split.py');
+        const pyArgs = [
+            // '--camera_index', '0',
+            '--n', String(n),
+            // '--resolution', resolution || '1280x720',
+            // '--jpeg_quality', jpegQuality || '80'
+        ];
+        const proc = spawn(
+            PYTHON_INTERPRETER,
+            [pyPath, ...pyArgs],
+            { stdio: ['ignore', 'pipe', 'pipe'] }
+        );
+
+        // 阻塞直到获取到端口列表
+        let rtmpUrls = [];
+        const getPorts = new Promise((resolve, reject) => {
+            let dataBuffer = '';
+            const onData = (chunk) => {
+                dataBuffer += chunk.toString();
+                // 假设端口列表一行为JSON数组
+                const regex = /\[.*?\]/s;
+                const match = regex.exec(dataBuffer);
+                if (match) {
+                    try {
+                        const ports = JSON.parse(match[0]);
+                        // 生成 rtmp url 列表
+                        rtmpUrls = ports.map(port => `UDP://127.0.0.1:${port}`);
+                        proc.stdout.off('data', onData);
+                        resolve();
+                    } catch (e) {
+                        // 解析失败，继续等待
+                        console.error('解析端口列表时发生错误:', e);
+                    }
+                }
+            };
+            proc.stdout.on('data', onData);
+            proc.stderr.on('data', (err) => {
+                // 若有错误输出也可考虑 reject
+            });
+            proc.on('close', (code) => {
+                reject(new Error('Split.py 进程提前退出'));
+            });
+        });
+
+        await getPorts;
+
         rtmpState.proc = proc;
         rtmpState.rtmpUrls = rtmpUrls;
         rtmpState.n = n;
         rtmpState.mainProcs = [];
 
-        console.log(`RTMP 推流已启动， 路数: ${n}, 摄像头: ${cameraName}, 帧率: ${fps} rtmpUrls:${rtmpUrls.join(', ')}`);
+        // console.log(`RTMP 推流已启动， 路数: ${n}, 摄像头: ${cameraName}, 帧率: ${fps} rtmpUrls:${rtmpUrls.join(', ')}`);
+        console.log(`UDP 推流已启动， 路数: ${n}, 摄像头: ${cameraName}, 帧率: ${fps} rtmpUrls:${rtmpUrls.join(', ')}`);
 
         // 启动 n 个 main.py，每个传入 uuid 和 rtmp_url
         for (let i = 0; i < n; i++) {
