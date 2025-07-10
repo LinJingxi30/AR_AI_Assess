@@ -68,13 +68,13 @@ PYGAME_UI_CONFIG = {
 }
 
 PATHS = {
-    "标准 JSON 文件路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "C79-V2.1_points.json",
-    "标准掩膜图片路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "masked_sampled_std_frames",
+    "标准 JSON 文件路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "p1" / "p1.json",
+    "标准掩膜图片路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "p1",
     "背景音乐": Path(PY_ROOT) / "gameAssets" / "sounds" / "SJTUbgm.mp3",
 }
 
 class Guider:
-    def __init__(self,camera, paths=PATHS, debug=False):
+    def __init__(self, camera, paths=PATHS, debug=False):
         # config 配置
         win_topic = "AR太极拳助手"
         self.frame_rate = 60
@@ -514,12 +514,13 @@ class Guider:
         """
         # 加载标准 JSON 数据 -> 标准姿态合集列表
         # [[33 * tuple(x, y, z=0)], [...], ..., ]
-        std_pose_lists, std_skips = self.load_std_pose_lists(json_path, landmarks=POSE_ALIGN_LANDMARKS)
+        std_pose_lists, std_skips, std_img_names = self.load_std_pose_lists(json_path, landmarks=POSE_ALIGN_LANDMARKS)
         # std_pose_lists = self.load_std_pose_lists(json_path, landmarks=POSE_ALIGN_LANDMARKS)
 
         # 标准帧路径合集列表
         # [str(path), str, ...]
-        std_overlay_paths = self.load_std_frame_paths(frame_path)
+        # std_overlay_paths = self.load_std_frame_paths(frame_path)
+        std_overlay_paths = [str(Path(frame_path) / img_name) for img_name in std_img_names]    # 使用文件名寻址
 
         # 标准姿态 列表列表；标准帧路径 列表
         return std_pose_lists, std_skips, std_overlay_paths
@@ -531,6 +532,7 @@ class Guider:
         # 嵌套列表 [[33 * tuple(x, y, z=0)], ..., ] len(json)
         std_full_pose_lists = []
         std_skips = []
+        std_img_names = []
         # 只读模式打开 JSON 文件
         with open(json_path, 'r') as f:
             for line in f:
@@ -585,19 +587,19 @@ class Guider:
                 # 尝试获取 frame_dict["points"] 字典中的 "skip" 键，如果不存在则返回默认值 False，
                 # 因此即使 JSON 中缺少 "skip" 键，也不会报错。
                 std_skips.append(frame_dict["points"].get("skip", False))   # 标签程序写不好，嵌套在points里了
+                std_img_names.append(frame_dict["image"])  # 新增：记录图片名，后续按照图片名进行匹配
 
         # [[33 * tuple(x, y, z=0)], ..., ] len(json)
-        return std_full_pose_lists, std_skips
+        return std_full_pose_lists, std_skips, std_img_names
         # return std_full_pose_lists
 
-    @staticmethod
-    def load_std_frame_paths(frame_path) -> list[str]:
-
-        # 存储目录下的所有 PNG 文件路径，按名称排序，转为字符串（ pathlib 写法）
-        frame_paths_list = [str(p) for p in sorted(Path(frame_path).glob("*.png"))]
-
-        # list[Path] -> list[str]
-        return frame_paths_list
+    # 旧版：加载标准帧路径
+    # @staticmethod
+    # def load_std_frame_paths(frame_path) -> list[str]:
+    #     # 存储目录下的所有 PNG 文件路径，按名称排序，转为字符串（ pathlib 写法）
+    #     frame_paths_list = [str(p) for p in sorted(Path(frame_path).glob("*.png"))]
+    #     # list[Path] -> list[str]
+    #     return frame_paths_list
 
     @staticmethod
     def get_center_from_points_2d(full_pose_list, from_pts_idx, win_size, y_offset) -> tuple[float, float]:
