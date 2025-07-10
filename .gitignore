@@ -16,7 +16,7 @@ Build/
 Logs/
 
 # 用户数据与依赖
-# savedjsons/
+SavedJsons/sampled_standard_frames/
 Packages/
 old/
 
@@ -31,3 +31,38 @@ Temp/
 # 垃圾箱
 display/
 **/json2predd.py
+
+# 标准视频生成的帧文件和 JSON 文件
+python/StdProcess/**
+# 标准视频生成脚本
+!python/StdProcess/**/*.py
+python/StdSportsResults/
+
+# 标准视频生成的结果文件
+python/StdSportsResults/
+
+# 嵌入式python
+env/
+
+# nodejs依赖
+node_modules/
+
+# nodejs编译产物
+dist/
+build/
+
+# 测试文件
+Test/
+
+TODO
+
+Static/video/C0068.MP4
+Static/video/C0069.MP4
+Static/video/C0070.MP4
+Static/video/C0073.MP4
+Static/video/C0075.MP4
+
+.env
+python/gameAssets/sounds/SJTUbgm2.mp3
+
+output.bat

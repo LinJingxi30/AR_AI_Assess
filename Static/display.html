@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>实时画面显示</title>
+    <script src="js/util/tailwindcss.js"></script>
+    <script src="js/util/chart.js"></script>
+    <script src="js/util/mqtt.min.js"></script>
+    <script src="js/util/socket.io.min.js"></script>
+    <script src="js/util/marked.min.js"></script>
+    <style>
+     
+    </style>
+  </head>
+  <body class="bg-black flex justify-center items-center h-screen">
+    <!-- 新增蒙版层 -->
+    <!-- <div class="fixed inset-0 bg-[url('images/bk3.png')] bg-cover opacity-80 z-10"></div> -->
+
+    <img id="live-feed" alt="实时画面" class="max-w-full max-h-full object-contain" />
+
+    <!-- 全屏按钮 -->
+    <button id="fullscreen-btn" class="fixed top-4 left-4 z-50 bg-gray-800 bg-opacity-70 text-white px-3 py-1 rounded hover:bg-opacity-90 transition-all text-sm shadow">
+      全屏
+    </button>
+
+    <div id="spo2-alert" class="fixed top-0 left-1/2 -translate-x-1/2 z-50 bg-red-600 text-white px-8 py-3 rounded-b shadow-lg text-lg font-bold hidden">
+      检测到血氧异常，请注意健康！
+    </div>
+
+    <div id="chart-container" class="absolute top-4 right-4 bg-transparent p-4 rounded shadow-lg">
+      <canvas id="health-chart" width="400" height="200"></canvas>
+    </div>
+
+    <!-- 添加控制组件 -->
+    <div class="fixed bottom-4 right-4 z-20 flex gap-4">
+      <select id="main-mode-select" class="bg-white/80 rounded px-4 py-2">
+        <option value="">选择中心主题</option>
+        <option value="train">训练</option>
+        <option value="challenge">挑战</option>
+        <option value="fitness">健身</option>
+      </select>
+      <select id="sub-mode-select" class="bg-white/80 rounded px-4 py-2" disabled>
+        <option value="">请先选择中心主题</option>
+      </select>
+      <button id="start-btn" onclick="startCapture()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700" style="display:block">
+        开始运动
+      </button>
+      <button id="stop-btn" onclick="stopCapture()" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700" style="display:none">
+        结束运动
+      </button>
+    </div>
+
+    <!-- 音频元素 -->
+    <audio id="audio-1" src="./audio/语音1.mp3" preload="auto"></audio>
+    <audio id="audio-2" src="./audio/语音2.mp3" preload="auto"></audio>
+    <audio id="audio-3" src="./audio/语音3.mp3" preload="auto"></audio>
+    <audio id="audio-4" src="./audio/语音4.mp3" preload="auto"></audio>
+    <audio id="audio-5" src="./audio/语音5.mp3" preload="auto"></audio>
+    <audio id="audio-6" src="./audio/语音6.mp3" preload="auto"></audio> 
+    <audio id="audio-7" src="./audio/语音7.mp3" preload="auto"></audio>
+    <audio id="audio-8" src="./audio/语音8.mp3" preload="auto"></audio>
+    <script src="./js/heart_chart.js"></script>
+    <script >
+
+      let { protocol, host } = window.location;
+      let baseURL = protocol + "//" + host;
+      let lastUrl;
+
+      const liveFeed = document.getElementById("live-feed");
+      const socket = io(baseURL, { 
+        reconnection: true, 
+        reconnectionAttempts: 5,
+      });
+      let roomID ;
+
+      // 添加一个变量来存储 uuid
+      let currentUuid = null;
+      let currentScore = null;
+
+      function startCapture() {
+        const mainMode = mainModeSelect.value;
+        const subMode = subModeSelect.value;
+        if (!mainMode || !subMode) {
+          alert("请选择中心主题和子模式！");
+          return;
+        }
+        socket.emit("start_capture", { mainMode, subMode });
+      }
+
+      function stopCapture() {
+        socket.emit("stop_capture");
+      }
+
+      socket.on('connect', () => {
+        // 默认加入 和id相同名字的 房间
+        if (sessionStorage.getItem("roomID")) {
+          roomID = sessionStorage.getItem("roomID");
+          socket.emit("join_room", { room: roomID });
+        }
+        socket.emit("get_process_status"); // 连接时获取状态
+      });
+
+      socket.on("update_room", (room) => {
+        roomID = room;
+        sessionStorage.setItem("roomID", roomID);
+        console.log(`房间已更新: ${roomID}`);
+      });
+
+      socket.on("frame", (data) => {
+        if (data) {
+          if (lastUrl) {
+            URL.revokeObjectURL(lastUrl); // 释放之前的URL
+          }
+          // 创建一个Blob对象并生成URL
+          const blob = new Blob([data], { type: "image/jpeg" });
+          lastUrl = URL.createObjectURL(blob);
+
+          // 设置img元素的src属性为Blob URL
+          liveFeed.src = lastUrl;
+        } else {
+          console.error("接收到空数据");
+        }
+        // liveFeed.src = 'data:image/jpeg;base64,' + data;
+        data = null;
+      });
+
+      // 监听控制消息
+      socket.on("control", (data) => {
+        console.log("接收到控制消息:", data);
+        if (data.command === "PLAY_AUDIO") {
+          console.log(`播放音频: ${data.flag}`);
+          const audio = audioElements[data.flag];
+          if (audio) {
+            // 停止所有其他音频
+            Object.values(audioElements).forEach(a => {
+              if (a !== audio) a.pause();
+            });
+            // 播放指定音频
+            audio.currentTime = 0;
+            audio.play();
+          }
+        }else if(data.command === "MOVE_SCORES") {
+          if (Array.isArray(data.data) && data.data.length > 0) {
+            const sum = data.data.reduce((acc, val) => acc + val, 0);
+            const avg = sum / data.data.length;
+            currentScore = Math.floor(avg);
+          }
+        }
+      });
+
+      
+
+      // 监听 process_status 事件
+      socket.on('process_status', (data) => {
+        const { started, uuid } = data;
+        console.log(`子进程状态: ${started} uuid (${uuid})`);
+        if (uuid) {
+          currentUuid = uuid;
+        }
+        const startBtn = document.getElementById("start-btn");
+        const stopBtn = document.getElementById("stop-btn");
+        
+        if (started) {
+            startBtn.style.display = "none";
+            stopBtn.style.display = "block";
+            mainModeSelect.style.display = "none";
+            subModeSelect.style.display = "none";
+            
+        } else {
+            startBtn.style.display = "block";  
+            stopBtn.style.display = "none";
+            mainModeSelect.style.display = "block";
+            subModeSelect.style.display = "block";
+
+            // 使用保存的 uuid
+            if (currentUuid) {
+                const score = currentScore || 70;
+                const labels = [...healthChart.data.labels];
+                const heartData = [...healthChart.data.datasets[0].data];
+                const oxygenData = [...healthChart.data.datasets[1].data];
+
+                showResultModal({ 
+                    score, 
+                    heartData, 
+                    oxygenData, 
+                    labels,
+                    uuid: currentUuid
+                });
+            }
+        }
+      });
+
+      socket.on("connect_error", (error) => {
+        console.error("Socket.IO 连接错误:", error);
+      });
+
+      socket.on("disconnect", () => {
+        console.warn("Socket.IO 断开连接，尝试重连...");
+        liveFeed.src = "";
+        frameQueue = [];
+        isProcessing = false;
+      });
+
+      socket.on("reconnect", () => {
+        console.log("Socket.IO 重连成功");
+      });
+
+      // 清理资源
+      window.addEventListener('beforeunload', () => {
+        clearInterval(fpsInterval);
+        socket.disconnect();
+        frameQueue = [];
+      });
+
+      // 初始化Chart.js
+      const ctx = document.getElementById('health-chart').getContext('2d');
+      const healthChart = createHealthChart(ctx);
+
+      // 连接到MQTT服务器
+      const mqttClient = mqtt.connect('wss://ws.chainpray.top/mqtt'); // 替换为实际的MQTT服务器地址
+      mqttClient.on('connect', () => {
+        console.log('已连接到MQTT服务器');
+        mqttClient.subscribe('health/data'); // 订阅单一主题
+      });
+
+      let startTime;
+
+      // 血氧异常检测参数
+      const SPO2_THRESHOLD = 94; // 血氧阈值
+      let spo2AlertTimer = null;
+
+      mqttClient.on('message', (topic, message) => {
+        if (!startTime) {
+          startTime = Date.now(); // 记录开始时间
+        }
+        // 解析接收到的JSON消息
+        const data = JSON.parse(message.toString());
+        const elapsedSeconds = ((Date.now() - startTime) / 1000).toFixed(2);
+        console.log(`接收到消息: ${topic} - `, data);
+
+        healthChart.data.labels.push(elapsedSeconds);
+        if (data.heart_rate !== undefined) 
+          healthChart.data.datasets[0].data.push(data.heart_rate);
+        if (data.blood_oxygen !== undefined)   
+          healthChart.data.datasets[1].data.push(data.blood_oxygen);
+
+        // ====== 血氧异常检测并弹窗提醒 ======
+        if (data.blood_oxygen !== undefined && data.blood_oxygen < SPO2_THRESHOLD) {
+          const alertDiv = document.getElementById('spo2-alert');
+          alertDiv.classList.remove('hidden');
+          // 自动消失
+          if (spo2AlertTimer) clearTimeout(spo2AlertTimer);
+          spo2AlertTimer = setTimeout(() => {
+            alertDiv.classList.add('hidden');
+          }, 4000);
+        }
+
+        // 限制数据点数量
+        if (healthChart.data.labels.length > 15) {
+          healthChart.data.labels.shift();
+          healthChart.data.datasets[0].data.shift();
+          healthChart.data.datasets[1].data.shift();
+        }
+
+        healthChart.update();
+      });
+
+      mqttClient.on('error', (error) => {
+        console.error('MQTT连接错误:', error);
+      });
+
+      // 清理资源
+      window.addEventListener('beforeunload', () => {
+        mqttClient.end();
+      });
+
+      // 结算弹窗组件
+      async function showResultModal({ score, heartData, oxygenData, labels, uuid }) {
+        // 避免重复弹窗
+        if (document.getElementById('result-modal')) return;
+
+        // 创建遮罩
+        const mask = document.createElement('div');
+        mask.id = 'result-modal';
+        mask.className = 'fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50';
+
+        // 弹窗内容，增大AI总结区域宽高
+        mask.innerHTML = `
+          <div class="bg-white rounded-lg shadow-2xl p-8 w-[90vw] h-[80vh] max-w-none relative flex flex-col">
+            <button id="close-modal-btn" class="absolute top-2 right-2 text-gray-400 hover:text-gray-700 text-2xl font-bold">&times;</button>
+            <h2 class="text-2xl font-bold mb-4 text-center text-gray-800">训练结算</h2>
+            <div class="flex flex-row gap-6 flex-1">
+              <!-- 得分区域 -->
+              <div class="flex-1 flex flex-col items-center justify-center border-r border-gray-200 pr-6 min-w-[120px]">
+                <span class="text-lg text-gray-600">总得分：</span>
+                <span class="text-3xl font-extrabold text-blue-600">${score}</span>
+              </div>
+              <!-- 回放图表区域 -->
+              <div class="flex-[2] flex flex-col items-center justify-center border-r border-gray-200 px-6 min-w-[260px]">
+                <h3 class="text-lg font-semibold mb-2 text-gray-700">心率/血氧数据回放</h3>
+                <canvas id="replay-chart" height="260"></canvas>
+              </div>
+              <!-- AI总结区域 -->
+              <div class="flex-[3] flex flex-col px-6 min-w-[340px]">
+                <h3 class="text-lg font-semibold mb-2 text-gray-700">训练成果总结</h3>
+                <div id="summary-content" class="bg-gray-100 rounded p-4 text-gray-700 text-base overflow-y-auto" style="max-height:60vh;"><span class="text-gray-400">AI总结生成中...</span></div>
+              </div>
+            </div>
+          </div>
+        `;
+
+        document.body.appendChild(mask);
+
+        // 关闭按钮
+        document.getElementById('close-modal-btn').onclick = () => {
+          mask.remove();
+        };
+
+        // 回放图表
+        setTimeout(() => {
+          const ctx = document.getElementById('replay-chart').getContext('2d');
+          new Chart(ctx, {
+            type: 'line',
+            data: {
+              labels: labels,
+              datasets: [
+                {
+                  label: '心率',
+                  data: heartData,
+                  borderColor: 'red',
+                  borderWidth: 2,
+                  fill: false,
+                  yAxisID: 'y',
+                },
+                {
+                  label: '血氧',
+                  data: oxygenData,
+                  borderColor: 'blue',
+                  borderWidth: 2,
+                  fill: false,
+                  yAxisID: 'y1',
+                },
+              ],
+            },
+            options: {
+              responsive: true,
+              animation: false,
+              scales: {
+                y: { position: 'left', title: { display: true, text: '心率' } },
+                y1: { position: 'right', title: { display: true, text: '血氧' }, grid: { drawOnChartArea: false } },
+              },
+              plugins: {
+                legend: { labels: { color: 'black' } },
+              },
+            },
+          });
+        }, 100);
+
+        // === 流式获取AI总结，处理<think>内容 ===
+        (async function () {
+          let summaryDiv = document.getElementById("summary-content");
+          summaryDiv.innerHTML = "<span class='text-gray-400'>总结生成中...</span>";
+
+          const response = await fetch("/api/chat", {
+            method: "POST", 
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              // prompt: `请根据以下数据生成一份训练总结：\n\n心率数据：${heartData.join(", ")}\n血氧数据：${oxygenData.join(", ")}\n\n请注意，数据可能包含异常值，请进行合理分析。`,
+              prompt:'',
+              uuid: uuid
+            })
+          });
+
+          const reader = response.body.getReader();
+          const decoder = new TextDecoder("utf-8");
+
+          let accumulated = "";
+          let thinkFlag = 0;
+
+          summaryDiv.innerHTML = ""; // 清空旧内容
+
+          while (true) {
+            const { value, done } = await reader.read();
+            if (done) break;
+
+            const chunk = decoder.decode(value);
+            const lines = chunk.split("\n").filter(Boolean);
+            for (const line of lines) {
+              try {
+                const data = JSON.parse(line);
+                if (data.done) break;
+                if (data.message?.content?.includes("</think>")) 
+                  thinkFlag = 1;
+                if (!thinkFlag) {
+                  summaryDiv.innerHTML = "<div class='text-gray-500'>反馈分析报告生成中...</div>";
+                  continue;
+                }
+                const delta = data.message?.content || "";
+                accumulated += delta;
+
+                summaryDiv.innerHTML = marked.parse(accumulated);
+              } catch (err) {
+                console.warn("JSON parse error:", err, line);
+              }
+            }
+          }
+        })();
+      }
+
+      // 添加模式映射
+      const modeMap = {
+        train: ["真人", "虚拟人物", "练习模式"],
+        challenge: ["限时", "无尽"],
+        fitness: ["单人", "多人"]
+      };
+
+      const mainModeSelect = document.getElementById("main-mode-select");
+      const subModeSelect = document.getElementById("sub-mode-select");
+      const audioElements = {
+        1: document.getElementById("audio-1"),
+        2: document.getElementById("audio-2"),
+        3: document.getElementById("audio-3"),
+        4: document.getElementById("audio-4"),
+        5: document.getElementById("audio-5"),
+        6: document.getElementById("audio-6"),
+        7: document.getElementById("audio-7"),
+        8: document.getElementById("audio-8"),
+      };
+
+      function updateSubModes() {
+        const mainMode = mainModeSelect.value;
+        const subModes = modeMap[mainMode] || [];
+        
+        subModeSelect.innerHTML = subModes.length
+          ? subModes.map(subMode => `<option value="${subMode}">${subMode}</option>`).join('')
+          : '<option value="">请先选择中心主题</option>';
+        
+        subModeSelect.disabled = !subModes.length;
+      }
+
+      mainModeSelect.addEventListener("change", updateSubModes);
+
+      // 自动全屏函数
+      function launchFullscreen(element) {
+        if (element.requestFullscreen) {
+          element.requestFullscreen();
+        } else if (element.mozRequestFullScreen) {
+          element.mozRequestFullScreen();
+        } else if (element.webkitRequestFullscreen) {
+          element.webkitRequestFullscreen();
+        } else if (element.msRequestFullscreen) {
+          element.msRequestFullscreen();
+        }
+      }
+
+      window.addEventListener('DOMContentLoaded', () => {
+        // launchFullscreen(document.documentElement);
+        // 全屏按钮事件
+        document.getElementById('fullscreen-btn').onclick = () => {
+          launchFullscreen(document.documentElement);
+        };
+        requestWakeLock(); // 请求息屏锁
+      });
+
+      socket.on("start_capture", ({ mainMode, subMode }) => {
+        // 关闭结算弹窗
+        const resultModal = document.getElementById('result-modal');
+        if (resultModal) {
+          resultModal.remove();
+        }
+        
+        console.log(`接收到开始捕捉事件: ${mainMode} - ${subMode}`);
+      });
+
+      let wakeLock = null;
+
+      async function requestWakeLock() {
+        try {
+          wakeLock = await navigator.wakeLock.request('screen');
+          console.log('已开启防止息屏');
+          
+          wakeLock.addEventListener('release', () => {
+            console.log('息屏锁已释放');
+          });
+          
+        } catch (err) {
+          console.error(`无法获取息屏锁: ${err.name}, ${err.message}`);
+        }
+      }
+
+      // 在页面可见性改变时重新请求
+      document.addEventListener('visibilitychange', async () => {
+        if (wakeLock !== null && document.visibilityState === 'visible') {
+          await requestWakeLock();
+        }
+      });
+
+      // 在 beforeunload 事件中释放息屏锁
+      window.addEventListener('beforeunload', () => {
+        if (wakeLock !== null) {
+          wakeLock.release();
+          wakeLock = null;
+        }
+      });
+    </script>
+  </body>
+</html>

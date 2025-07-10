@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>控制面板</title>
+    <script src="js/util/tailwindcss.js"></script>
+    <script src="js/util/socket.io.min.js"></script>
+  </head>
+  <body class="bg-gray-100 text-gray-800">
+    <header class="bg-blue-600 text-white py-4 text-center">
+      <div class="flex justify-between items-center px-4">
+        <button onclick="goBack()" class="bg-gray-200 text-gray-800 px-4 py-2 rounded hover:bg-gray-300">
+          返回
+        </button>
+        <h1 class="text-2xl font-bold">控制面板</h1>
+        <div></div> <!-- 占位符 -->
+      </div>
+    </header>
+    <div class="container mx-auto p-4">
+      <div class="flex justify-center gap-4 mb-6">
+        <select id="main-mode-select" class="border border-gray-300 rounded px-4 py-2" onchange="updateSubModes()">
+          <option value="">选择中心主题</option>
+          <option value="train">训练</option>
+          <option value="challenge">挑战</option>
+          <option value="fitness">健身</option>
+        </select>
+        <select id="sub-mode-select" class="border border-gray-300 rounded px-4 py-2" disabled>
+          <option value="">请先选择中心主题</option>
+        </select>
+      </div>
+      <div class="flex justify-center gap-4 mb-6">
+        <button id="start-btn" onclick="startCapture()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700" style="display:block">
+          开始运动
+        </button>
+        <button id="stop-btn" onclick="stopCapture()" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700" style="display:none">
+          结束运动
+        </button>
+      </div>
+      <div class="flex justify-center">
+        <p id="process-status" class="text-lg font-bold">子进程状态: unknow</p>
+      </div>
+    </div>
+
+    <script>
+      function goBack() {
+        window.location.href = "/";
+      }
+
+      let { protocol, host } = window.location;
+      let baseURL = protocol + "//" + host;
+      const mainModeSelect = document.getElementById("main-mode-select");
+      const subModeSelect = document.getElementById("sub-mode-select");
+      const processStatus = document.getElementById("process-status");
+      const startBtn = document.getElementById("start-btn");
+      const stopBtn = document.getElementById("stop-btn");
+      const socket = io(baseURL, { reconnection: true, reconnectionAttempts: 5 });
+      let roomID;
+
+      const modeMap = {
+        train: ["真人", "虚拟人物", "练习模式"],
+        challenge: ["限时", "无尽"],
+        fitness: ["单人", "多人"]
+      };
+
+      socket.on('connect', () => {
+        // 默认加入 和id相同名字的 房间
+        if (sessionStorage.getItem("roomID")) {
+          roomID = sessionStorage.getItem("roomID");
+          socket.emit("join_room", { room: roomID });
+        }
+        socket.emit("get_process_status");
+      });
+      socket.on("process_status", (data) => {
+        const { started, uuid } = data;
+        processStatus.textContent = `子进程状态: ${started ? "运行中" : "未运行"} (${uuid})`;
+        if(started ) {
+          startBtn.style.display = "none";
+          stopBtn.style.display = "block";
+          mainModeSelect.style.display = "none";
+          subModeSelect.style.display = "none";
+        } else {
+          startBtn.style.display = "block";
+          stopBtn.style.display = "none";
+          mainModeSelect.style.display = "block";
+          subModeSelect.style.display = "block";
+        }
+      });
+
+      socket.on("update_room", (room) => {
+        roomID = room;
+        sessionStorage.setItem("roomID", roomID);
+        console.log(`房间已更新: ${roomID}`);
+      });
+
+      socket.on("connect_error", (error) => {
+        console.error("Socket.IO 连接错误:", error);
+      });
+
+      socket.on("disconnect", () => {
+        console.warn("Socket.IO 断开连接，尝试重连...");
+      });
+
+      socket.on("reconnect", () => {
+        console.log("Socket.IO 重连成功");
+      });
+
+      function updateSubModes() {
+        const mainMode = mainModeSelect.value;
+        const subModes = modeMap[mainMode] || [];
+        
+        subModeSelect.innerHTML = subModes.length
+          ? subModes.map(subMode => `<option value="${subMode}">${subMode}</option>`).join('')
+          : '<option value="">请先选择中心主题</option>';
+        
+        subModeSelect.disabled = !subModes.length;
+      }
+
+      function startCapture() {
+        const mainMode = mainModeSelect.value;
+        const subMode = subModeSelect.value;
+        if (!mainMode || !subMode) {
+          alert("请选择中心主题和子模式！");
+          return;
+        }
+        socket.emit("start_capture", { mainMode, subMode, roomID });
+      }
+
+      function stopCapture() {
+        socket.emit("stop_capture", { roomID });
+      }
+    </script>
+  </body>
+</html>
