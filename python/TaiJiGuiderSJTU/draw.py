@@ -265,10 +265,10 @@ def draw_pose_with_buttons(canvas, buttons_config, rt_landmarks_list, condition,
         if rt_lm_pt:
             rt_lm_pt = (int(rt_lm_pt[0]), int(rt_lm_pt[1]))
 
-            if condition[idx]:
-                color = ARROW_COLORS["achieve"]
-            else:
-                color = colors[idx % len(colors)]
+            # if condition[idx]:
+            #     color = ARROW_COLORS["achieve"]
+            # else:
+            color = colors[idx % len(colors)]
 
             draw_gradient_point(canvas, rt_lm_pt, color, size=30, steps=2)
 

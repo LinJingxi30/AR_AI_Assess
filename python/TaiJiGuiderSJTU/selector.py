@@ -6,6 +6,7 @@ PY_ROOT = Path(__file__).resolve().parent.parent
 sys.path.append(str(PY_ROOT))   # 添加 Python 根目录到模块搜索路径中
 from Config import WIN_SIZE
 import pygame
+import cv2
 
 
 
@@ -43,12 +44,12 @@ BUTTONS_CONFIG = {
 class Selector(Guider):
 
     # 不调用父类的构造函数，直接写Selector自己的初始化逻辑
-    def __init__(self, camera, win_size, buttons_texts, debug=False):
+    def __init__(self, camera, win_size=WIN_SIZE, buttons_config=BUTTONS_CONFIG, debug=False):
         # config 配置
         win_topic = "AR太极拳助手"
         self.win_size = win_size  # 窗口分辨率
         self.frame_rate = 60
-        self.buttons_config = BUTTONS_CONFIG  # 按钮配置字典
+        self.buttons_config = buttons_config  # 按钮配置字典
 
         # path 路径
         # self.std_json_path = paths["标准 JSON 文件路径"]
@@ -90,7 +91,7 @@ class Selector(Guider):
         # state 状态
         self.current_std_index = 0
         self.timer = None
-        self.conditions = [False] * len(buttons_texts)  # 按钮状态列表，是否被按下
+        self.conditions = [False] * len(self.buttons_config["texts"])  # 按钮状态列表，是否被按下
         self.selection = None
         self.debug = debug
         self.running = True
@@ -117,19 +118,21 @@ class Selector(Guider):
             """帧率控制"""
             self.frame_rate_clock.tick(self.frame_rate)
 
-            """获取、处理实时画面帧"""
-            # （已翻转）（已拉伸到窗口分辨率）
-            # self.real_world_frame = self.camera.get_camera_processed_frame(
-            #     frame=frame,
-            #     win_size=self.win_size
-            # )
-            # !测试用，改为 cv2 相机读取帧
-            ret, frame = self.camera.read()
-            if not ret:
-                self.real_world_frame = None
+            if self.debug:
+                # !测试用，改为 cv2 相机读取帧
+                ret, frame = self.camera.read()
+                if not ret:
+                    self.real_world_frame = None
+                else:
+                    frame = cv2.resize(frame, self.win_size)
+                    self.real_world_frame = cv2.flip(frame, 1)  # 水平翻转
             else:
-                frame = cv2.resize(frame, self.win_size)
-                self.real_world_frame = cv2.flip(frame, 1)  # 水平翻转
+                """获取、处理实时画面帧"""
+                # （已翻转）（已拉伸到窗口分辨率）
+                self.real_world_frame = self.camera.get_camera_processed_frame(
+                    frame=frame,
+                    win_size=self.win_size
+                )
 
             # cv2.imshow("实时画面", self.real_world_frame)  # 调试：显示实时画面
             # sys.stderr.write("实时画面帧已处理\n")
@@ -266,7 +269,7 @@ class Selector(Guider):
 if __name__ == "__main__":
     import cv2
     camera = cv2.VideoCapture(0)  # 使用 OpenCV 打开摄像头
-    selector = Selector(camera=camera, win_size=(1280, 720), buttons_texts=["左手", "右手", "左脚", "右脚"], debug=True)
+    selector = Selector(camera=camera, win_size=(1280, 720), debug=1)
     selector.main_loop_with_voice()
     # selector.main_loop()  # 调试：不使用音频提示
     camera.release()
