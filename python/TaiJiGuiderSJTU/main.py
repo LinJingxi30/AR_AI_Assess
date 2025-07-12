@@ -29,6 +29,29 @@ PRE_GAME_CLIP_PATHS = {
     "背景音乐": Path(PY_ROOT) / "gameAssets" / "sounds" / "SJTUbgm.mp3",
 }
 
+# 运动项目选择-配置
+SPORTS_SEL = {
+    "texts": ["太极操", "八法五步", "24式太极拳"],
+    "size": (200, 150),  # 按钮大小
+    "color": (0, 155, 0),  # 按钮颜色
+    "text_color": (255, 255, 255),  # 按钮文本颜色
+    "font_scale": 1.2,
+    "thickness": 4,  # 文本线宽，对中文字体无效
+    "reach_threshold": 80,  # 按钮被按下的距离阈值
+}
+
+MODES_SEL = {
+    "texts": ["学习", "训练"],
+    "size": (200, 150),  # 按钮大小
+    "color": (100, 100, 0),  # 按钮颜色
+    "text_color": (255, 255, 255),  # 按钮文本颜色
+    "font_scale": 1.2,
+    "thickness": 4,  # 文本线宽，对中英文无效
+    "reach_threshold": 50,  # 按钮被按下的距离阈值
+}
+
+
+
 """
 todo:: 即便不做，时延也还好
 法1：
@@ -36,70 +59,81 @@ todo:: 即便不做，时延也还好
 法2：
     使用自己的json构建路径集，避免构建不需要的文件；
 """
-TJC_PATHS = {
+TJC_Learning_PATHS = {
     "POSTURE_1": {
-        "标准 JSON 文件路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC" / "p1.json",
+        "标准 JSON 文件路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC" / "LearningMode" / "p1.json",
         "标准掩膜图片路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC",
         "背景音乐": Path(PY_ROOT) / "gameAssets" / "sounds" / "SJTUbgm.mp3",
     },
     "POSTURE_2": {
-        "标准 JSON 文件路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC" / "p2.json",
+        "标准 JSON 文件路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC" / "LearningMode" / "p2.json",
         "标准掩膜图片路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC",
         "背景音乐": Path(PY_ROOT) / "gameAssets" / "sounds" / "SJTUbgm.mp3",
     },
     "POSTURE_3": {
-        "标准 JSON 文件路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC" / "p3.json",
+        "标准 JSON 文件路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC" / "LearningMode" / "p3.json",
         "标准掩膜图片路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC",
         "背景音乐": Path(PY_ROOT) / "gameAssets" / "sounds" / "SJTUbgm.mp3",
     },
     "POSTURE_4": {
-        "标准 JSON 文件路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC" / "p4.json",
+        "标准 JSON 文件路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC" / "LearningMode" / "p4.json",
         "标准掩膜图片路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC",
         "背景音乐": Path(PY_ROOT) / "gameAssets" / "sounds" / "SJTUbgm.mp3",
     },
     "POSTURE_5": {
-        "标准 JSON 文件路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC" / "p5.json",
+        "标准 JSON 文件路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC" / "LearningMode" / "p5.json",
         "标准掩膜图片路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC",
         "背景音乐": Path(PY_ROOT) / "gameAssets" / "sounds" / "SJTUbgm.mp3",
     },
     "POSTURE_6": {
-        "标准 JSON 文件路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC" / "p6.json",
+        "标准 JSON 文件路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC" / "LearningMode" / "p6.json",
         "标准掩膜图片路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC",
         "背景音乐": Path(PY_ROOT) / "gameAssets" / "sounds" / "SJTUbgm.mp3",
     },
     "POSTURE_7": {
-        "标准 JSON 文件路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC" / "p7.json",
+        "标准 JSON 文件路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC" / "LearningMode" / "p7.json",
         "标准掩膜图片路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC",
         "背景音乐": Path(PY_ROOT) / "gameAssets" / "sounds" / "SJTUbgm.mp3",
     },
     "POSTURE_8": {
-        "标准 JSON 文件路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC" / "p8.json",
+        "标准 JSON 文件路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC" / "LearningMode" / "p8.json",
         "标准掩膜图片路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC",
         "背景音乐": Path(PY_ROOT) / "gameAssets" / "sounds" / "SJTUbgm.mp3",
     },
     "POSTURE_9": {
-        "标准 JSON 文件路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC" / "p9.json",
+        "标准 JSON 文件路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC" / "LearningMode" / "p9.json",
         "标准掩膜图片路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC",
         "背景音乐": Path(PY_ROOT) / "gameAssets" / "sounds" / "SJTUbgm.mp3",
     },
 }
 
-TJC_TOPICS = [
-    "招式一：起势！",
-    "招式二：金刚转体！",
-    "招式三：左右云手！",
-    "招式四：左右卷肱！",
-    "招式五：丁步抱球！",
-    "招式六：野马分鬃！",
-    "招式七：白鹤亮翅！",
-    "招式八：金鸡独立！",
-    "招式九：收势！"
-]
-
-TJC_CONFIG = {
+TJC_Learning_CONFIG = {
     # todo:: 音频路径？
-    "路径": TJC_PATHS,
-    "片段标题": TJC_TOPICS, 
+    "路径": TJC_Learning_PATHS,
+    "片段标题": [
+        "招式一：起势！",
+        "招式二：金刚转体！",
+        "招式三：左右云手！",
+        "招式四：左右卷肱！",
+        "招式五：丁步抱球！",
+        "招式六：野马分鬃！",
+        "招式七：白鹤亮翅！",
+        "招式八：金鸡独立！",
+        "招式九：收势！"
+    ],
+}
+
+TJC_Training_PATHS = {
+    "POSTURE_1": {
+        "标准 JSON 文件路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC" / "TrainingMode" / "full.json",
+        "标准掩膜图片路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC",
+        "背景音乐": Path(PY_ROOT) / "gameAssets" / "sounds" / "SJTUbgm.mp3",
+    }
+}
+
+TJC_Training_CONFIG = {
+    "路径": TJC_Training_PATHS,
+    "片段标题": ["完整演示"],
 }
 
 ANIMATOR_CONFIG = {
@@ -137,7 +171,7 @@ def combine_simple(id, save_path):
     output_file = Path(save_path) / f"differences-{id}.json"
     with open(output_file, "w", encoding="utf-8") as fout:
         # 遍历所有 posture
-        for posture_info in TJC_PATHS.values():
+        for posture_info in TJC_Learning_PATHS.values():
             json_path = posture_info.get("标准 JSON 文件路径")
             if json_path and Path(json_path).exists():
                 with open(json_path, "r", encoding="utf-8") as fin:
@@ -172,15 +206,6 @@ def parse_args():
     return parser.parse_args()
 
 
-SPORTS_SEL = {
-    "texts": ["太极操", "八法五步", "24式太极拳"],
-    "size": (200, 150),  # 按钮大小
-    "color": (0, 155, 0),  # 按钮颜色
-    "text_color": (255, 255, 255),  # 按钮文本颜色
-    "font_scale": 1.2,
-    "thickness": 4,  # 文本线宽，对中文字体无效
-    "reach_threshold": 80,  # 按钮被按下的距离阈值
-}
 
 
 def run_sport_routine(sport_type_config, anim, camera, pre_align, pre_clip, DEBUG, unique_id):
@@ -251,23 +276,44 @@ if __name__ == "__main__":
     DEBUG = 0
     # todo:: winsize问题，按钮会超框，因为根据的是未分割的窗口尺寸
     sport_selector = Selector(camera=camera, buttons_config=SPORTS_SEL, debug=0, win_size=(WIN_SIZE[0], WIN_SIZE[1]))    # debug=0 使用udp相机
+    mode_selector = Selector(camera=camera, buttons_config=MODES_SEL, debug=0, win_size=(WIN_SIZE[0], WIN_SIZE[1]))    # debug=0 使用udp相机
     anim = Animator(camera = camera)
     pre_align = PreAlignerPoints(camera = camera,_paths=PRE_GAME_ALIGN_PATHS, debug=DEBUG)
     pre_clip = Guider(camera = camera,paths=PRE_GAME_CLIP_PATHS, debug=DEBUG)
     
     # 选择运动项目
-    sport_selector.main_loop_with_voice()
+    sport_selector.main_loop_with_voice()   # -> sport_selector.selection
 
-    # 根据选择的运动项目创建对应的（路径） Guider 实例
-    if sport_selector.selection == 0:
-        # 太极操 9 式
-        run_sport_routine(sport_type_config=TJC_CONFIG, anim=anim, camera=camera, pre_align=pre_align, pre_clip=pre_clip, DEBUG=DEBUG, unique_id=unique_id)
+    # todo:: 发送控制帧，告诉前端要播放哪个视频
 
-    elif sport_selector.selection == 1:
-        # 八法五步
-        run_sport_routine(sport_type_config=TJC_CONFIG, anim=anim, camera=camera, pre_align=pre_align, pre_clip=pre_clip, DEBUG=DEBUG, unique_id=unique_id)
+    # 选择模式
+    mode_selector.main_loop_with_voice()    # -> mode_selector.selection
 
-    elif sport_selector.selection == 2:
-        # 24式太极拳
-        run_sport_routine(sport_type_config=TJC_CONFIG, anim=anim, camera=camera, pre_align=pre_align, pre_clip=pre_clip, DEBUG=DEBUG, unique_id=unique_id)
+    # 根据选择的模式
+    if mode_selector.selection == 0:
+    # 学习模式
+        # 根据选择的运动项目 创建对应的（路径） Guider 实例
+        if sport_selector.selection == 0:
+            # 太极操 9 式
+            run_sport_routine(sport_type_config=TJC_Learning_CONFIG, anim=anim, camera=camera, pre_align=pre_align, pre_clip=pre_clip, DEBUG=DEBUG, unique_id=unique_id)
 
+        elif sport_selector.selection == 1:
+            # 八法五步
+            run_sport_routine(sport_type_config=TJC_Learning_CONFIG, anim=anim, camera=camera, pre_align=pre_align, pre_clip=pre_clip, DEBUG=DEBUG, unique_id=unique_id)
+
+        elif sport_selector.selection == 2:
+            # 24式太极拳
+            run_sport_routine(sport_type_config=TJC_Learning_CONFIG, anim=anim, camera=camera, pre_align=pre_align, pre_clip=pre_clip, DEBUG=DEBUG, unique_id=unique_id)
+    elif mode_selector.selection == 1:
+    # 训练模式
+        # 选择的运动项目
+        if sport_selector.selection == 0:
+            # 太极操 9 式
+            run_sport_routine(sport_type_config=TJC_Training_CONFIG, anim=anim, camera=camera, pre_align=pre_align, pre_clip=pre_clip, DEBUG=DEBUG, unique_id=unique_id)
+        elif sport_selector.selection == 1:
+            # 八法五步
+            run_sport_routine(sport_type_config=TJC_Training_CONFIG, anim=anim, camera=camera, pre_align=pre_align, pre_clip=pre_clip, DEBUG=DEBUG, unique_id=unique_id)
+
+        elif sport_selector.selection == 2:
+            # 24式太极拳
+            run_sport_routine(sport_type_config=TJC_Training_CONFIG, anim=anim, camera=camera, pre_align=pre_align, pre_clip=pre_clip, DEBUG=DEBUG, unique_id=unique_id)
