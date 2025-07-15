@@ -1,17 +1,16 @@
-
 import json
 import sys
 from pathlib import Path
+
 PY_ROOT = Path(__file__).resolve().parent.parent
-sys.path.append(str(PY_ROOT))   # 添加 Python 根目录到模块搜索路径中
-sys.path.append(str(Path(__file__).resolve().parent)) 
+sys.path.append(str(PY_ROOT))  # 添加 Python 根目录到模块搜索路径中
+sys.path.append(str(Path(__file__).resolve().parent))
 from guider import Guider
-from selector import Selector
+from selector import Selector, REDO_SEL_CONFIG
 from animator import Animator
 from pregame_align import PreAlignerPoints
 import pygame
 import argparse
-
 
 from Config import STD_SPORTS_RESULTS_ROOT, WIN_SIZE
 from utils.CamUtils import CameraUtil
@@ -49,8 +48,6 @@ MODES_SEL = {
     "thickness": 4,  # 文本线宽，对中英文无效
     "reach_threshold": 50,  # 按钮被按下的距离阈值
 }
-
-
 
 """
 todo:: 即便不做，时延也还好
@@ -152,11 +149,12 @@ ANIMATOR_CONFIG = {
     # todo:: 招式得分
 }
 
+
 def combine_simple(id, save_path):
     """
     遍历 FULL_PATHS 中所有 posture 和 move，
     简化每一帧的数据为如下格式，每帧一行：
-    
+
     {
        "frame": "C0076_0021.png",
        "points": {
@@ -198,6 +196,7 @@ def combine_simple(id, save_path):
                             print(f"解析 {json_path} 出错：{e}", file=sys.stderr)
     print(f"简化后的 JSON 合并文件已保存到 {output_file}", file=sys.stderr)
 
+
 # 添加命令行参数解析
 def parse_args():
     parser = argparse.ArgumentParser()
@@ -206,14 +205,13 @@ def parse_args():
     return parser.parse_args()
 
 
-
+# main.py
 
 def run_sport_routine(sport_type_config, anim, camera, pre_align, pre_clip, DEBUG, unique_id):
-
     # 招式实例列表
     routines = []
     for i in range(len(sport_type_config["路径"])):
-        routines.append(Guider(camera=camera, paths=sport_type_config["路径"][f"POSTURE_{i+1}"], debug=DEBUG))
+        routines.append(Guider(camera=camera, paths=sport_type_config["路径"][f"POSTURE_{i + 1}"], debug=DEBUG))
 
     # ?
     sys.stderr.write(f"Start\n")
@@ -241,7 +239,8 @@ def run_sport_routine(sport_type_config, anim, camera, pre_align, pre_clip, DEBU
     anim.animate_countdown(duration=1.0, config=ANIMATOR_CONFIG, cnt=3)
 
     # 运动开始：遍历每个片段
-    for i in range(len(sport_type_config["路径"])):
+    i = 0
+    while i < len(sport_type_config["路径"]):
         # 语音：开始招式 i
         # todo:: 针对性的语音提示，比如播放的是完整演示or实际训练
 
@@ -252,9 +251,23 @@ def run_sport_routine(sport_type_config, anim, camera, pre_align, pre_clip, DEBU
 
         # todo:: 用嵌入在config的条件来判断是否需要评分
         # 招式 i 评分
-        anim.animate_summary(total_score=routines[i].score, move_scores=[routines[i].score], duration=2.5, config=ANIMATOR_CONFIG)
+        anim.animate_summary(total_score=routines[i].score, move_scores=[routines[i].score], duration=2.5,
+                             config=ANIMATOR_CONFIG)
 
         # sys.stderr.write(f"已执行片段 {i+1} finished.\n")   # 调试
+
+        # ******** 添加重做/继续逻辑的开始 ********
+        redo_selector = Selector(camera=camera, buttons_config=REDO_SEL_CONFIG, debug=DEBUG,
+                                 win_size=(WIN_SIZE[0], WIN_SIZE[1]))
+        redo_selector.main_loop_with_voice()
+
+        if redo_selector.selection == 0:  # 用户选择了“重做”
+            # 重置当前招式的状态，准备重做
+            routines[i] = Guider(camera=camera, paths=sport_type_config["路径"][f"POSTURE_{i + 1}"], debug=DEBUG)
+            continue  # 再次执行当前循环，即重做当前招式
+        elif redo_selector.selection == 1:  # 用户选择了“继续”
+            i += 1  # 进入下一个招式
+        # ******** 添加重做/继续逻辑的结束 ********
 
     # 把 differences-<id>.json 文件合并生成
     combine_simple(id=unique_id, save_path=Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi")
@@ -265,55 +278,64 @@ def run_sport_routine(sport_type_config, anim, camera, pre_align, pre_clip, DEBU
     # 退出 pygame
     pygame.quit()
 
+
 if __name__ == "__main__":
     # 解析命令行参数
     args = parse_args()
     unique_id = args.unique_id
     rtmp_url = args.rtmp_url
     video_source = rtmp_url if rtmp_url else 0
-    camera = CameraUtil(source=video_source, resolution=(1280, 720))    # WIN_SIZE=(1280, 720) 默认分辨率
+    camera = CameraUtil(source=video_source, resolution=(1280, 720))  # WIN_SIZE=(1280, 720) 默认分辨率
 
     DEBUG = 0
     # todo:: winsize问题，按钮会超框，因为根据的是未分割的窗口尺寸
-    sport_selector = Selector(camera=camera, buttons_config=SPORTS_SEL, debug=0, win_size=(WIN_SIZE[0], WIN_SIZE[1]))    # debug=0 使用udp相机
-    mode_selector = Selector(camera=camera, buttons_config=MODES_SEL, debug=0, win_size=(WIN_SIZE[0], WIN_SIZE[1]))    # debug=0 使用udp相机
-    anim = Animator(camera = camera)
-    pre_align = PreAlignerPoints(camera = camera,_paths=PRE_GAME_ALIGN_PATHS, debug=DEBUG)
-    pre_clip = Guider(camera = camera,paths=PRE_GAME_CLIP_PATHS, debug=DEBUG)
-    
+    sport_selector = Selector(camera=camera, buttons_config=SPORTS_SEL, debug=0,
+                              win_size=(WIN_SIZE[0], WIN_SIZE[1]))  # debug=0 使用udp相机
+    mode_selector = Selector(camera=camera, buttons_config=MODES_SEL, debug=0,
+                             win_size=(WIN_SIZE[0], WIN_SIZE[1]))  # debug=0 使用udp相机
+    anim = Animator(camera=camera)
+    pre_align = PreAlignerPoints(camera=camera, _paths=PRE_GAME_ALIGN_PATHS, debug=DEBUG)
+    pre_clip = Guider(camera=camera, paths=PRE_GAME_CLIP_PATHS, debug=DEBUG)
+
     # 选择运动项目
-    sport_selector.main_loop_with_voice()   # -> sport_selector.selection
+    sport_selector.main_loop_with_voice()  # -> sport_selector.selection
 
     # todo:: 发送控制帧，告诉前端要播放哪个视频
 
     # 选择模式
-    mode_selector.main_loop_with_voice()    # -> mode_selector.selection
+    mode_selector.main_loop_with_voice()  # -> mode_selector.selection
 
     # 根据选择的模式
     if mode_selector.selection == 0:
-    # 学习模式
+        # 学习模式
         # 根据选择的运动项目 创建对应的（路径） Guider 实例
         if sport_selector.selection == 0:
             # 太极操 9 式
-            run_sport_routine(sport_type_config=TJC_Learning_CONFIG, anim=anim, camera=camera, pre_align=pre_align, pre_clip=pre_clip, DEBUG=DEBUG, unique_id=unique_id)
+            run_sport_routine(sport_type_config=TJC_Learning_CONFIG, anim=anim, camera=camera, pre_align=pre_align,
+                              pre_clip=pre_clip, DEBUG=DEBUG, unique_id=unique_id)
 
         elif sport_selector.selection == 1:
             # 八法五步
-            run_sport_routine(sport_type_config=TJC_Learning_CONFIG, anim=anim, camera=camera, pre_align=pre_align, pre_clip=pre_clip, DEBUG=DEBUG, unique_id=unique_id)
+            run_sport_routine(sport_type_config=TJC_Learning_CONFIG, anim=anim, camera=camera, pre_align=pre_align,
+                              pre_clip=pre_clip, DEBUG=DEBUG, unique_id=unique_id)
 
         elif sport_selector.selection == 2:
             # 24式太极拳
-            run_sport_routine(sport_type_config=TJC_Learning_CONFIG, anim=anim, camera=camera, pre_align=pre_align, pre_clip=pre_clip, DEBUG=DEBUG, unique_id=unique_id)
+            run_sport_routine(sport_type_config=TJC_Learning_CONFIG, anim=anim, camera=camera, pre_align=pre_align,
+                              pre_clip=pre_clip, DEBUG=DEBUG, unique_id=unique_id)
     elif mode_selector.selection == 1:
-    # 训练模式
+        # 训练模式
         # 选择的运动项目
         if sport_selector.selection == 0:
             # 太极操 9 式
-            run_sport_routine(sport_type_config=TJC_Training_CONFIG, anim=anim, camera=camera, pre_align=pre_align, pre_clip=pre_clip, DEBUG=DEBUG, unique_id=unique_id)
+            run_sport_routine(sport_type_config=TJC_Training_CONFIG, anim=anim, camera=camera, pre_align=pre_align,
+                              pre_clip=pre_clip, DEBUG=DEBUG, unique_id=unique_id)
         elif sport_selector.selection == 1:
             # 八法五步
-            run_sport_routine(sport_type_config=TJC_Training_CONFIG, anim=anim, camera=camera, pre_align=pre_align, pre_clip=pre_clip, DEBUG=DEBUG, unique_id=unique_id)
+            run_sport_routine(sport_type_config=TJC_Training_CONFIG, anim=anim, camera=camera, pre_align=pre_align,
+                              pre_clip=pre_clip, DEBUG=DEBUG, unique_id=unique_id)
 
         elif sport_selector.selection == 2:
             # 24式太极拳
-            run_sport_routine(sport_type_config=TJC_Training_CONFIG, anim=anim, camera=camera, pre_align=pre_align, pre_clip=pre_clip, DEBUG=DEBUG, unique_id=unique_id)
+            run_sport_routine(sport_type_config=TJC_Training_CONFIG, anim=anim, camera=camera, pre_align=pre_align,
+                              pre_clip=pre_clip, DEBUG=DEBUG, unique_id=unique_id)
