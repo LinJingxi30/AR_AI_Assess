@@ -130,6 +130,30 @@
             audio.currentTime = 0;
             audio.play();
           }
+        }else if (data.command === "PLAY_VIDEO") {
+          console.log(`播放视频: ${data.flag}`);
+          
+          // 如果已有视频元素，先移除
+          const existingVideo = document.getElementById('temp-video');
+          if (existingVideo) {
+            existingVideo.remove();
+          }
+          
+          // 创建视频元素
+          const video = document.createElement('video');
+          video.id = 'temp-video';
+          video.className = 'fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50 w-3/4 h-3/4';
+          video.autoplay = true;
+          video.controls = true;
+          video.src = '/video/'+data.flag;
+          
+          // 视频播放结束后自动关闭
+          video.onended = () => {
+            video.remove();
+          };
+          
+          // 添加到页面
+          document.body.appendChild(video);
         }
       });
 
