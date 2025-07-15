@@ -110,6 +110,10 @@ class Animator(Guider):
         else:
             return
 
+    def animate_countdown(self, duration=1.0, config=None, cnt=3):
+        for i in range(cnt, 0, -1):
+            self.animate_title(text=f"{i}", duration=duration, config=config)
+
 if __name__ == "__main__":
     anim = Animator()
     # anim.running = True

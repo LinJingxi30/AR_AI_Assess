@@ -2,12 +2,12 @@ import sys
 from guider import Guider, POSE_ALIGN_LANDMARKS
 import draw
 from pathlib import Path
+
 PY_ROOT = Path(__file__).resolve().parent.parent
-sys.path.append(str(PY_ROOT))   # 添加 Python 根目录到模块搜索路径中
+sys.path.append(str(PY_ROOT))  # 添加 Python 根目录到模块搜索路径中
 from Config import WIN_SIZE
 import pygame
-
-
+import cv2
 
 WIN_WIDTH, WIN_HEIGHT = WIN_SIZE
 
@@ -39,16 +39,26 @@ BUTTONS_CONFIG = {
     "reach_threshold": 100,  # 按钮被按下的距离阈值
 }
 
+REDO_SEL_CONFIG = {
+    "texts": ["重做", "继续"],
+    "size": (200, 120),
+    "color": (0, 120, 200),
+    "text_color": (255, 255, 255),
+    "font_scale": 1.2,
+    "thickness": 4,
+    "reach_threshold": 80,
+}
+
 
 class Selector(Guider):
 
     # 不调用父类的构造函数，直接写Selector自己的初始化逻辑
-    def __init__(self, camera, win_size, buttons_texts, debug=False):
+    def __init__(self, camera, win_size=WIN_SIZE, buttons_config=BUTTONS_CONFIG, debug=False):
         # config 配置
         win_topic = "AR太极拳助手"
         self.win_size = win_size  # 窗口分辨率
         self.frame_rate = 60
-        self.buttons_config = BUTTONS_CONFIG  # 按钮配置字典
+        self.buttons_config = buttons_config  # 按钮配置字典
 
         # path 路径
         # self.std_json_path = paths["标准 JSON 文件路径"]
@@ -80,7 +90,7 @@ class Selector(Guider):
 
         # init 初始化工具
         self.pose_detector_init()
-        self.pygame_init(win_topic=win_topic)   # 没有bgm
+        self.pygame_init(win_topic=win_topic)  # 没有bgm
         self.get_buttons_positions(num=len(self.buttons_config["texts"]))
 
         # load 初始化加载资源
@@ -90,7 +100,7 @@ class Selector(Guider):
         # state 状态
         self.current_std_index = 0
         self.timer = None
-        self.conditions = [False] * len(buttons_texts)  # 按钮状态列表，是否被按下
+        self.conditions = [False] * len(self.buttons_config["texts"])  # 按钮状态列表，是否被按下
         self.selection = None
         self.debug = debug
         self.running = True
@@ -102,11 +112,10 @@ class Selector(Guider):
         button_width, button_height = self.buttons_config["size"]
         num_buttons = num
         spacing = self.win_size[0] // (num_buttons + 1)
-        y = self.win_size[1] // 2 # - button_height // 2
+        y = self.win_size[1] // 2  # - button_height // 2
         for i in range(num_buttons):
-            x = (i + 1) * spacing # - button_width // 2
+            x = (i + 1) * spacing  # - button_width // 2
             self.buttons_positions.append((x, y))
-
 
     def main_update(self, frame=None):
         if self.running:
@@ -117,19 +126,21 @@ class Selector(Guider):
             """帧率控制"""
             self.frame_rate_clock.tick(self.frame_rate)
 
-            """获取、处理实时画面帧"""
-            # （已翻转）（已拉伸到窗口分辨率）
-            # self.real_world_frame = self.camera.get_camera_processed_frame(
-            #     frame=frame,
-            #     win_size=self.win_size
-            # )
-            # !测试用，改为 cv2 相机读取帧
-            ret, frame = self.camera.read()
-            if not ret:
-                self.real_world_frame = None
+            if self.debug:
+                # !测试用，改为 cv2 相机读取帧
+                ret, frame = self.camera.read()
+                if not ret:
+                    self.real_world_frame = None
+                else:
+                    frame = cv2.resize(frame, self.win_size)
+                    self.real_world_frame = cv2.flip(frame, 1)  # 水平翻转
             else:
-                frame = cv2.resize(frame, self.win_size)
-                self.real_world_frame = cv2.flip(frame, 1)  # 水平翻转
+                """获取、处理实时画面帧"""
+                # （已翻转）（已拉伸到窗口分辨率）
+                self.real_world_frame = self.camera.get_camera_processed_frame(
+                    frame=frame,
+                    win_size=self.win_size
+                )
 
             # cv2.imshow("实时画面", self.real_world_frame)  # 调试：显示实时画面
             # sys.stderr.write("实时画面帧已处理\n")
@@ -143,11 +154,11 @@ class Selector(Guider):
             """条件判定"""
             # 检查条件是否满足，更新 condition 列表
             self.selection = self.condition_check(conditions=self.conditions,
-                                 button_num=len(self.buttons_config["texts"]),
-                                 button_pos_list=self.buttons_positions,
-                                 threshold=self.buttons_config["reach_threshold"],
-                                 rt_lm_list=self.rt_landmarks_list)
-            
+                                                  button_num=len(self.buttons_config["texts"]),
+                                                  button_pos_list=self.buttons_positions,
+                                                  threshold=self.buttons_config["reach_threshold"],
+                                                  rt_lm_list=self.rt_landmarks_list)
+
             """绘制 Pygame UI"""
             # 绘制已用时间、招式、实时总得分
             self.pygame_UI_render(canvas=self.canvas, CONFIGS=PYGAME_SELECT_UI_CONFIG)
@@ -185,7 +196,6 @@ class Selector(Guider):
             # todo:: 重载：发送音频提示指令
             self.send_voice_command()
 
-
     def condition_check(self, conditions, button_num, button_pos_list, threshold, rt_lm_list):
         """
         检查条件是否满足，更新 condition 列表
@@ -199,7 +209,7 @@ class Selector(Guider):
         if not rt_lm_list or not button_pos_list:
             conditions[:] = [False] * button_num
             return
-        
+
         # 遍历每个按钮
         for btn_idx, btn_pos in enumerate(button_pos_list):
             conditions[btn_idx] = False  # 默认未按下
@@ -222,7 +232,6 @@ class Selector(Guider):
                 return idx
         return None
 
-
     def canvas_render(self, rt_frame, conditions):
         """渲染画布"""
         self.canvas = rt_frame.copy()
@@ -233,8 +242,9 @@ class Selector(Guider):
         # self.std_overlay = self.get_current_std_overlay(paths=self.std_overlay_paths, overlay_idx=self.current_std_index)  # 标准帧路径，格式为 str
 
         """实时对齐点获取"""
-        self.rt_pose_list = self.pose_detection(self.real_world_frame)   # 实时完整姿态列表，格式为： [33 * tuple(x, y, z=0)] 或 []
-        self.rt_landmarks_list = self.get_landmarks_list(self.rt_pose_list, landmarks=POSE_ALIGN_LANDMARKS) # 实时关键（对齐）点列表，格式为： [4 * int(x, y)] 或 []
+        self.rt_pose_list = self.pose_detection(self.real_world_frame)  # 实时完整姿态列表，格式为： [33 * tuple(x, y, z=0)] 或 []
+        self.rt_landmarks_list = self.get_landmarks_list(self.rt_pose_list,
+                                                         landmarks=POSE_ALIGN_LANDMARKS)  # 实时关键（对齐）点列表，格式为： [4 * int(x, y)] 或 []
 
         """获取实时躯干位置；获取标准中心标点"""
         # self.rt_center = self.get_center_from_points_2d(self.rt_pose_list, from_pts_idx=RT_PTS_TO_CENTER, win_size=WIN_SIZE, y_offset=STD_CENTER_Y_OFFSET)  # tuple(float, float)
@@ -258,15 +268,13 @@ class Selector(Guider):
                                                   buttons_config=self.buttons_config,
                                                   rt_landmarks_list=self.rt_landmarks_list,
                                                   condition=conditions)
-        
-
-
 
 
 if __name__ == "__main__":
     import cv2
+
     camera = cv2.VideoCapture(0)  # 使用 OpenCV 打开摄像头
-    selector = Selector(camera=camera, win_size=(1280, 720), buttons_texts=["左手", "右手", "左脚", "右脚"], debug=True)
+    selector = Selector(camera=camera, win_size=(1280, 720), debug=1)
     selector.main_loop_with_voice()
     # selector.main_loop()  # 调试：不使用音频提示
     camera.release()
