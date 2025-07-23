@@ -16,6 +16,13 @@ from Config import STD_SPORTS_RESULTS_ROOT, WIN_SIZE
 from utils.CamUtils import CameraUtil
 from utils.DataSender import DataSender
 
+import time
+
+def log_with_timestamp(msg, logfile="runtime1.log"):
+    with open(logfile, "a", encoding="utf-8") as f:
+        f.write(f"{time.strftime('%Y-%m-%d %H:%M:%S')} {msg}\n")
+
+
 PRE_GAME_ALIGN_PATHS = {
     "标准 JSON 文件路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "pregame_align" / "pre.json",
     "标准掩膜图片路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "pregame_align",
@@ -216,6 +223,9 @@ def run_sport_routine(sport_type_config, anim, camera, pre_align, pre_clip, DEBU
     # ?
     sys.stderr.write(f"Start\n")
 
+    # ###插入提前播放视频
+    DataSender.send_control("PLAY_VIDEO", flag = "Taichi.mp4")
+
     # 大标题
     DataSender.send_control("PLAY_AUDIO", flag=1)
     anim.animate_title(text="欢迎来到3A·元运动指南", duration=1.0, config=ANIMATOR_CONFIG)
@@ -310,19 +320,16 @@ if __name__ == "__main__":
         # 学习模式
         # 根据选择的运动项目 创建对应的（路径） Guider 实例
         if sport_selector.selection == 0:
-            DataSender.send_control("PLAY_VIDEO", flag ="new_video.mp4")
             # 太极操 9 式
             run_sport_routine(sport_type_config=TJC_Learning_CONFIG, anim=anim, camera=camera, pre_align=pre_align,
                               pre_clip=pre_clip, DEBUG=DEBUG, unique_id=unique_id)
 
         elif sport_selector.selection == 1:
-            DataSender.send_control("PLAY_VIDEO", flag="new_video.mp4")
             # 八法五步
             run_sport_routine(sport_type_config=TJC_Learning_CONFIG, anim=anim, camera=camera, pre_align=pre_align,
                               pre_clip=pre_clip, DEBUG=DEBUG, unique_id=unique_id)
 
         elif sport_selector.selection == 2:
-            DataSender.send_control("PLAY_VIDEO", flag="new_video.mp4")
             # 24式太极拳
             run_sport_routine(sport_type_config=TJC_Learning_CONFIG, anim=anim, camera=camera, pre_align=pre_align,
                               pre_clip=pre_clip, DEBUG=DEBUG, unique_id=unique_id)

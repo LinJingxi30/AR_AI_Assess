@@ -18,6 +18,11 @@
 
     <img id="live-feed" alt="实时画面" class="max-w-full max-h-full object-contain" />
 
+    <!-- 全屏按钮 -->
+    <button id="fullscreen-btn" class="fixed top-4 left-4 z-50 bg-gray-800 bg-opacity-70 text-white px-3 py-1 rounded hover:bg-opacity-90 transition-all text-sm shadow">
+      全屏
+    </button>
+
     <div id="chart-container" class="absolute top-4 right-4 bg-transparent p-4 rounded shadow-lg">
       <canvas id="health-chart" width="400" height="200"></canvas>
     </div>
@@ -76,7 +81,7 @@
         socket.emit("get_process_status"); // 连接时获取状态
       });
 
-      socket.on("process_status", (status) => {
+      socket.on("process_status", (data) => {
         const { started, uuid } = data;
         if(started) {
           startBtn.style.display = "none";
@@ -97,21 +102,28 @@
         console.log(`房间已更新: ${roomID}`);
       });
 
+      let isRendering = false;
+
       socket.on("frame", (data) => {
+        if (isRendering) {
+          // 如果上一帧还在渲染，主动丢弃本帧
+          return;
+        }
+        isRendering = true;
         if (data) {
           if (lastUrl) {
-            URL.revokeObjectURL(lastUrl); // 释放之前的URL
+            URL.revokeObjectURL(lastUrl);
           }
-          // 创建一个Blob对象并生成URL
           const blob = new Blob([data], { type: "image/jpeg" });
           lastUrl = URL.createObjectURL(blob);
-
-          // 设置img元素的src属性为Blob URL
+          liveFeed.onload = () => {
+            isRendering = false; // 渲染完成后允许下一帧
+          };
           liveFeed.src = lastUrl;
         } else {
           console.error("接收到空数据");
+          isRendering = false;
         }
-        // liveFeed.src = 'data:image/jpeg;base64,' + data;
         data = null;
       });
 
@@ -171,9 +183,58 @@
         console.log("Socket.IO 重连成功");
       });
 
-      // 清理资源
+      // 自动全屏函数
+      function launchFullscreen(element) {
+        if (element.requestFullscreen) {
+          element.requestFullscreen();
+        } else if (element.mozRequestFullScreen) {
+          element.mozRequestFullScreen();
+        } else if (element.webkitRequestFullscreen) {
+          element.webkitRequestFullscreen();
+        } else if (element.msRequestFullscreen) {
+          element.msRequestFullscreen();
+        }
+      }
+
+      window.addEventListener('DOMContentLoaded', () => {
+        // launchFullscreen(document.documentElement);
+        // 全屏按钮事件
+        document.getElementById('fullscreen-btn').onclick = () => {
+          launchFullscreen(document.documentElement);
+        };
+        requestWakeLock(); // 请求息屏锁
+      });
+
+      let wakeLock = null;
+
+      async function requestWakeLock() {
+        try {
+          wakeLock = await navigator.wakeLock.request('screen');
+          console.log('已开启防止息屏');
+          
+          wakeLock.addEventListener('release', () => {
+            console.log('息屏锁已释放');
+          });
+          
+        } catch (err) {
+          console.error(`无法获取息屏锁: ${err.name}, ${err.message}`);
+        }
+      }
+
+      // 在页面可见性改变时重新请求
+      document.addEventListener('visibilitychange', async () => {
+        if (wakeLock !== null && document.visibilityState === 'visible') {
+          await requestWakeLock();
+        }
+      });
+
+      // 在 beforeunload 事件中释放息屏锁
       window.addEventListener('beforeunload', () => {
         socket.disconnect();
+        if (wakeLock !== null) {
+          wakeLock.release();
+          wakeLock = null;
+        }
       });
 
       // 添加模式映射
