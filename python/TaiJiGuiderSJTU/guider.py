@@ -399,7 +399,6 @@ class Guider:
         end_rt_load = time.time()
         sys.stderr.write(f"real time points: {end_rt_load - start_rt_load:.6f} 秒\n")
 
-<<<<<<< HEAD
         global STD_SCALE
         if self.current_std_index==0:
             STD_SCALE = self.get_scale(self.rt_pose_list)  # 获取缩放比例
@@ -408,12 +407,6 @@ class Guider:
         self.rt_center = self.get_center_from_points_2d(self.rt_pose_list, from_pts_idx=RT_PTS_TO_CENTER, win_size=WIN_SIZE, y_offset=STD_CENTER_Y_OFFSET)  # tuple(float, float)
         # self.rt_center = (self.rt_center[0], self.rt_center[1] + BENEATH)   # 参数调整中心点位置，向下偏移 BENEATH 像素
         self.std_center = (self.std_pose_list[0][0] * STD_SCALE, self.std_pose_list[0][1] * STD_SCALE)  # std_pose_list 的第一个元组是标点中心点 (3d to 2d)
-=======
-        # ---- 获取缩放比例（仅首帧特殊处理，这里也可单独计时） ----
-        global STD_SCALE
-        if self.current_std_index == 0:
-            STD_SCALE = self.get_scale(self.rt_pose_list)
->>>>>>> 7b65530e8af9e8a209c9359368ebdeadcbe1bac4
 
         # ---- 获取实时/标准中心 步骤计时 ----
         self.rt_center = self.get_center_from_points_2d(self.rt_pose_list, from_pts_idx=RT_PTS_TO_CENTER, win_size=WIN_SIZE, y_offset=STD_CENTER_Y_OFFSET)

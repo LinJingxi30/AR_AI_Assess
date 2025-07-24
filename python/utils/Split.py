@@ -47,11 +47,7 @@ def split_and_send_camera_to_udp(camera_index=0, n=2, resolution=(1280, 720),
     try:
         while True:
             ret, frame = cap.read()
-<<<<<<< HEAD
-            print(f"height={frame.shape[0]}, width={frame.shape[1]}")
-=======
             # print(f"height={frame.shape[0]}, width={frame.shape[1]}")
->>>>>>> 7b65530e8af9e8a209c9359368ebdeadcbe1bac4
             if not ret:
                 print("摄像头读取失败", file=sys.stderr)
                 break
@@ -78,11 +74,7 @@ def split_and_send_camera_to_udp(camera_index=0, n=2, resolution=(1280, 720),
                     x_end = w
 
                 seg = frame[h//4:h//4*3, x_start:x_end]
-<<<<<<< HEAD
-                print(f"height={seg.shape[0]}, width={seg.shape[1]}")
-=======
                 # print(f"height={seg.shape[0]}, width={seg.shape[1]}")
->>>>>>> 7b65530e8af9e8a209c9359368ebdeadcbe1bac4
 
                 t = threading.Thread(
                     target=send_segment,

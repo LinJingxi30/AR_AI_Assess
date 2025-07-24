@@ -286,10 +286,7 @@ def run_sport_routine(sport_type_config, anim, camera, pre_align, pre_clip, DEBU
     videos = []
     for i in range(len(sport_type_config["路径"])):
         routines.append(Guider(camera=camera,uuid = unique_id, paths=sport_type_config["路径"][f"POSTURE_{i + 1}"], debug=DEBUG))
-<<<<<<< HEAD
         videos.append(Video(camera=camera,uuid = unique_id, paths=sport_type_config["路径"][f"POSTURE_{i + 1}"], debug=DEBUG))
-=======
->>>>>>> 7b65530e8af9e8a209c9359368ebdeadcbe1bac4
 
     # ?
     sys.stderr.write(f"Start\n")
@@ -384,12 +381,6 @@ if __name__ == "__main__":
     anim = Animator(camera=camera)
     pre_align = PreAlignerPoints(camera=camera,uuid = unique_id, _paths=PRE_GAME_ALIGN_PATHS, debug=DEBUG)
     pre_clip = Guider(camera=camera,uuid = unique_id, paths=PRE_GAME_CLIP_PATHS, debug=DEBUG)
-<<<<<<< HEAD
-=======
-
-    # 倒计时3s
-    anim.animate_countdown(duration=1.0, config=ANIMATOR_CONFIG, cnt=3)
->>>>>>> 7b65530e8af9e8a209c9359368ebdeadcbe1bac4
 
     # 引导的标题
     anim.animate_title(text="欢迎来到iTaichi-系统", duration=5.0, config=ANIMATOR_CONFIG)
@@ -399,13 +390,6 @@ if __name__ == "__main__":
     # 选择运动项目
     sport_selector.main_loop_with_voice()  # -> sport_selector.selection
 
-<<<<<<< HEAD
-=======
-    # 倒计时3s
-    anim.animate_countdown(duration=1.0, config=ANIMATOR_CONFIG, cnt=3)
-
-    # todo:: 发送控制帧，告诉前端要播放哪个视频
->>>>>>> 7b65530e8af9e8a209c9359368ebdeadcbe1bac4
 
     anim.animate_title(text="下面请选择模式", duration=5.0, config=ANIMATOR_CONFIG)
     # 倒计时3s
@@ -419,37 +403,22 @@ if __name__ == "__main__":
         # 学习模式
         # 根据选择的运动项目 创建对应的（路径） Guider 实例
         if sport_selector.selection == 0:
-<<<<<<< HEAD
             # DataSender.send_control("PLAY_VIDEO", flag ="part1.mp4")
             # time.sleep(8)
-=======
-            DataSender.send_control("PLAY_VIDEO", flag ="part1.mp4")
-            time.sleep(8)
->>>>>>> 7b65530e8af9e8a209c9359368ebdeadcbe1bac4
             # 太极操 9 式
             run_sport_routine(sport_type_config=TJC_Learning_CONFIG, anim=anim, camera=camera, pre_align=pre_align,
                               pre_clip=pre_clip, DEBUG=DEBUG, unique_id=unique_id)
 
         elif sport_selector.selection == 1:
-<<<<<<< HEAD
             # DataSender.send_control("PLAY_VIDEO", flag="part1.mp4")
             # time.sleep(8)
-=======
-            DataSender.send_control("PLAY_VIDEO", flag="part1.mp4")
-            time.sleep(8)
->>>>>>> 7b65530e8af9e8a209c9359368ebdeadcbe1bac4
             # 八法五步
             run_sport_routine(sport_type_config=TJC_Learning_CONFIG, anim=anim, camera=camera, pre_align=pre_align,
                               pre_clip=pre_clip, DEBUG=DEBUG, unique_id=unique_id)
 
         elif sport_selector.selection == 2:
-<<<<<<< HEAD
             # DataSender.send_control("PLAY_VIDEO", flag="part1.mp4")
             # time.sleep(8)
-=======
-            DataSender.send_control("PLAY_VIDEO", flag="part1.mp4")
-            time.sleep(8)
->>>>>>> 7b65530e8af9e8a209c9359368ebdeadcbe1bac4
             # 24式太极拳
             run_sport_routine(sport_type_config=TJC_Learning_CONFIG, anim=anim, camera=camera, pre_align=pre_align,
                               pre_clip=pre_clip, DEBUG=DEBUG, unique_id=unique_id)
@@ -457,36 +426,21 @@ if __name__ == "__main__":
         # 训练模式
         # 选择的运动项目
         if sport_selector.selection == 0:
-<<<<<<< HEAD
             # DataSender.send_control("PLAY_VIDEO", flag ="part1.mp4")
             # time.sleep(8)
-=======
-            DataSender.send_control("PLAY_VIDEO", flag ="part1.mp4")
-            time.sleep(8)
->>>>>>> 7b65530e8af9e8a209c9359368ebdeadcbe1bac4
             # 太极操 9 式
             run_sport_routine(sport_type_config=TJC_Training_CONFIG, anim=anim, camera=camera, pre_align=pre_align,
                               pre_clip=pre_clip, DEBUG=DEBUG, unique_id=unique_id)
         elif sport_selector.selection == 1:
-<<<<<<< HEAD
             # DataSender.send_control("PLAY_VIDEO", flag ="part1.mp4")
             # time.sleep(8)
-=======
-            DataSender.send_control("PLAY_VIDEO", flag ="part1.mp4")
-            time.sleep(8)
->>>>>>> 7b65530e8af9e8a209c9359368ebdeadcbe1bac4
             # 八法五步
             run_sport_routine(sport_type_config=BFWB_Training_CONFIG, anim=anim, camera=camera, pre_align=pre_align,
                               pre_clip=pre_clip, DEBUG=DEBUG, unique_id=unique_id)
 
         elif sport_selector.selection == 2:
-<<<<<<< HEAD
             # DataSender.send_control("PLAY_VIDEO", flag ="part1.mp4")
             # time.sleep(8)
-=======
-            DataSender.send_control("PLAY_VIDEO", flag ="part1.mp4")
-            time.sleep(8)
->>>>>>> 7b65530e8af9e8a209c9359368ebdeadcbe1bac4
             # 24式太极拳
             run_sport_routine(sport_type_config=TJC_Training_CONFIG, anim=anim, camera=camera, pre_align=pre_align,
                               pre_clip=pre_clip, DEBUG=DEBUG, unique_id=unique_id)
