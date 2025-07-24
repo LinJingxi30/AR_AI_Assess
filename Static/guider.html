@@ -9,7 +9,7 @@
     <script src="js/util/mqtt.min.js"></script>
     <script src="js/util/socket.io.min.js"></script>
     <style>
-     
+
     </style>
   </head>
   <body class="bg-black flex justify-center items-center h-screen">
@@ -52,19 +52,19 @@
     <audio id="audio-3" src="./audio/语音3.mp3" preload="auto"></audio>
     <audio id="audio-4" src="./audio/语音4.mp3" preload="auto"></audio>
     <audio id="audio-5" src="./audio/语音5.mp3" preload="auto"></audio>
-    <audio id="audio-6" src="./audio/语音6.mp3" preload="auto"></audio> 
+    <audio id="audio-6" src="./audio/语音6.mp3" preload="auto"></audio>
     <audio id="audio-7" src="./audio/语音7.mp3" preload="auto"></audio>
     <audio id="audio-8" src="./audio/语音8.mp3" preload="auto"></audio>
 
-    
+
     <script>
       let { protocol, host } = window.location;
       let baseURL = protocol + "//" + host;
       let lastUrl;
 
       const liveFeed = document.getElementById("live-feed");
-      const socket = io(baseURL, { 
-        reconnection: true, 
+      const socket = io(baseURL, {
+        reconnection: true,
         reconnectionAttempts: 5,
       });
       let roomID ;
@@ -74,8 +74,8 @@
 
       socket.on('connect', () => {
         // 默认加入 和id相同名字的 房间
-        if (sessionStorage.getItem("roomID")) {
-          roomID = sessionStorage.getItem("roomID");
+        if (localStorage.getItem("roomID")) {
+          roomID = localStorage.getItem("roomID");
           socket.emit("join_room", { room: roomID });
         }
         socket.emit("get_process_status"); // 连接时获取状态
@@ -98,7 +98,7 @@
 
       socket.on("update_room", (room) => {
         roomID = room;
-        sessionStorage.setItem("roomID", roomID);
+        localStorage.setItem("roomID", roomID);
         console.log(`房间已更新: ${roomID}`);
       });
 
@@ -144,13 +144,13 @@
           }
         }else if (data.command === "PLAY_VIDEO") {
           console.log(`播放视频: ${data.flag}`);
-          
+
           // 如果已有视频元素，先移除
           const existingVideo = document.getElementById('temp-video');
           if (existingVideo) {
             existingVideo.remove();
           }
-          
+
           // 创建视频元素
           const video = document.createElement('video');
           video.id = 'temp-video';
@@ -158,12 +158,12 @@
           video.autoplay = true;
           video.controls = true;
           video.src = '/video/'+data.flag;
-          
+
           // 视频播放结束后自动关闭
           video.onended = () => {
             video.remove();
           };
-          
+
           // 添加到页面
           document.body.appendChild(video);
         }
@@ -211,11 +211,11 @@
         try {
           wakeLock = await navigator.wakeLock.request('screen');
           console.log('已开启防止息屏');
-          
+
           wakeLock.addEventListener('release', () => {
             console.log('息屏锁已释放');
           });
-          
+
         } catch (err) {
           console.error(`无法获取息屏锁: ${err.name}, ${err.message}`);
         }
@@ -260,11 +260,11 @@
       function updateSubModes() {
         const mainMode = mainModeSelect.value;
         const subModes = modeMap[mainMode] || [];
-        
+
         subModeSelect.innerHTML = subModes.length
           ? subModes.map(subMode => `<option value="${subMode}">${subMode}</option>`).join('')
           : '<option value="">请先选择中心主题</option>';
-        
+
         subModeSelect.disabled = !subModes.length;
       }
 
@@ -282,7 +282,7 @@
         socket.emit("stop_capture");
       }
 
-      
+
 
       mainModeSelect.addEventListener("change", updateSubModes);
     </script>

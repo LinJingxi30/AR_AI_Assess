@@ -18,7 +18,7 @@ ARROW_COLORS = {
     "achieve": (0, 255, 0),  # BGR绿色   rgb(0, 100, 0)
 }
 
-ARROW_NUM = 2
+ARROW_NUM = 4
 ARROW_SIZE = 12
 ARROW_THICKNESS = 6
 
@@ -260,18 +260,19 @@ def draw_button(canvas, position, size, text, color=(0, 255, 0), text_color=(255
 
 
 def draw_multiple_buttons(canvas, buttons_texts, size, color, text_color, font_scale, thickness, conditions=None,
-                          highlight_color=(0, 200, 255)):
+                          highlight_color=(0, 200, 255),real_shape = None):
     button_width, button_height = size
     num_buttons = len(buttons_texts)
-    spacing = canvas.shape[1] // (num_buttons + 1)
+    spacing = canvas.shape[1] // (num_buttons) if real_shape == None else real_shape[0] // (num_buttons)
     for i, text in enumerate(buttons_texts):
-        x = (i + 1) * spacing - button_width // 2
-        y = canvas.shape[0] // 2 - button_height // 2
+        x = i * spacing + spacing//2 - button_width // 2 if real_shape == None else canvas.shape[1]//2 - real_shape[0]//2 + (i ) * spacing +spacing//2 - button_width // 2
+        y = canvas.shape[0] // 4 - button_height // 2
         btn_color = highlight_color if (conditions and i < len(conditions) and conditions[i]) else color
         draw_button(canvas, (x, y), size, text, btn_color, text_color, font_scale, thickness)
+        
 
 
-def draw_pose_with_buttons(canvas, buttons_config, rt_landmarks_list, condition, colors=PTS_PAIR_COLORS):
+def draw_pose_with_buttons(canvas, buttons_config, rt_landmarks_list, condition, colors=PTS_PAIR_COLORS,real_shape = None):
     """在画布上绘制姿态和按钮"""
     # 绘制姿态点
     for idx, rt_lm_pt in enumerate(rt_landmarks_list):
@@ -295,7 +296,8 @@ def draw_pose_with_buttons(canvas, buttons_config, rt_landmarks_list, condition,
         font_scale=buttons_config["font_scale"],
         thickness=buttons_config["thickness"],
         conditions=condition,  # 新增
-        highlight_color=(0, 200, 255)  # 高亮色可自定义
+        highlight_color=(0, 200, 255),  # 高亮色可自定义
+        real_shape = real_shape
     )
 
     return canvas

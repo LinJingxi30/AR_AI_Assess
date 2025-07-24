@@ -52,10 +52,10 @@ class CameraUtil:
                 frame = self.camera_capture_udp(sock=self.udp_sock)
             else:
                 frame = self.camera_capture(camera=self.camera)
-        processed_frame = self.camera_frame_process(frame=frame, target_reso=win_size)
+        processed_frame,processed_shape = self.camera_frame_process(frame=frame, target_reso=win_size)
         if processed_frame is None:
             raise ValueError("实时画面处理失败！")
-        return processed_frame
+        return processed_frame,processed_shape
 
     def camera_capture(self, camera=None):
         if camera is None:
@@ -87,9 +87,9 @@ class CameraUtil:
 
     def camera_frame_process(self, target_reso=None, frame=None):
         if frame is None:
-            raise ValueError("实时帧不能为空")
+            raise ValueError("real frame can not be None")
         if target_reso is None:
-            raise ValueError("目标分辨率不能为空")
+            raise ValueError("target ")
         processed_frame = cv2.flip(frame, 1)
         h, w = processed_frame.shape[:2]
         target_w, target_h = target_reso
@@ -101,4 +101,4 @@ class CameraUtil:
         left = (target_w - new_w) // 2
         right = target_w - new_w - left
         bordered = cv2.copyMakeBorder(resized, top, bottom, left, right, cv2.BORDER_CONSTANT, value=[0, 0, 0])
-        return bordered
+        return bordered,(new_w, new_h)

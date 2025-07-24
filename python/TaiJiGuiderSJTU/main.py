@@ -6,11 +6,13 @@ PY_ROOT = Path(__file__).resolve().parent.parent
 sys.path.append(str(PY_ROOT))  # 添加 Python 根目录到模块搜索路径中
 sys.path.append(str(Path(__file__).resolve().parent))
 from guider import Guider
-from selector import Selector, REDO_SEL_CONFIG
+from selector import Selector
 from animator import Animator
 from pregame_align import PreAlignerPoints
+from Video import Video
 import pygame
 import argparse
+import time
 
 from Config import STD_SPORTS_RESULTS_ROOT, WIN_SIZE
 from utils.CamUtils import CameraUtil
@@ -31,22 +33,32 @@ PRE_GAME_CLIP_PATHS = {
 # 运动项目选择-配置
 SPORTS_SEL = {
     "texts": ["太极操", "八法五步", "24式太极拳"],
-    "size": (200, 150),  # 按钮大小
+    "size": (140, 80),  # 按钮大小
     "color": (0, 155, 0),  # 按钮颜色
     "text_color": (255, 255, 255),  # 按钮文本颜色
-    "font_scale": 1.2,
+    "font_scale": 1.0,
     "thickness": 4,  # 文本线宽，对中文字体无效
-    "reach_threshold": 80,  # 按钮被按下的距离阈值
+    "reach_threshold": 50,  # 按钮被按下的距离阈值
 }
 
 MODES_SEL = {
     "texts": ["学习", "训练"],
-    "size": (200, 150),  # 按钮大小
+    "size": (150, 100),  # 按钮大小
     "color": (100, 100, 0),  # 按钮颜色
     "text_color": (255, 255, 255),  # 按钮文本颜色
     "font_scale": 1.2,
     "thickness": 4,  # 文本线宽，对中英文无效
     "reach_threshold": 50,  # 按钮被按下的距离阈值
+}
+
+REDO_SEL_CONFIG = {
+    "texts": ["重做", "继续"],
+    "size": (150, 100),
+    "color": (0, 120, 200),
+    "text_color": (255, 255, 255),
+    "font_scale": 1.2,
+    "thickness": 4,
+    "reach_threshold": 50,
 }
 
 """
@@ -56,6 +68,7 @@ todo:: 即便不做，时延也还好
 法2：
     使用自己的json构建路径集，避免构建不需要的文件；
 """
+
 TJC_Learning_PATHS = {
     "POSTURE_1": {
         "标准 JSON 文件路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC" / "LearningMode" / "p1.json",
@@ -133,6 +146,13 @@ TJC_Training_CONFIG = {
     "片段标题": ["完整演示"],
 }
 
+POSTURE_1  ={
+    "标准 JSON 文件路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC" / "LearningMode" / "p1.json",
+    "标准掩膜图片路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC",
+    "背景音乐": Path(PY_ROOT) / "gameAssets" / "sounds" / "SJTUbgm.mp3",
+}
+
+
 ANIMATOR_CONFIG = {
     # 招式X：xxxx
     "标题": {
@@ -149,6 +169,18 @@ ANIMATOR_CONFIG = {
     # todo:: 招式得分
 }
 
+BFWB_Training_PATHS =  {
+    "POSTURE_1": {
+        "标准 JSON 文件路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "BFWB" / "Cnt_eight_five_point.json" ,
+        "标准掩膜图片路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "BFWB",
+        "背景音乐": Path(PY_ROOT) / "gameAssets" / "sounds" / "SJTUbgm.mp3",
+    }
+}
+
+BFWB_Training_CONFIG = {
+    "路径": BFWB_Training_PATHS,
+    "片段标题": ["完整演示"],
+}
 
 def combine_simple(id, save_path):
     """
@@ -205,20 +237,63 @@ def parse_args():
     return parser.parse_args()
 
 
-# main.py
+def split_json_by_skip(json_path):
+    """将json按skip=false分割成动作段，每段为一个动作"""
+    actions = []
+    current_action = []
+    with open(json_path, "r", encoding="utf-8") as f:
+        for line in f:
+            if not line.strip() or line.strip().startswith("//"):
+                continue
+            record = json.loads(line)
+            current_action.append(record)
+            if record["points"].get("skip", False) == False and len(current_action) > 1:
+                actions.append(current_action[:-1])
+                current_action = [record]
+    if current_action:
+        actions.append(current_action)
+    return actions
 
+def run_posture_with_actions(posture_config, anim, camera, DEBUG, unique_id):
+    # posture_config: dict, 包含"标准 JSON 文件路径"等
+    actions = split_json_by_skip(posture_config["标准 JSON 文件路径"])
+    for idx, action_frames in enumerate(actions):
+        # 1. 播放动作idx的视频（可自定义标题）
+        anim.animate_title(text=f"动作{idx+1} 演示", duration=3.0, config=ANIMATOR_CONFIG)
+        # Video类需要能只播放action_frames对应的图片序列
+        video = Video(camera=camera, uuid=unique_id, frames=action_frames, debug=DEBUG)
+        video.main_loop()
+        # 2. 跟练
+        anim.animate_title(text=f"动作{idx+1} 跟练", duration=3.0, config=ANIMATOR_CONFIG)
+        guider = Guider(camera=camera, uuid=unique_id, frames=action_frames, debug=DEBUG)
+        guider.main_loop()
+        # 3. 可选：评分
+        anim.animate_summary(total_score=guider.score, move_scores=[guider.score], duration=2.5, config=ANIMATOR_CONFIG)
+    # 播放整体动画
+    anim.animate_title(text="招式整体动画", duration=4.0, config=ANIMATOR_CONFIG)
+    # 假设整体动画为 posture_config["整体动画路径"]
+    overall_video = Video(camera=camera, uuid=unique_id, paths=posture_config.get("整体动画路径"), debug=DEBUG)
+    overall_video.main_loop()
+    # 重做/继续
+    redo_selector = Selector(camera=camera, uuid=unique_id, buttons_config=REDO_SEL_CONFIG, debug=DEBUG, win_size=(WIN_SIZE[0], WIN_SIZE[1]))
+    redo_selector.main_loop_with_voice()
+    return redo_selector.selection  # 0重做，1继续
+
+# main.py
 def run_sport_routine(sport_type_config, anim, camera, pre_align, pre_clip, DEBUG, unique_id):
     # 招式实例列表
     routines = []
+    videos = []
     for i in range(len(sport_type_config["路径"])):
-        routines.append(Guider(camera=camera, paths=sport_type_config["路径"][f"POSTURE_{i + 1}"], debug=DEBUG))
+        routines.append(Guider(camera=camera,uuid = unique_id, paths=sport_type_config["路径"][f"POSTURE_{i + 1}"], debug=DEBUG))
+        videos.append(Video(camera=camera,uuid = unique_id, paths=sport_type_config["路径"][f"POSTURE_{i + 1}"], debug=DEBUG))
 
     # ?
     sys.stderr.write(f"Start\n")
 
     # 大标题
     DataSender.send_control("PLAY_AUDIO", flag=1)
-    anim.animate_title(text="欢迎来到3A·元运动指南", duration=1.0, config=ANIMATOR_CONFIG)
+    anim.animate_title(text="iTaichi-系统 正式开始！", duration=5.0, config=ANIMATOR_CONFIG)
 
     # 对齐四点指引
     pre_align.main_loop_with_voice()
@@ -243,10 +318,18 @@ def run_sport_routine(sport_type_config, anim, camera, pre_align, pre_clip, DEBU
     while i < len(sport_type_config["路径"]):
         # 语音：开始招式 i
         # todo:: 针对性的语音提示，比如播放的是完整演示or实际训练
+        
+        # DataSender.send_control("PLAY_VIDEO", flag ="part1.mp4")
+        # time.sleep(8)
 
         # 招式 i 标题
-        anim.animate_title(text=sport_type_config["片段标题"][i], duration=1.0, config=ANIMATOR_CONFIG)
+        anim.animate_title(text=sport_type_config["片段标题"][i], duration=4.0, config=ANIMATOR_CONFIG)
+        # 招式 i 视频
+        anim.animate_title(text=f"招式 {i+1} 视频", duration=4.0, config=ANIMATOR_CONFIG)
+        videos[i].main_loop()
+
         # 招式 i 主循环
+        anim.animate_title(text=f"开始练习", duration=4.0, config=ANIMATOR_CONFIG)
         routines[i].main_loop()
 
         # todo:: 用嵌入在config的条件来判断是否需要评分
@@ -257,20 +340,21 @@ def run_sport_routine(sport_type_config, anim, camera, pre_align, pre_clip, DEBU
         # sys.stderr.write(f"已执行片段 {i+1} finished.\n")   # 调试
 
         # ******** 添加重做/继续逻辑的开始 ********
-        redo_selector = Selector(camera=camera, buttons_config=REDO_SEL_CONFIG, debug=DEBUG,
+        redo_selector = Selector(camera=camera,uuid = unique_id, buttons_config=REDO_SEL_CONFIG, debug=DEBUG,
                                  win_size=(WIN_SIZE[0], WIN_SIZE[1]))
+        sys.stderr.write(str(redo_selector.buttons_positions))
         redo_selector.main_loop_with_voice()
 
         if redo_selector.selection == 0:  # 用户选择了“重做”
             # 重置当前招式的状态，准备重做
-            routines[i] = Guider(camera=camera, paths=sport_type_config["路径"][f"POSTURE_{i + 1}"], debug=DEBUG)
+            routines[i] = Guider(camera=camera,uuid = unique_id, paths=sport_type_config["路径"][f"POSTURE_{i + 1}"], debug=DEBUG)
             continue  # 再次执行当前循环，即重做当前招式
         elif redo_selector.selection == 1:  # 用户选择了“继续”
             i += 1  # 进入下一个招式
         # ******** 添加重做/继续逻辑的结束 ********
 
-    # 把 differences-<id>.json 文件合并生成
-    combine_simple(id=unique_id, save_path=Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi")
+    # # 把 differences-<id>.json 文件合并生成
+    # combine_simple(id=unique_id, save_path=Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi")
 
     # 结束：发送动作分列表至前端
     DataSender.send_control(command="MOVE_SCORES", data=[t.score for t in routines])
@@ -289,19 +373,27 @@ if __name__ == "__main__":
 
     DEBUG = 0
     # todo:: winsize问题，按钮会超框，因为根据的是未分割的窗口尺寸
-    sport_selector = Selector(camera=camera, buttons_config=SPORTS_SEL, debug=0,
+    sport_selector = Selector(camera=camera,uuid = unique_id, buttons_config=SPORTS_SEL, debug=0,
                               win_size=(WIN_SIZE[0], WIN_SIZE[1]))  # debug=0 使用udp相机
-    mode_selector = Selector(camera=camera, buttons_config=MODES_SEL, debug=0,
+    mode_selector = Selector(camera=camera,uuid = unique_id, buttons_config=MODES_SEL, debug=0,
                              win_size=(WIN_SIZE[0], WIN_SIZE[1]))  # debug=0 使用udp相机
     anim = Animator(camera=camera)
-    pre_align = PreAlignerPoints(camera=camera, _paths=PRE_GAME_ALIGN_PATHS, debug=DEBUG)
-    pre_clip = Guider(camera=camera, paths=PRE_GAME_CLIP_PATHS, debug=DEBUG)
+    pre_align = PreAlignerPoints(camera=camera,uuid = unique_id, _paths=PRE_GAME_ALIGN_PATHS, debug=DEBUG)
+    pre_clip = Guider(camera=camera,uuid = unique_id, paths=PRE_GAME_CLIP_PATHS, debug=DEBUG)
 
+    # 引导的标题
+    anim.animate_title(text="欢迎来到iTaichi-系统", duration=5.0, config=ANIMATOR_CONFIG)
+    anim.animate_title(text="下面请选择运动项目", duration=5.0, config=ANIMATOR_CONFIG)
+    # 倒计时3s
+    anim.animate_countdown(duration=0.5, config=ANIMATOR_CONFIG, cnt=3)
     # 选择运动项目
     sport_selector.main_loop_with_voice()  # -> sport_selector.selection
 
-    # todo:: 发送控制帧，告诉前端要播放哪个视频
 
+    anim.animate_title(text="下面请选择模式", duration=5.0, config=ANIMATOR_CONFIG)
+    # 倒计时3s
+    anim.animate_countdown(duration=0.5, config=ANIMATOR_CONFIG, cnt=3)
+    # todo:: 发送控制帧，告诉前端要播放哪个视频
     # 选择模式
     mode_selector.main_loop_with_voice()  # -> mode_selector.selection
 
@@ -310,19 +402,22 @@ if __name__ == "__main__":
         # 学习模式
         # 根据选择的运动项目 创建对应的（路径） Guider 实例
         if sport_selector.selection == 0:
-            DataSender.send_control("PLAY_VIDEO", flag ="new_video.mp4")
+            # DataSender.send_control("PLAY_VIDEO", flag ="part1.mp4")
+            # time.sleep(8)
             # 太极操 9 式
             run_sport_routine(sport_type_config=TJC_Learning_CONFIG, anim=anim, camera=camera, pre_align=pre_align,
                               pre_clip=pre_clip, DEBUG=DEBUG, unique_id=unique_id)
 
         elif sport_selector.selection == 1:
-            DataSender.send_control("PLAY_VIDEO", flag="new_video.mp4")
+            # DataSender.send_control("PLAY_VIDEO", flag="part1.mp4")
+            # time.sleep(8)
             # 八法五步
             run_sport_routine(sport_type_config=TJC_Learning_CONFIG, anim=anim, camera=camera, pre_align=pre_align,
                               pre_clip=pre_clip, DEBUG=DEBUG, unique_id=unique_id)
 
         elif sport_selector.selection == 2:
-            DataSender.send_control("PLAY_VIDEO", flag="new_video.mp4")
+            # DataSender.send_control("PLAY_VIDEO", flag="part1.mp4")
+            # time.sleep(8)
             # 24式太极拳
             run_sport_routine(sport_type_config=TJC_Learning_CONFIG, anim=anim, camera=camera, pre_align=pre_align,
                               pre_clip=pre_clip, DEBUG=DEBUG, unique_id=unique_id)
@@ -330,15 +425,21 @@ if __name__ == "__main__":
         # 训练模式
         # 选择的运动项目
         if sport_selector.selection == 0:
+            # DataSender.send_control("PLAY_VIDEO", flag ="part1.mp4")
+            # time.sleep(8)
             # 太极操 9 式
             run_sport_routine(sport_type_config=TJC_Training_CONFIG, anim=anim, camera=camera, pre_align=pre_align,
                               pre_clip=pre_clip, DEBUG=DEBUG, unique_id=unique_id)
         elif sport_selector.selection == 1:
+            # DataSender.send_control("PLAY_VIDEO", flag ="part1.mp4")
+            # time.sleep(8)
             # 八法五步
-            run_sport_routine(sport_type_config=TJC_Training_CONFIG, anim=anim, camera=camera, pre_align=pre_align,
+            run_sport_routine(sport_type_config=BFWB_Training_CONFIG, anim=anim, camera=camera, pre_align=pre_align,
                               pre_clip=pre_clip, DEBUG=DEBUG, unique_id=unique_id)
 
         elif sport_selector.selection == 2:
+            # DataSender.send_control("PLAY_VIDEO", flag ="part1.mp4")
+            # time.sleep(8)
             # 24式太极拳
             run_sport_routine(sport_type_config=TJC_Training_CONFIG, anim=anim, camera=camera, pre_align=pre_align,
                               pre_clip=pre_clip, DEBUG=DEBUG, unique_id=unique_id)
