@@ -6,11 +6,12 @@ PY_ROOT = Path(__file__).resolve().parent.parent
 sys.path.append(str(PY_ROOT))  # 添加 Python 根目录到模块搜索路径中
 sys.path.append(str(Path(__file__).resolve().parent))
 from guider import Guider
-from selector import Selector, REDO_SEL_CONFIG
+from selector import Selector
 from animator import Animator
 from pregame_align import PreAlignerPoints
 import pygame
 import argparse
+import time
 
 from Config import STD_SPORTS_RESULTS_ROOT, WIN_SIZE
 from utils.CamUtils import CameraUtil
@@ -31,22 +32,32 @@ PRE_GAME_CLIP_PATHS = {
 # 运动项目选择-配置
 SPORTS_SEL = {
     "texts": ["太极操", "八法五步", "24式太极拳"],
-    "size": (200, 150),  # 按钮大小
+    "size": (140, 80),  # 按钮大小
     "color": (0, 155, 0),  # 按钮颜色
     "text_color": (255, 255, 255),  # 按钮文本颜色
-    "font_scale": 1.2,
+    "font_scale": 1.0,
     "thickness": 4,  # 文本线宽，对中文字体无效
-    "reach_threshold": 80,  # 按钮被按下的距离阈值
+    "reach_threshold": 50,  # 按钮被按下的距离阈值
 }
 
 MODES_SEL = {
     "texts": ["学习", "训练"],
-    "size": (200, 150),  # 按钮大小
+    "size": (150, 100),  # 按钮大小
     "color": (100, 100, 0),  # 按钮颜色
     "text_color": (255, 255, 255),  # 按钮文本颜色
     "font_scale": 1.2,
     "thickness": 4,  # 文本线宽，对中英文无效
     "reach_threshold": 50,  # 按钮被按下的距离阈值
+}
+
+REDO_SEL_CONFIG = {
+    "texts": ["重做", "继续"],
+    "size": (150, 100),
+    "color": (0, 120, 200),
+    "text_color": (255, 255, 255),
+    "font_scale": 1.2,
+    "thickness": 4,
+    "reach_threshold": 50,
 }
 
 """
@@ -211,7 +222,7 @@ def run_sport_routine(sport_type_config, anim, camera, pre_align, pre_clip, DEBU
     # 招式实例列表
     routines = []
     for i in range(len(sport_type_config["路径"])):
-        routines.append(Guider(camera=camera, paths=sport_type_config["路径"][f"POSTURE_{i + 1}"], debug=DEBUG))
+        routines.append(Guider(camera=camera,uuid = unique_id, paths=sport_type_config["路径"][f"POSTURE_{i + 1}"], debug=DEBUG))
 
     # ?
     sys.stderr.write(f"Start\n")
@@ -257,20 +268,21 @@ def run_sport_routine(sport_type_config, anim, camera, pre_align, pre_clip, DEBU
         # sys.stderr.write(f"已执行片段 {i+1} finished.\n")   # 调试
 
         # ******** 添加重做/继续逻辑的开始 ********
-        redo_selector = Selector(camera=camera, buttons_config=REDO_SEL_CONFIG, debug=DEBUG,
+        redo_selector = Selector(camera=camera,uuid = unique_id, buttons_config=REDO_SEL_CONFIG, debug=DEBUG,
                                  win_size=(WIN_SIZE[0], WIN_SIZE[1]))
+        sys.stderr.write(str(redo_selector.buttons_positions))
         redo_selector.main_loop_with_voice()
 
         if redo_selector.selection == 0:  # 用户选择了“重做”
             # 重置当前招式的状态，准备重做
-            routines[i] = Guider(camera=camera, paths=sport_type_config["路径"][f"POSTURE_{i + 1}"], debug=DEBUG)
+            routines[i] = Guider(camera=camera,uuid = unique_id, paths=sport_type_config["路径"][f"POSTURE_{i + 1}"], debug=DEBUG)
             continue  # 再次执行当前循环，即重做当前招式
         elif redo_selector.selection == 1:  # 用户选择了“继续”
             i += 1  # 进入下一个招式
         # ******** 添加重做/继续逻辑的结束 ********
 
-    # 把 differences-<id>.json 文件合并生成
-    combine_simple(id=unique_id, save_path=Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi")
+    # # 把 differences-<id>.json 文件合并生成
+    # combine_simple(id=unique_id, save_path=Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi")
 
     # 结束：发送动作分列表至前端
     DataSender.send_control(command="MOVE_SCORES", data=[t.score for t in routines])
@@ -289,16 +301,22 @@ if __name__ == "__main__":
 
     DEBUG = 0
     # todo:: winsize问题，按钮会超框，因为根据的是未分割的窗口尺寸
-    sport_selector = Selector(camera=camera, buttons_config=SPORTS_SEL, debug=0,
+    sport_selector = Selector(camera=camera,uuid = unique_id, buttons_config=SPORTS_SEL, debug=0,
                               win_size=(WIN_SIZE[0], WIN_SIZE[1]))  # debug=0 使用udp相机
-    mode_selector = Selector(camera=camera, buttons_config=MODES_SEL, debug=0,
+    mode_selector = Selector(camera=camera,uuid = unique_id, buttons_config=MODES_SEL, debug=0,
                              win_size=(WIN_SIZE[0], WIN_SIZE[1]))  # debug=0 使用udp相机
     anim = Animator(camera=camera)
-    pre_align = PreAlignerPoints(camera=camera, _paths=PRE_GAME_ALIGN_PATHS, debug=DEBUG)
-    pre_clip = Guider(camera=camera, paths=PRE_GAME_CLIP_PATHS, debug=DEBUG)
+    pre_align = PreAlignerPoints(camera=camera,uuid = unique_id, _paths=PRE_GAME_ALIGN_PATHS, debug=DEBUG)
+    pre_clip = Guider(camera=camera,uuid = unique_id, paths=PRE_GAME_CLIP_PATHS, debug=DEBUG)
+
+    # 倒计时3s
+    anim.animate_countdown(duration=1.0, config=ANIMATOR_CONFIG, cnt=3)
 
     # 选择运动项目
     sport_selector.main_loop_with_voice()  # -> sport_selector.selection
+
+    # 倒计时3s
+    anim.animate_countdown(duration=1.0, config=ANIMATOR_CONFIG, cnt=3)
 
     # todo:: 发送控制帧，告诉前端要播放哪个视频
 
@@ -310,16 +328,22 @@ if __name__ == "__main__":
         # 学习模式
         # 根据选择的运动项目 创建对应的（路径） Guider 实例
         if sport_selector.selection == 0:
+            DataSender.send_control("PLAY_VIDEO", flag ="part1.mp4")
+            time.sleep(8)
             # 太极操 9 式
             run_sport_routine(sport_type_config=TJC_Learning_CONFIG, anim=anim, camera=camera, pre_align=pre_align,
                               pre_clip=pre_clip, DEBUG=DEBUG, unique_id=unique_id)
 
         elif sport_selector.selection == 1:
+            DataSender.send_control("PLAY_VIDEO", flag="part1.mp4")
+            time.sleep(8)
             # 八法五步
             run_sport_routine(sport_type_config=TJC_Learning_CONFIG, anim=anim, camera=camera, pre_align=pre_align,
                               pre_clip=pre_clip, DEBUG=DEBUG, unique_id=unique_id)
 
         elif sport_selector.selection == 2:
+            DataSender.send_control("PLAY_VIDEO", flag="part1.mp4")
+            time.sleep(8)
             # 24式太极拳
             run_sport_routine(sport_type_config=TJC_Learning_CONFIG, anim=anim, camera=camera, pre_align=pre_align,
                               pre_clip=pre_clip, DEBUG=DEBUG, unique_id=unique_id)
@@ -327,15 +351,21 @@ if __name__ == "__main__":
         # 训练模式
         # 选择的运动项目
         if sport_selector.selection == 0:
+            DataSender.send_control("PLAY_VIDEO", flag ="part1.mp4")
+            time.sleep(8)
             # 太极操 9 式
             run_sport_routine(sport_type_config=TJC_Training_CONFIG, anim=anim, camera=camera, pre_align=pre_align,
                               pre_clip=pre_clip, DEBUG=DEBUG, unique_id=unique_id)
         elif sport_selector.selection == 1:
+            DataSender.send_control("PLAY_VIDEO", flag ="part1.mp4")
+            time.sleep(8)
             # 八法五步
             run_sport_routine(sport_type_config=TJC_Training_CONFIG, anim=anim, camera=camera, pre_align=pre_align,
                               pre_clip=pre_clip, DEBUG=DEBUG, unique_id=unique_id)
 
         elif sport_selector.selection == 2:
+            DataSender.send_control("PLAY_VIDEO", flag ="part1.mp4")
+            time.sleep(8)
             # 24式太极拳
             run_sport_routine(sport_type_config=TJC_Training_CONFIG, anim=anim, camera=camera, pre_align=pre_align,
                               pre_clip=pre_clip, DEBUG=DEBUG, unique_id=unique_id)

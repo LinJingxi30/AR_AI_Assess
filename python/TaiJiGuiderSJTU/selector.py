@@ -31,10 +31,10 @@ PYGAME_SELECT_UI_CONFIG = {
 
 BUTTONS_CONFIG = {
     "texts": ["太极操", "八法五步", "24式太极拳"],
-    "size": (200, 150),  # 按钮大小
+    "size": (100, 70),  # 按钮大小
     "color": (0, 155, 0),  # 按钮颜色
     "text_color": (255, 255, 255),  # 按钮文本颜色
-    "font_scale": 1.2,
+    "font_scale": 0.8,
     "thickness": 4,  # 文本线宽，对中文字体无效
     "reach_threshold": 100,  # 按钮被按下的距离阈值
 }
@@ -46,16 +46,16 @@ REDO_SEL_CONFIG = {
     "text_color": (255, 255, 255),
     "font_scale": 1.2,
     "thickness": 4,
-    "reach_threshold": 80,
+    "reach_threshold": 100,
 }
 
 
 class Selector(Guider):
 
     # 不调用父类的构造函数，直接写Selector自己的初始化逻辑
-    def __init__(self, camera, win_size=WIN_SIZE, buttons_config=BUTTONS_CONFIG, debug=False):
+    def __init__(self, camera,uuid, win_size=WIN_SIZE, buttons_config=BUTTONS_CONFIG, debug=False):
         # config 配置
-        win_topic = "AR太极拳助手"
+        win_topic = "AR太极拳助手"+uuid
         self.win_size = win_size  # 窗口分辨率
         self.frame_rate = 60
         self.buttons_config = buttons_config  # 按钮配置字典
@@ -91,7 +91,11 @@ class Selector(Guider):
         # init 初始化工具
         self.pose_detector_init()
         self.pygame_init(win_topic=win_topic)  # 没有bgm
-        self.get_buttons_positions(num=len(self.buttons_config["texts"]))
+        self.real_world_frame,real_shape = self.camera.get_camera_processed_frame(
+                frame=None,
+                win_size=WIN_SIZE
+            )
+        self.get_buttons_positions(num=len(self.buttons_config["texts"]),real_shape = real_shape)
 
         # load 初始化加载资源
         # self.clear_difference_json()
@@ -105,16 +109,16 @@ class Selector(Guider):
         self.debug = debug
         self.running = True
 
-    def get_buttons_positions(self, num):
+    def get_buttons_positions(self, num,real_shape):
         """获取按钮位置"""
         self.buttons_positions = []
         # 按钮水平均分排列，垂直居中
         button_width, button_height = self.buttons_config["size"]
         num_buttons = num
-        spacing = self.win_size[0] // (num_buttons + 1)
-        y = self.win_size[1] // 2  # - button_height // 2
+        spacing = real_shape[0] // (num_buttons)
+        y = real_shape[1] // 4
         for i in range(num_buttons):
-            x = (i + 1) * spacing  # - button_width // 2
+            x = self.win_size[0]//2 - real_shape[0]//2 + (i + 0.5) * spacing 
             self.buttons_positions.append((x, y))
 
     def main_update(self, frame=None):
@@ -137,7 +141,7 @@ class Selector(Guider):
             else:
                 """获取、处理实时画面帧"""
                 # （已翻转）（已拉伸到窗口分辨率）
-                self.real_world_frame = self.camera.get_camera_processed_frame(
+                self.real_world_frame,processed_shape = self.camera.get_camera_processed_frame(
                     frame=frame,
                     win_size=self.win_size
                 )
@@ -149,7 +153,7 @@ class Selector(Guider):
             # 获取对齐点列表 std_landmarks_list 和 rt_landmarks_list；
             # 渲染标点、箭头、掩膜到画布
             self.canvas_render(rt_frame=self.real_world_frame,
-                               conditions=self.conditions)
+                               conditions=self.conditions,real_shape = processed_shape)
 
             """条件判定"""
             # 检查条件是否满足，更新 condition 列表
@@ -232,7 +236,7 @@ class Selector(Guider):
                 return idx
         return None
 
-    def canvas_render(self, rt_frame, conditions):
+    def canvas_render(self, rt_frame, conditions,real_shape = None):
         """渲染画布"""
         self.canvas = rt_frame.copy()
 
@@ -267,7 +271,7 @@ class Selector(Guider):
         self.canvas = draw.draw_pose_with_buttons(self.canvas,
                                                   buttons_config=self.buttons_config,
                                                   rt_landmarks_list=self.rt_landmarks_list,
-                                                  condition=conditions)
+                                                  condition=conditions,real_shape = real_shape)
 
 
 if __name__ == "__main__":

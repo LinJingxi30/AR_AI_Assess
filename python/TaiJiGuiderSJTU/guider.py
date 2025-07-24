@@ -43,7 +43,7 @@ PTS_CONDITION_THRESH = [80, 80, 250, 250] # 对应上面的 4 个点的判定阈
 RT_PTS_TO_CENTER = [11, 12, 23, 24]  # 左肩、右肩、左髋、右髋
 
 LIGHTNESS = 0.9  # 画布亮度调整系数
-STD_SCALE = 1  # 标准对齐点/掩膜缩放系数
+STD_SCALE = 0.7  # 标准对齐点/掩膜缩放系数
 STD_CENTER_Y_OFFSET = 10   # 标准中心相对实时中心纵向偏移高度（像素）(上正下负)
 STD_OVERLAY_OPACITY = 0.6  # 掩膜透明度
 
@@ -74,10 +74,12 @@ PATHS = {
 }
 
 class Guider:
-    def __init__(self, camera, paths=PATHS, debug=False):
+    def __init__(self, camera,uuid, paths=PATHS, debug=False):
         # config 配置
-        win_topic = "AR太极拳助手"
+        win_topic = "AR太极拳助手"+uuid
         self.frame_rate = 60
+
+        self.uuid = uuid
 
         # path 路径
         self.std_json_path = paths["标准 JSON 文件路径"]
@@ -166,7 +168,7 @@ class Guider:
 
             """获取、处理实时画面帧"""
             # （已翻转）（已拉伸到窗口分辨率）
-            self.real_world_frame = self.camera.get_camera_processed_frame(
+            self.real_world_frame,_ = self.camera.get_camera_processed_frame(
                 frame=frame,
                 win_size=WIN_SIZE
             )
@@ -376,43 +378,84 @@ class Guider:
                 conditions[idx] = False
 
     def canvas_render(self, rt_frame, conditions):
-        """绘制实时画面帧"""
-        self.canvas = rt_frame.copy()  # 复制实时画面帧到画布
+        """绘制实时画面帧，新增各步骤耗时统计"""
+        start_total = time.time()  # 总耗时起点
+        self.canvas = rt_frame  # 复制实时画面帧到画布
+        end_std_load = time.time()
+        sys.stderr.write(f"canvas copy: {end_std_load - start_total:.6f} 秒\n")
 
-        """标准对齐点加载"""
-        self.std_pose_list = self.std_pose_lists[self.current_std_index]  # 标准完整姿态列表，从 lists 中获取 list，格式同上
-        self.std_landmarks_list = self.get_landmarks_list(self.std_pose_list, landmarks=POSE_ALIGN_LANDMARKS)   # 标准关键（对齐）点列表，格式同上
-        self.std_overlay = self.get_current_std_overlay(paths=self.std_overlay_paths, overlay_idx=self.current_std_index)  # 标准帧路径，格式为 str
+        # ---- 标准对齐点加载 步骤计时 ----
+        start_std_load = time.time()
+        self.std_pose_list = self.std_pose_lists[self.current_std_index]
+        self.std_landmarks_list = self.get_landmarks_list(self.std_pose_list, landmarks=POSE_ALIGN_LANDMARKS)
+        self.std_overlay = self.get_current_std_overlay(paths=self.std_overlay_paths, overlay_idx=self.current_std_index)
+        end_std_load = time.time()
+        sys.stderr.write(f"std points: {end_std_load - start_std_load:.6f} 秒\n")
 
-        """实时对齐点获取"""
-        self.rt_pose_list = self.pose_detection(self.real_world_frame)   # 实时完整姿态列表，格式为： [33 * tuple(x, y, z=0)] 或 []
-        self.rt_landmarks_list = self.get_landmarks_list(self.rt_pose_list, landmarks=POSE_ALIGN_LANDMARKS) # 实时关键（对齐）点列表，格式为： [4 * int(x, y)] 或 []
+        # ---- 实时对齐点获取 步骤计时 ----
+        start_rt_load = time.time()
+        self.rt_pose_list = self.pose_detection(self.real_world_frame)
+        self.rt_landmarks_list = self.get_landmarks_list(self.rt_pose_list, landmarks=POSE_ALIGN_LANDMARKS)
+        end_rt_load = time.time()
+        sys.stderr.write(f"real time points: {end_rt_load - start_rt_load:.6f} 秒\n")
 
-        """获取实时躯干位置；获取标准中心标点"""
-        self.rt_center = self.get_center_from_points_2d(self.rt_pose_list, from_pts_idx=RT_PTS_TO_CENTER, win_size=WIN_SIZE, y_offset=STD_CENTER_Y_OFFSET)  # tuple(float, float)
-        # self.rt_center = (self.rt_center[0], self.rt_center[1] + BENEATH)   # 参数调整中心点位置，向下偏移 BENEATH 像素
-        self.std_center = (self.std_pose_list[0][0] * STD_SCALE, self.std_pose_list[0][1] * STD_SCALE)  # std_pose_list 的第一个元组是标点中心点 (3d to 2d)
+        # ---- 获取缩放比例（仅首帧特殊处理，这里也可单独计时） ----
+        global STD_SCALE
+        if self.current_std_index == 0:
+            STD_SCALE = self.get_scale(self.rt_pose_list)
 
-        """将标准对齐点吸附到用户"""
+        # ---- 获取实时/标准中心 步骤计时 ----
+        self.rt_center = self.get_center_from_points_2d(self.rt_pose_list, from_pts_idx=RT_PTS_TO_CENTER, win_size=WIN_SIZE, y_offset=STD_CENTER_Y_OFFSET)
+        self.std_center = (self.std_pose_list[0][0] * STD_SCALE, self.std_pose_list[0][1] * STD_SCALE)
+
+        # ---- 对齐点吸附 步骤计时 ----
         self.align_pose_to_target_by_center_2d(self.std_landmarks_list, center=self.std_center, target=self.rt_center, scale=STD_SCALE, win_size=WIN_SIZE)
-        # print(self.std_landmarks_list) # 调试
 
-        """叠加掩膜到画布"""
-        self.canvas = (self.canvas * LIGHTNESS).astype(np.uint8)  # 调整画布亮度
+        # ---- 画布亮度调整 + 掩膜叠加 步骤计时 ----
+        start_canvas = time.time()
+        # self.canvas = (self.canvas * LIGHTNESS).astype(np.uint8)
+        end_canvas = time.time()
+        sys.stderr.write(f"canvas change brightness: {end_canvas - start_canvas:.6f} 秒\n")
+        start_canvas = time.time()
         self.canvas = draw.draw_overlay_centered(self.canvas, self.std_overlay,
                                                     center=self.std_center, target=self.rt_center,
                                                     win_size=WIN_SIZE,
                                                     scale=STD_SCALE,
-                                                    opacity=STD_OVERLAY_OPACITY)  # 在画布上叠加掩膜，掩膜中心点与用户中心点对齐
+                                                    opacity=STD_OVERLAY_OPACITY)
+        end_canvas = time.time()
+        sys.stderr.write(f"mask total time: {end_canvas - start_canvas:.6f} 秒\n")
 
-        """绘制 对齐点 + 箭头 到画布"""
+        # ---- 绘制点和箭头 步骤计时 ----
+        start_draw = time.time()
         self.canvas = draw.draw_points_and_arrows(self.canvas,
                                                   self.std_landmarks_list,
                                                   self.rt_landmarks_list,
                                                   conditions)
+        end_draw = time.time()
+        sys.stderr.write(f"Point and arrow: {end_draw - start_draw:.6f} 秒\n")
 
-        # 调试：绘制较大的实时中心点（橙色）
-        # cv2.circle(self.canvas, (int(self.rt_center[0]), int(self.rt_center[1])), 15, (0, 165, 255), -1)
+        end_total = time.time()
+        sys.stderr.write(f"canvas_render total cost: {end_total - start_total:.6f} 秒\n\n")
+
+    def get_scale(self,std_pose_list):
+        """
+        获取缩放比例
+        """
+        # std_pose_list 是 [33 * (x, y, z=0)]，其中左指尖、右指尖、左脚尖、右脚尖分别在 POSE_ALIGN_LANDMARKS 索引
+        # 以左右指尖和左右脚尖的最大横向距离为基准，和 1100 像素做比例
+        if not std_pose_list or len(std_pose_list) < max(POSE_ALIGN_LANDMARKS) + 1:
+            return 0.8  # 防止异常，返回默认缩放比例
+
+        # 获取四个关键点的 x 坐标
+        x_coords = [std_pose_list[idx][1] for idx,_ in enumerate(std_pose_list)]
+        # 计算最大和最小 x 坐标的距离
+        pose_width = max(x_coords) - min(x_coords)
+        if pose_width == 0:
+            return 0.8  # 防止除零
+
+        scale = pose_width / 600.0 
+        return scale
+
 
     def window_events(self):
         """
@@ -733,21 +776,72 @@ class Guider:
 # @A last new line here:
 
 if __name__ == "__main__":
-
-    # 创建 Guider 实例
-    TaiJiGuider = Guider()
-    # 开始运行
-    TaiJiGuider.running = True
-    # 渲染循环
-    while TaiJiGuider.running:
-        # 渲染 .screen
-        TaiJiGuider.main_update()
-        # 获取 JPEG 字节数据
-        # frame_to_web = TaiJiGuider.get_transmit_frame(TaiJiGuider.screen)
-        # 发送 JPEG 数据
-        # TaiJiGuider.send_jpeg_data(frame_to_web)
-        # 更新窗口显示
-        pygame.display.flip()
-    # 清理资源
-    TaiJiGuider.camera.release()
-    pygame.quit()
+    from Config import STD_SPORTS_RESULTS_ROOT, WIN_SIZE
+    TJC_Learning_PATHS = {
+        "POSTURE_1": {
+            "标准 JSON 文件路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC" / "LearningMode" / "p1.json",
+            "标准掩膜图片路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC",
+            "背景音乐": Path(PY_ROOT) / "gameAssets" / "sounds" / "SJTUbgm.mp3",
+        },
+        "POSTURE_2": {
+            "标准 JSON 文件路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC" / "LearningMode" / "p2.json",
+            "标准掩膜图片路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC",
+            "背景音乐": Path(PY_ROOT) / "gameAssets" / "sounds" / "SJTUbgm.mp3",
+        },
+        "POSTURE_3": {
+            "标准 JSON 文件路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC" / "LearningMode" / "p3.json",
+            "标准掩膜图片路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC",
+            "背景音乐": Path(PY_ROOT) / "gameAssets" / "sounds" / "SJTUbgm.mp3",
+        },
+        "POSTURE_4": {
+            "标准 JSON 文件路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC" / "LearningMode" / "p4.json",
+            "标准掩膜图片路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC",
+            "背景音乐": Path(PY_ROOT) / "gameAssets" / "sounds" / "SJTUbgm.mp3",
+        },
+        "POSTURE_5": {
+            "标准 JSON 文件路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC" / "LearningMode" / "p5.json",
+            "标准掩膜图片路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC",
+            "背景音乐": Path(PY_ROOT) / "gameAssets" / "sounds" / "SJTUbgm.mp3",
+        },
+        "POSTURE_6": {
+            "标准 JSON 文件路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC" / "LearningMode" / "p6.json",
+            "标准掩膜图片路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC",
+            "背景音乐": Path(PY_ROOT) / "gameAssets" / "sounds" / "SJTUbgm.mp3",
+        },
+        "POSTURE_7": {
+            "标准 JSON 文件路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC" / "LearningMode" / "p7.json",
+            "标准掩膜图片路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC",
+            "背景音乐": Path(PY_ROOT) / "gameAssets" / "sounds" / "SJTUbgm.mp3",
+        },
+        "POSTURE_8": {
+            "标准 JSON 文件路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC" / "LearningMode" / "p8.json",
+            "标准掩膜图片路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC",
+            "背景音乐": Path(PY_ROOT) / "gameAssets" / "sounds" / "SJTUbgm.mp3",
+        },
+        "POSTURE_9": {
+            "标准 JSON 文件路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC" / "LearningMode" / "p9.json",
+            "标准掩膜图片路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC",
+            "背景音乐": Path(PY_ROOT) / "gameAssets" / "sounds" / "SJTUbgm.mp3",
+        },
+    }
+    TJC_Learning_CONFIG = {
+        # todo:: 音频路径？
+        "路径": TJC_Learning_PATHS,
+        "片段标题": [
+            "招式一：起势！",
+            "招式二：金刚转体！",
+            "招式三：左右云手！",
+            "招式四：左右卷肱！",
+            "招式五：丁步抱球！",
+            "招式六：野马分鬃！",
+            "招式七：白鹤亮翅！",
+            "招式八：金鸡独立！",
+            "招式九：收势！"
+        ],
+    }
+    # 假设摄像头类有模拟输入方法，或直接构造一帧
+    test_frame = cv2.imread("test_1280x720.jpg")  # 替换为实际测试图路径
+    from utils.CamUtils import CameraUtil
+    camera = CameraUtil(source=0, resolution=(1280, 720))
+    guider = Guider(camera=camera,uuid = "123", paths=TJC_Learning_CONFIG["路径"]["POSTURE_1"], debug=0)  # 正常初始化 Guider
+    guider.main_update()  # 传入模拟帧和假的 conditions
