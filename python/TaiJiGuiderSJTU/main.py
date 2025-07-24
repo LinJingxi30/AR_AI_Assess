@@ -329,7 +329,8 @@ def run_sport_routine(sport_type_config, anim, camera, pre_align, pre_clip, DEBU
         videos[i].main_loop()
 
         # 招式 i 主循环
-        anim.animate_title(text=f"开始练习", duration=4.0, config=ANIMATOR_CONFIG)
+        DataSender.send_control("PLAY_AUDIO", flag=10)
+        anim.animate_title(text=f"开始练习", duration=2.0, config=ANIMATOR_CONFIG)
         routines[i].main_loop()
 
         # todo:: 用嵌入在config的条件来判断是否需要评分
