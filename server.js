@@ -35,7 +35,7 @@ app.use(express.static('Static'));
 app.use(express.json());
 
 // 定义 Python 解释器路径和脚本路径
-const PYTHON_INTERPRETER = (process.env.PYTHON_INTERPRETER || 'env/python.exe'); // 默认使用当前目录下的 python.exe
+const PYTHON_INTERPRETER = (process.env.PYTHON_INTERPRETER || path.join(__dirname,"env","python.exe")); // 默认使用当前目录下的 python.exe
 
 // 定义不同主模式和子模式对应的 Python 脚本
 const PYTHON_SCRIPTS = {
@@ -359,7 +359,7 @@ io.on('connection', (socket) => {
     });
 });
 
-const PORT = 8000;
+const PORT = 8001;
 
 // 创建并配置 UDP 广播器
 const broadcaster = new UDPBroadcaster({
@@ -494,8 +494,11 @@ app.post('/api/start_rtmp', async (req, res) => {
             const pyPath = path.join('python',  'TaiJiGuiderSJTU/main.py');
             const pyProc = spawn(
                 PYTHON_INTERPRETER,
-                [pyPath, '--unique_id', uuid, '--rtmp_url', rtmpUrl],
-                { stdio: ['ignore', 'pipe', 'pipe'] }
+                [pyPath, '--unique_id', i+1, '--rtmp_url', rtmpUrl],
+                { 
+                    stdio: ['ignore', 'pipe', 'pipe'],
+                    shell: true  // 在 Windows 上使用 cmd 运行
+                }
             );
             pyProc.room = room;
             pyProc.idx = i;
