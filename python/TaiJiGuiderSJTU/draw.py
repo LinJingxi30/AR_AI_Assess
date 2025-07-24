@@ -5,6 +5,8 @@
 
 import cv2
 import numpy as np
+import time
+import sys
 
 PTS_PAIR_COLORS = [
     (255, 78, 0),  # rgb(0, 78, 255)
@@ -27,8 +29,11 @@ def draw_overlay_centered(canvas, std_overlay, center, target, win_size, scale=1
     if std_overlay is None:
         return canvas
 
+    start_time = time.time()
     # 缩放掩膜
     overlay_resized = cv2.resize(std_overlay, (0, 0), fx=scale, fy=scale)
+    end_time = time.time()
+    # sys.stderr.write(f"[MASK] mask resize: {end_time - start_time:.6f}s\n")
 
     # 获取缩放后的掩膜尺寸
     o_h, o_w = overlay_resized.shape[:2]
@@ -74,24 +79,41 @@ def draw_overlay_centered(canvas, std_overlay, center, target, win_size, scale=1
     # 检查是否有可绘制区域
     if x_start >= x_end or y_start >= y_end:
         return canvas
-
+    start_time = time.time()
     # 叠加掩膜（支持带 alpha 通道的 BGRA），支持 opacity
     if overlay_resized.shape[2] == 4:
-        # 取出 alpha 通道并乘以 opacity
-        alpha_overlay = (overlay_resized[overlay_y_start:overlay_y_end, overlay_x_start:overlay_x_end,
-                         3] / 255.0) * opacity
-        alpha_overlay = np.clip(alpha_overlay, 0, 1)
-        alpha_canvas = 1.0 - alpha_overlay
-
-        for c in range(3):  # BGR
-            canvas[y_start:y_end, x_start:x_end, c] = (
-                    alpha_overlay * overlay_resized[overlay_y_start:overlay_y_end, overlay_x_start:overlay_x_end, c] +
-                    alpha_canvas * canvas[y_start:y_end, x_start:x_end, c]
-            ).astype(np.uint8)
+        # 提取ROI区域，使用视图而非复制
+        overlay_roi = overlay_resized[overlay_y_start:overlay_y_end, overlay_x_start:overlay_x_end]
+        canvas_roi = canvas[y_start:y_end, x_start:x_end]
+        
+        # 预分配并计算alpha通道，使用更高效的类型转换
+        alpha_overlay = overlay_roi[..., 3].astype(np.float32)
+        alpha_overlay *= opacity / 255.0  # 合并运算减少步骤
+        np.clip(alpha_overlay, 0.0, 1.0, out=alpha_overlay)  # 原地操作
+        
+        # 扩展维度以匹配3通道，避免创建新数组
+        alpha_overlay_3d = alpha_overlay[:, :, np.newaxis]
+        alpha_canvas_3d = 1.0 - alpha_overlay_3d
+        
+        # 分离overlay的RGB通道
+        overlay_rgb = overlay_roi[..., :3].astype(np.float32)
+        
+        # 计算混合结果并转换回uint8，使用out参数避免临时数组
+        np.multiply(alpha_overlay_3d, overlay_rgb, out=overlay_rgb)  # 原地计算 overlay部分
+        temp = canvas_roi.astype(np.float32)
+        np.multiply(alpha_canvas_3d, temp, out=temp)  # 原地计算 canvas部分
+        np.add(overlay_rgb, temp, out=temp)  # 合并结果
+        
+        # 舍入并转换回uint8，直接写入原数组
+        np.rint(temp, out=temp)
+        canvas_roi[:] = temp.astype(np.uint8, casting='unsafe')
     else:
-        # 没有 alpha 通道，直接覆盖
+        # 无alpha通道时使用切片直接赋值，利用NumPy的优化赋值
         canvas[y_start:y_end, x_start:x_end] = overlay_resized[overlay_y_start:overlay_y_end,
-                                               overlay_x_start:overlay_x_end]
+                                              overlay_x_start:overlay_x_end]
+    
+    end_time = time.time()
+    # sys.stderr.write(f"[MASK] mask apply: {end_time - start_time:.6f}s\n")
 
     # 调试用：绘制画布中心点（target）
     # cv2.circle(canvas, target, 10, (0, 50, 0), -1)
@@ -106,15 +128,22 @@ def draw_points_and_arrows(canvas, std_landmarks_list, rt_landmarks_list, condit
         # 选择点对颜色
         # color = PTS_PAIR_COLORS[idx % len(PTS_PAIR_COLORS)]
         color = colors[idx]
-
+        start_time = time.time()
         # 绘制标准点（配对配色）
-        std_lm_pt = (int(std_lm_pt[0]), int(std_lm_pt[1]))  # 将点坐标转换为整数
+        # print(type(std_lm_pt))
+        # print(type(rt_lm_pt))
+        # std_lm_pt = (int(std_lm_pt[0]), int(std_lm_pt[1]))  # 将点坐标转换为整数
         draw_transparent_circle(canvas, std_lm_pt, radius=35, color=color, opacity=0.3, thickness=2)
 
+        end_time = time.time()
+        # sys.stderr.write(f"[Points and Arrow] std_lm_pt: {end_time - start_time:.6f}s\n")
+        start_time = time.time()
         # 绘制实时点（配对配色）
         if rt_lm_pt:
-            rt_lm_pt = (int(rt_lm_pt[0]), int(rt_lm_pt[1]))
             draw_gradient_point(canvas, rt_lm_pt, color, size=30, steps=2)
+
+        end_time = time.time()
+        # sys.stderr.write(f"[Points and Arrow] rt_lm_pt: {end_time - start_time:.6f}s\n")
 
         # 绘制箭头
         # 获取箭头颜色
@@ -123,46 +152,93 @@ def draw_points_and_arrows(canvas, std_landmarks_list, rt_landmarks_list, condit
         else:
             arrow_color = ARROW_COLORS["normal"]
 
+        start_time = time.time()
         # 绘制箭头
         draw_arrows_line(canvas,
                          start=rt_lm_pt, end=std_lm_pt,
                          arrow_num=ARROW_NUM,
                          color=arrow_color, size=ARROW_SIZE, thickness=ARROW_THICKNESS)
+        
+        end_time = time.time()
+        # sys.stderr.write(f"[Points and Arrow] draw_arrows_line: {end_time - start_time:.6f}s\n")
 
     return canvas
 
 
 def draw_transparent_circle(canvas, center, radius, color, opacity=0.5, thickness=2):
-    """在 canvas 上绘制一个透明填充但边缘不透明的圆
-    参数：
-      canvas   -- 要绘制的图像
-      center   -- 圆心坐标 (x, y)
-      radius   -- 半径
-      color    -- BGR 颜色元组，如 (0, 255, 0)
-      opacity  -- 填充透明度，范围 [0.0, 1.0]
-      thickness-- 边框线宽（正数），若设置为 -1 则为实心
-    """
-    # 在一个 overlay 上画填充圆
-    overlay = canvas.copy()
-    cv2.circle(overlay, center, radius, color, -1)
-    # 将 overlay 以 opacity 叠加到原图
-    cv2.addWeighted(overlay, opacity, canvas, 1 - opacity, 0, canvas)
-    # 再在原图上绘制不透明的边框
-    cv2.circle(canvas, center, radius, color, thickness)
+    # 计算圆形的边界框（局部区域）
+    center = (int(center[0]), int(center[1]))
+    x = center[0]
+    y = center[1]
+    
+    # 计算局部区域坐标（确保不超出图像边界）
+    x1 = max(0, x - radius)
+    y1 = max(0, y - radius)
+    x2 = min(canvas.shape[1], x + radius)
+    y2 = min(canvas.shape[0], y + radius)
+
+    # 检查区域有效性
+    if x2 <= x1 or y2 <= y1:
+        return
+    
+    # 仅复制需要处理的局部区域
+    overlay = canvas[y1:y2, x1:x2].copy()
+    
+    # 在局部区域上绘制填充圆（调整坐标为局部坐标）
+    local_center = (x - x1, y - y1)
+    cv2.circle(overlay, local_center, radius, color, -1)
+    
+    # 仅对局部区域进行加权融合
+    canvas[y1:y2, x1:x2] = cv2.addWeighted(
+        overlay, opacity, 
+        canvas[y1:y2, x1:x2], 1 - opacity, 
+        0
+    )
+    
+    # 绘制不透明边框（在原图上）
+    if thickness > 0:
+        cv2.circle(canvas, center, radius, color, thickness)
 
 
 def draw_gradient_point(canvas, point, color, size=20, steps=5, opacity=1.0):
-    """绘制渐变点，支持整体透明度"""
-    # 用原始画布做底板，每次循环都从底板 copy 出 overlay
-    base = canvas.copy()
+    """绘制渐变点，支持整体透明度，仅局部处理以提高效率"""
+    x, y = int(point[0]), int(point[1])  # 确保坐标为整数
+    max_radius = size  # 最大半径
+    
+    # 计算整体需要处理的区域（包含所有同心圆）
+    x1 = max(0, x - max_radius)
+    y1 = max(0, y - max_radius)
+    x2 = min(canvas.shape[1], x + max_radius)
+    y2 = min(canvas.shape[0], y + max_radius)
+
+    if x2 <= x1 or y2 <= y1:
+        return
+
+    
+    
+    # 提取基础局部区域（只复制一次）
+    base_roi = canvas[y1:y2, x1:x2].copy()
+    current_roi = base_roi.copy()  # 用于累积绘制的局部区域
+    
+    # 局部坐标系转换
+    local_x = x - x1
+    local_y = y - y1
+    
     for i in range(steps):
         # 由外向内依次绘制，最外层最透明，最内层最不透明
         t = (steps - i) / steps
-        radius = int(size * t)
+        radius = int(max_radius * t)
         alpha = opacity * t
-        overlay = base.copy()
-        cv2.circle(overlay, point, radius, color, -1)
-        cv2.addWeighted(overlay, alpha, canvas, 1 - alpha, 0, canvas)
+        
+        # 在临时图层上绘制当前圆
+        overlay = base_roi.copy()
+        cv2.circle(overlay, (local_x, local_y), radius, color, -1)
+        
+        # 仅对局部区域进行加权融合
+        current_roi = cv2.addWeighted(overlay, alpha, current_roi, 1 - alpha, 0)
+    
+    # 将处理好的局部区域放回原图
+    canvas[y1:y2, x1:x2] = current_roi
 
 
 def draw_arrows_line(canvas, start, end, arrow_num, color, size=20, thickness=4):
@@ -260,18 +336,19 @@ def draw_button(canvas, position, size, text, color=(0, 255, 0), text_color=(255
 
 
 def draw_multiple_buttons(canvas, buttons_texts, size, color, text_color, font_scale, thickness, conditions=None,
-                          highlight_color=(0, 200, 255)):
+                          highlight_color=(0, 200, 255),real_shape = None):
     button_width, button_height = size
     num_buttons = len(buttons_texts)
-    spacing = canvas.shape[1] // (num_buttons + 1)
+    spacing = canvas.shape[1] // (num_buttons) if real_shape == None else real_shape[0] // (num_buttons)
     for i, text in enumerate(buttons_texts):
-        x = (i + 1) * spacing - button_width // 2
-        y = canvas.shape[0] // 2 - button_height // 2
+        x = i * spacing + spacing//2 - button_width // 2 if real_shape == None else canvas.shape[1]//2 - real_shape[0]//2 + (i ) * spacing +spacing//2 - button_width // 2
+        y = canvas.shape[0] // 4 - button_height // 2
         btn_color = highlight_color if (conditions and i < len(conditions) and conditions[i]) else color
         draw_button(canvas, (x, y), size, text, btn_color, text_color, font_scale, thickness)
+        
 
 
-def draw_pose_with_buttons(canvas, buttons_config, rt_landmarks_list, condition, colors=PTS_PAIR_COLORS):
+def draw_pose_with_buttons(canvas, buttons_config, rt_landmarks_list, condition, colors=PTS_PAIR_COLORS,real_shape = None):
     """在画布上绘制姿态和按钮"""
     # 绘制姿态点
     for idx, rt_lm_pt in enumerate(rt_landmarks_list):
@@ -295,7 +372,8 @@ def draw_pose_with_buttons(canvas, buttons_config, rt_landmarks_list, condition,
         font_scale=buttons_config["font_scale"],
         thickness=buttons_config["thickness"],
         conditions=condition,  # 新增
-        highlight_color=(0, 200, 255)  # 高亮色可自定义
+        highlight_color=(0, 200, 255),  # 高亮色可自定义
+        real_shape = real_shape
     )
 
     return canvas
