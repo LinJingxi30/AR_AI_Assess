@@ -292,14 +292,14 @@ def run_sport_routine(sport_type_config, anim, camera, pre_align, pre_clip, DEBU
     sys.stderr.write(f"Start\n")
 
     # 大标题
-    DataSender.send_control("PLAY_AUDIO", flag=1)
+    DataSender.send_control("PLAY_AUDIO", flag="语音1.mp3")
     anim.animate_title(text="iTaichi-系统 正式开始！", duration=5.0, config=ANIMATOR_CONFIG)
 
     # 对齐四点指引
     pre_align.main_loop_with_voice()
 
     # 语音：好，接下来是对齐掩膜指引。
-    DataSender.send_control("PLAY_AUDIO", flag=6)
+    DataSender.send_control("PLAY_AUDIO", flag="语音6.mp3")
 
     # 倒计时3s
     anim.animate_countdown(duration=1.0, config=ANIMATOR_CONFIG, cnt=3)
@@ -308,10 +308,13 @@ def run_sport_routine(sport_type_config, anim, camera, pre_align, pre_clip, DEBU
     pre_clip.main_loop()
 
     # 语音：对齐掩膜指引完成，接下来正式开始。
-    DataSender.send_control("PLAY_AUDIO", flag=8)
+    DataSender.send_control("PLAY_AUDIO", flag="语音8.mp3")
 
     # 倒计时3s
     anim.animate_countdown(duration=1.0, config=ANIMATOR_CONFIG, cnt=3)
+
+    # 语音：太极操整体动作讲解。
+    DataSender.send_control("PLAY_AUDIO", flag="语音8.mp3")
 
     # 运动开始：遍历每个片段
     i = 0
@@ -329,7 +332,7 @@ def run_sport_routine(sport_type_config, anim, camera, pre_align, pre_clip, DEBU
         videos[i].main_loop()
 
         # 招式 i 主循环
-        DataSender.send_control("PLAY_AUDIO", flag=10)
+        DataSender.send_control("PLAY_AUDIO", flag="语音10.mp3")
         anim.animate_title(text=f"开始练习", duration=2.0, config=ANIMATOR_CONFIG)
         routines[i].main_loop()
 

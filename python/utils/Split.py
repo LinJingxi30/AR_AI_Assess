@@ -54,6 +54,7 @@ def split_and_send_camera_to_udp(camera_index=0, n=2, resolution=(1280, 720),
 
             h, w = frame.shape[:2]
             seg_width = (w + (n - 1) * overlap_width) // n  # 计算每段基础宽度
+            seg_height = min(seg_width*720//512,h)
 
             # 并行发送函数
             def send_segment(seg, sock, target):
@@ -72,8 +73,7 @@ def split_and_send_camera_to_udp(camera_index=0, n=2, resolution=(1280, 720),
                 # 确保最后一个分段能覆盖到画面最右侧
                 if i == n - 1:
                     x_end = w
-
-                seg = frame[h//4:h//4*3, x_start:x_end]
+                seg = frame[h//2-seg_height//2:h//2+seg_height//2, x_start:x_end]
                 # print(f"height={seg.shape[0]}, width={seg.shape[1]}")
 
                 t = threading.Thread(
