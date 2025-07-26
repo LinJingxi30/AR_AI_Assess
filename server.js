@@ -494,7 +494,7 @@ app.post('/api/start_rtmp', async (req, res) => {
             const pyPath = path.join('python',  'TaiJiGuiderSJTU/main.py');
             const pyProc = spawn(
                 PYTHON_INTERPRETER,
-                [pyPath, '--unique_id', i+1, '--rtmp_url', rtmpUrl],
+                [pyPath, '--unique_id',`${uuid}_${i+1}`, '--rtmp_url', rtmpUrl],
                 { 
                     stdio: ['ignore', 'pipe', 'pipe'],
                     shell: true  // 在 Windows 上使用 cmd 运行
