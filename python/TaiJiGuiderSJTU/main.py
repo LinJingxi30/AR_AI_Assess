@@ -117,6 +117,269 @@ TJC_Learning_PATHS = {
     },
 }
 
+TJC_P1_PATHS = {
+        "m_1": {
+            "标准 JSON 文件路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC" / "LearningMode" / "p1" / "p1m1.json",
+            "标准掩膜图片路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC",
+            "背景音乐": Path(PY_ROOT) / "gameAssets" / "sounds" / "SJTUbgm.mp3",
+        },
+        "m_2": {
+            "标准 JSON 文件路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC" / "LearningMode" / "p1" / "p1m2.json",
+            "标准掩膜图片路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC",
+            "背景音乐": Path(PY_ROOT) / "gameAssets" / "sounds" / "SJTUbgm.mp3",
+        },
+        "m_3": {
+            "标准 JSON 文件路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC" / "LearningMode" / "p1" / "p1m3.json",
+            "标准掩膜图片路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC",
+            "背景音乐": Path(PY_ROOT) / "gameAssets" / "sounds" / "SJTUbgm.mp3",
+        },
+        "m_4": {
+            "标准 JSON 文件路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC" / "LearningMode" / "p1" / "p1m4.json",
+            "标准掩膜图片路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC",
+            "背景音乐": Path(PY_ROOT) / "gameAssets" / "sounds" / "SJTUbgm.mp3",
+        },
+        "m_5": {
+            "标准 JSON 文件路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC" / "LearningMode" / "p1" / "p1m5.json",
+            "标准掩膜图片路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC",
+            "背景音乐": Path(PY_ROOT) / "gameAssets" / "sounds" / "SJTUbgm.mp3",
+        },
+        "m_6": {
+            "标准 JSON 文件路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC" / "LearningMode" / "p1" / "p1m6.json",
+            "标准掩膜图片路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC",
+            "背景音乐": Path(PY_ROOT) / "gameAssets" / "sounds" / "SJTUbgm.mp3",
+        },
+        "m_7": {
+            "标准 JSON 文件路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC" / "LearningMode" / "p1" / "p1m7.json",
+            "标准掩膜图片路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC",
+            "背景音乐": Path(PY_ROOT) / "gameAssets" / "sounds" / "SJTUbgm.mp3",
+        },
+        "m_8": {
+            "标准 JSON 文件路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC" / "LearningMode" / "p1" / "p1m8.json",
+            "标准掩膜图片路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC",
+            "背景音乐": Path(PY_ROOT) / "gameAssets" / "sounds" / "SJTUbgm.mp3",
+        },
+        "m_9": {
+            "标准 JSON 文件路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC" / "LearningMode" / "p1" / "p1m9.json",
+            "标准掩膜图片路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC",
+            "背景音乐": Path(PY_ROOT) / "gameAssets" / "sounds" / "SJTUbgm.mp3",
+        }
+}
+TJC_P2_PATHS = {
+    "m_1": {
+        "标准 JSON 文件路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC" / "LearningMode" / "p2" / "p2m1.json",
+        "标准掩膜图片路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC",
+        "背景音乐": Path(PY_ROOT) / "gameAssets" / "sounds" / "SJTUbgm.mp3",
+    },
+    "m_2": {
+        "标准 JSON 文件路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC" / "LearningMode" / "p2" / "p2m2.json",
+        "标准掩膜图片路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC",
+        "背景音乐": Path(PY_ROOT) / "gameAssets" / "sounds" / "SJTUbgm.mp3",
+    },
+    "m_3": {
+        "标准 JSON 文件路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC" / "LearningMode" / "p2" / "p2m3.json",
+        "标准掩膜图片路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC",
+        "背景音乐": Path(PY_ROOT) / "gameAssets" / "sounds" / "SJTUbgm.mp3",
+    },
+    "m_4": {
+        "标准 JSON 文件路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC" / "LearningMode" / "p2" / "p2m4.json",
+        "标准掩膜图片路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC",
+        "背景音乐": Path(PY_ROOT) / "gameAssets" / "sounds" / "SJTUbgm.mp3",
+    },
+    "m_5": {
+        "标准 JSON 文件路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC" / "LearningMode" / "p2" / "p2m5.json",
+        "标准掩膜图片路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC",
+        "背景音乐": Path(PY_ROOT) / "gameAssets" / "sounds" / "SJTUbgm.mp3",
+    },
+    "m_6": {
+        "标准 JSON 文件路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC" / "LearningMode" / "p2" / "p2m6.json",
+        "标准掩膜图片路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC",
+        "背景音乐": Path(PY_ROOT) / "gameAssets" / "sounds" / "SJTUbgm.mp3",
+    },
+    "m_7": {
+        "标准 JSON 文件路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC" / "LearningMode" / "p2" / "p2m7.json",
+        "标准掩膜图片路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC",
+        "背景音乐": Path(PY_ROOT) / "gameAssets" / "sounds" / "SJTUbgm.mp3",
+    },
+    "m_8": {
+        "标准 JSON 文件路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC" / "LearningMode" / "p2" / "p2m8.json",
+        "标准掩膜图片路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC",
+        "背景音乐": Path(PY_ROOT) / "gameAssets" / "sounds" / "SJTUbgm.mp3",
+    },
+}
+TJC_P3_PATHS = {
+    "m_1": {
+        "标准 JSON 文件路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC" / "LearningMode" / "p3" / "p3m1.json",
+        "标准掩膜图片路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC",
+        "背景音乐": Path(PY_ROOT) / "gameAssets" / "sounds" / "SJTUbgm.mp3",
+    },
+    "m_2": {
+        "标准 JSON 文件路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC" / "LearningMode" / "p3" / "p3m2.json",
+        "标准掩膜图片路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC",
+        "背景音乐": Path(PY_ROOT) / "gameAssets" / "sounds" / "SJTUbgm.mp3",
+    },
+    "m_3": {
+        "标准 JSON 文件路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC" / "LearningMode" / "p3" / "p3m3.json",
+        "标准掩膜图片路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC",
+        "背景音乐": Path(PY_ROOT) / "gameAssets" / "sounds" / "SJTUbgm.mp3",
+    },
+    "m_4": {
+        "标准 JSON 文件路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC" / "LearningMode" / "p3" / "p3m4.json",
+        "标准掩膜图片路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC",
+        "背景音乐": Path(PY_ROOT) / "gameAssets" / "sounds" / "SJTUbgm.mp3",
+    },
+    "m_5": {
+        "标准 JSON 文件路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC" / "LearningMode" / "p3" / "p3m5.json",
+        "标准掩膜图片路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC",
+        "背景音乐": Path(PY_ROOT) / "gameAssets" / "sounds" / "SJTUbgm.mp3",
+    },
+    "m_6": {
+        "标准 JSON 文件路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC" / "LearningMode" / "p3" / "p3m6.json",
+        "标准掩膜图片路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC",
+        "背景音乐": Path(PY_ROOT) / "gameAssets" / "sounds" / "SJTUbgm.mp3",
+    }
+}
+TJC_P4_PATHS = {
+    "m_1": {
+        "标准 JSON 文件路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC" / "LearningMode" / "p4" / "p4m1.json",
+        "标准掩膜图片路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC",
+        "背景音乐": Path(PY_ROOT) / "gameAssets" / "sounds" / "SJTUbgm.mp3",
+    },
+    "m_2": {
+        "标准 JSON 文件路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC" / "LearningMode" / "p4" / "p4m2.json",
+        "标准掩膜图片路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC",
+        "背景音乐": Path(PY_ROOT) / "gameAssets" / "sounds" / "SJTUbgm.mp3",
+    },
+    "m_3": {
+        "标准 JSON 文件路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC" / "LearningMode" / "p4" / "p4m3.json",
+        "标准掩膜图片路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC",
+        "背景音乐": Path(PY_ROOT) / "gameAssets" / "sounds" / "SJTUbgm.mp3",
+    },
+    "m_4": {
+        "标准 JSON 文件路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC" / "LearningMode" / "p4" / "p4m4.json",
+        "标准掩膜图片路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC",
+        "背景音乐": Path(PY_ROOT) / "gameAssets" / "sounds" / "SJTUbgm.mp3",
+    },
+    "m_5": {
+        "标准 JSON 文件路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC" / "LearningMode" / "p4" / "p4m5.json",
+        "标准掩膜图片路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC",
+        "背景音乐": Path(PY_ROOT) / "gameAssets" / "sounds" / "SJTUbgm.mp3",
+    },
+    "m_6": {
+        "标准 JSON 文件路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC" / "LearningMode" / "p4" / "p4m6.json",
+        "标准掩膜图片路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC",
+        "背景音乐": Path(PY_ROOT) / "gameAssets" / "sounds" / "SJTUbgm.mp3",
+    }
+}
+TJC_P5_PATHS = {
+    "m_1": {
+        "标准 JSON 文件路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC" / "LearningMode" / "p5" / "p5m1.json",
+        "标准掩膜图片路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC",
+        "背景音乐": Path(PY_ROOT) / "gameAssets" / "sounds" / "SJTUbgm.mp3",
+    },
+    "m_2": {
+        "标准 JSON 文件路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC" / "LearningMode" / "p5" / "p5m2.json",
+        "标准掩膜图片路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC",
+        "背景音乐": Path(PY_ROOT) / "gameAssets" / "sounds" / "SJTUbgm.mp3",
+    },
+    "m_3": {
+        "标准 JSON 文件路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC" / "LearningMode" / "p5" / "p5m3.json",
+        "标准掩膜图片路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC",
+        "背景音乐": Path(PY_ROOT) / "gameAssets" / "sounds" / "SJTUbgm.mp3",
+    },
+    "m_4": {
+        "标准 JSON 文件路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC" / "LearningMode" / "p5" / "p5m4.json",
+        "标准掩膜图片路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC",
+        "背景音乐": Path(PY_ROOT) / "gameAssets" / "sounds" / "SJTUbgm.mp3",
+    },
+}
+TJC_P6_PATHS = {
+    "m_1": {
+        "标准 JSON 文件路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC" / "LearningMode" / "p6" / "p6m1.json",
+        "标准掩膜图片路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC",
+        "背景音乐": Path(PY_ROOT) / "gameAssets" / "sounds" / "SJTUbgm.mp3",
+    },
+    "m_2": {
+        "标准 JSON 文件路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC" / "LearningMode" / "p6" / "p6m2.json",
+        "标准掩膜图片路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC",
+        "背景音乐": Path(PY_ROOT) / "gameAssets" / "sounds" / "SJTUbgm.mp3",
+    },
+    "m_3": {
+        "标准 JSON 文件路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC" / "LearningMode" / "p6" / "p6m3.json",
+        "标准掩膜图片路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC",
+        "背景音乐": Path(PY_ROOT) / "gameAssets" / "sounds" / "SJTUbgm.mp3",
+    },
+    "m_4": {
+        "标准 JSON 文件路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC" / "LearningMode" / "p6" / "p6m4.json",
+        "标准掩膜图片路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC",
+        "背景音乐": Path(PY_ROOT) / "gameAssets" / "sounds" / "SJTUbgm.mp3",
+    },
+    "m_5": {
+        "标准 JSON 文件路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC" / "LearningMode" / "p6" / "p6m5.json",
+        "标准掩膜图片路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC",
+        "背景音乐": Path(PY_ROOT) / "gameAssets" / "sounds" / "SJTUbgm.mp3",
+    },
+    "m_6": {
+        "标准 JSON 文件路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC" / "LearningMode" / "p6" / "p6m6.json",
+        "标准掩膜图片路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC",
+        "背景音乐": Path(PY_ROOT) / "gameAssets" / "sounds" / "SJTUbgm.mp3",
+    },
+    "m_7": {
+        "标准 JSON 文件路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC" / "LearningMode" / "p6" / "p6m7.json",
+        "标准掩膜图片路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC",
+        "背景音乐": Path(PY_ROOT) / "gameAssets" / "sounds" / "SJTUbgm.mp3",
+    },
+    "m_8": {
+        "标准 JSON 文件路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC" / "LearningMode" / "p6" / "p6m8.json",
+        "标准掩膜图片路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC",
+        "背景音乐": Path(PY_ROOT) / "gameAssets" / "sounds" / "SJTUbgm.mp3",
+    },
+}
+TJC_P7_PATHS = {
+    "m_1": {
+        "标准 JSON 文件路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC" / "LearningMode" / "p7" / "p7m1.json",
+        "标准掩膜图片路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC",
+        "背景音乐": Path(PY_ROOT) / "gameAssets" / "sounds" / "SJTUbgm.mp3",
+    },
+}
+TJC_P8_PATHS = {
+    "m_1": {
+        "标准 JSON 文件路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC" / "LearningMode" / "p8" / "p8m1.json",
+        "标准掩膜图片路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC",
+        "背景音乐": Path(PY_ROOT) / "gameAssets" / "sounds" / "SJTUbgm.mp3",
+    },
+    "m_2": {
+        "标准 JSON 文件路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC" / "LearningMode" / "p8" / "p8m2.json",
+        "标准掩膜图片路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC",
+        "背景音乐": Path(PY_ROOT) / "gameAssets" / "sounds" / "SJTUbgm.mp3",
+    },
+    "m_3": {
+        "标准 JSON 文件路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC" / "LearningMode" / "p8" / "p8m3.json",
+        "标准掩膜图片路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC",
+        "背景音乐": Path(PY_ROOT) / "gameAssets" / "sounds" / "SJTUbgm.mp3",
+    },
+    "m_4": {
+        "标准 JSON 文件路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC" / "LearningMode" / "p8" / "p8m4.json",
+        "标准掩膜图片路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC",
+        "背景音乐": Path(PY_ROOT) / "gameAssets" / "sounds" / "SJTUbgm.mp3",
+    },
+}
+TJC_P9_PATHS = {
+    "m_1": {
+        "标准 JSON 文件路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC" / "LearningMode" / "p9" / "p9m1.json",
+        "标准掩膜图片路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC",
+        "背景音乐": Path(PY_ROOT) / "gameAssets" / "sounds" / "SJTUbgm.mp3",
+    },
+    "m_2": {
+        "标准 JSON 文件路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC" / "LearningMode" / "p9" / "p9m2.json",
+        "标准掩膜图片路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC",
+        "背景音乐": Path(PY_ROOT) / "gameAssets" / "sounds" / "SJTUbgm.mp3",
+    },
+    "m_3": {
+        "标准 JSON 文件路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC" / "LearningMode" / "p9" / "p9m3.json",
+        "标准掩膜图片路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC",
+        "背景音乐": Path(PY_ROOT) / "gameAssets" / "sounds" / "SJTUbgm.mp3",
+    }
+}
 TJC_Learning_CONFIG = {
     # todo:: 音频路径？
     "路径": TJC_Learning_PATHS,
@@ -145,13 +408,6 @@ TJC_Training_CONFIG = {
     "路径": TJC_Training_PATHS,
     "片段标题": ["完整演示"],
 }
-
-POSTURE_1  ={
-    "标准 JSON 文件路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC" / "LearningMode" / "p1.json",
-    "标准掩膜图片路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC",
-    "背景音乐": Path(PY_ROOT) / "gameAssets" / "sounds" / "SJTUbgm.mp3",
-}
-
 
 ANIMATOR_CONFIG = {
     # 招式X：xxxx
@@ -236,50 +492,189 @@ def parse_args():
     parser.add_argument("--rtmp_url", required=False, help="RTMP流地址")
     return parser.parse_args()
 
-
-def split_json_by_skip(json_path):
-    """将json按skip=false分割成动作段，每段为一个动作"""
-    actions = []
-    current_action = []
-    with open(json_path, "r", encoding="utf-8") as f:
-        for line in f:
-            if not line.strip() or line.strip().startswith("//"):
-                continue
-            record = json.loads(line)
-            current_action.append(record)
-            if record["points"].get("skip", False) == False and len(current_action) > 1:
-                actions.append(current_action[:-1])
-                current_action = [record]
-    if current_action:
-        actions.append(current_action)
-    return actions
-
-def run_posture_with_actions(posture_config, anim, camera, DEBUG, unique_id):
-    # posture_config: dict, 包含"标准 JSON 文件路径"等
-    actions = split_json_by_skip(posture_config["标准 JSON 文件路径"])
-    for idx, action_frames in enumerate(actions):
-        # 1. 播放动作idx的视频（可自定义标题）
-        anim.animate_title(text=f"动作{idx+1} 演示", duration=3.0, config=ANIMATOR_CONFIG)
-        # Video类需要能只播放action_frames对应的图片序列
-        video = Video(camera=camera, uuid=unique_id, frames=action_frames, debug=DEBUG)
-        video.main_loop()
-        # 2. 跟练
-        anim.animate_title(text=f"动作{idx+1} 跟练", duration=3.0, config=ANIMATOR_CONFIG)
-        guider = Guider(camera=camera, uuid=unique_id, frames=action_frames, debug=DEBUG)
-        guider.main_loop()
-        # 3. 可选：评分
-        anim.animate_summary(total_score=guider.score, move_scores=[guider.score], duration=2.5, config=ANIMATOR_CONFIG)
-    # 播放整体动画
-    anim.animate_title(text="招式整体动画", duration=4.0, config=ANIMATOR_CONFIG)
-    # 假设整体动画为 posture_config["整体动画路径"]
-    overall_video = Video(camera=camera, uuid=unique_id, paths=posture_config.get("整体动画路径"), debug=DEBUG)
-    overall_video.main_loop()
-    # 重做/继续
-    redo_selector = Selector(camera=camera, uuid=unique_id, buttons_config=REDO_SEL_CONFIG, debug=DEBUG, win_size=(WIN_SIZE[0], WIN_SIZE[1]))
-    redo_selector.main_loop_with_voice()
-    return redo_selector.selection  # 0重做，1继续
-
 # main.py
+
+def run_TJC(sport_type_config, anim, camera, pre_align, pre_clip, DEBUG, unique_id,p1,p2,p3,p4,p5,p6,p7,p8,p9):
+    # 招式实例列表
+    routines = []
+    videos = []
+    for i in range(len(sport_type_config["路径"])):
+        routines.append(
+            Guider(camera=camera, uuid=unique_id, paths=sport_type_config["路径"][f"POSTURE_{i + 1}"], debug=DEBUG))
+        videos.append(
+            Video(camera=camera, uuid=unique_id, paths=sport_type_config["路径"][f"POSTURE_{i + 1}"], debug=DEBUG))
+    p1m = [] ; p2m = []; p3m = [];p4m = [];p5m = []; p6m = []; p7m = []; p8m = [];p9m = []
+    videop1 = [];videop2 = []; videop3 = []; videop4 = []; videop5 = [];videop6 = [];videop7 = []; videop8 = []; videop9 = []
+    for i in range(len(p1)):
+        p1m.append(
+            Guider(camera=camera, uuid=unique_id, paths=p1[f"m_{i+1}"], debug=DEBUG))
+        videop1.append(
+            Video(camera=camera, uuid=unique_id, paths=p1[f"m_{i+1}"], debug=DEBUG))
+    for a in range(len(p2)):
+        p2m.append(
+            Guider(camera=camera, uuid=unique_id, paths=p2[f"m_{a+1}"], debug=DEBUG))
+        videop2.append(
+            Video(camera=camera, uuid=unique_id, paths=p2[f"m_{a+1}"], debug=DEBUG))
+    for a in range(len(p3)):
+        p3m.append(
+            Guider(camera=camera, uuid=unique_id, paths=p3[f"m_{a+1}"], debug=DEBUG))
+        videop3.append(
+            Video(camera=camera, uuid=unique_id, paths=p3[f"m_{a+1}"], debug=DEBUG))
+    for a in range(len(p4)):
+        p4m.append(
+            Guider(camera=camera, uuid=unique_id, paths=p4[f"m_{a+1}"], debug=DEBUG))
+        videop4.append(
+            Video(camera=camera, uuid=unique_id, paths=p4[f"m_{a+1}"], debug=DEBUG))
+    for a in range(len(p5)):
+        p5m.append(
+            Guider(camera=camera, uuid=unique_id, paths=p5[f"m_{a + 1}"], debug=DEBUG))
+        videop5.append(
+            Video(camera=camera, uuid=unique_id, paths=p5[f"m_{a+1}"], debug=DEBUG))
+    for a in range(len(p6)):
+        p6m.append(
+            Guider(camera=camera, uuid=unique_id, paths=p6[f"m_{a + 1}"], debug=DEBUG))
+        videop6.append(
+            Video(camera=camera, uuid=unique_id, paths=p6[f"m_{a+1}"], debug=DEBUG))
+    for a in range(len(p7)):
+        p7m.append(
+            Guider(camera=camera, uuid=unique_id, paths=p7[f"m_{a + 1}"], debug=DEBUG))
+        videop7.append(
+            Video(camera=camera, uuid=unique_id, paths=p7[f"m_{a+1}"], debug=DEBUG))
+    for a in range(len(p8)):
+        p8m.append(
+            Guider(camera=camera, uuid=unique_id, paths=p8[f"m_{a + 1}"], debug=DEBUG))
+        videop8.append(
+            Video(camera=camera, uuid=unique_id, paths=p8[f"m_{a+1}"], debug=DEBUG))
+    for a in range(len(p9)):
+        p9m.append(
+            Guider(camera=camera, uuid=unique_id, paths=p9[f"m_{a + 1}"], debug=DEBUG))
+        videop9.append(
+            Video(camera=camera, uuid=unique_id, paths=p9[f"m_{a+1}"], debug=DEBUG))
+
+    # ?
+    sys.stderr.write(f"Start\n")
+
+    # 大标题
+    DataSender.send_control("PLAY_AUDIO", flag="语音1.mp3")
+    anim.animate_title(text="iTaichi-系统 正式开始！", duration=5.0, config=ANIMATOR_CONFIG)
+
+    # 对齐四点指引
+    pre_align.main_loop_with_voice()
+
+    # 语音：好，接下来是对齐掩膜指引。
+    DataSender.send_control("PLAY_AUDIO", flag="语音6.mp3")
+
+    # 倒计时3s
+    anim.animate_countdown(duration=1.0, config=ANIMATOR_CONFIG, cnt=3)
+
+    # 对齐掩膜指引
+    pre_clip.main_loop()
+
+    # 语音：对齐掩膜指引完成，接下来正式开始。
+    DataSender.send_control("PLAY_AUDIO", flag="语音8.mp3")
+
+    # 倒计时3s
+    anim.animate_countdown(duration=1.0, config=ANIMATOR_CONFIG, cnt=3)
+
+    # 语音：太极操整体动作讲解。
+    DataSender.send_control("PLAY_AUDIO", flag="太极操整体动作介绍.mp3")
+
+    # 运动开始：遍历每个片段
+    i = 0
+    while i < len(sport_type_config["路径"]):
+        # 语音：开始招式 i
+        # todo:: 针对性的语音提示，比如播放的是完整演示or实际训练
+
+        # DataSender.send_control("PLAY_VIDEO", flag ="part1.mp4")
+        # time.sleep(8)
+
+        # 招式 i 标题
+        anim.animate_title(text=sport_type_config["片段标题"][i], duration=4.0, config=ANIMATOR_CONFIG)
+        # 招式 i 视频
+        anim.animate_title(text=f"招式 {i + 1} 整体动画", duration=4.0, config=ANIMATOR_CONFIG)
+        videos[i].main_loop()
+
+        if i == 0:
+            # 招式 i 主循环
+            DataSender.send_control("PLAY_AUDIO", flag=f"招式1.mp3")
+            videop1[i].main_loop()
+            p1m[i].main_loop()
+        elif i == 1:
+            # 招式 i 主循环
+            # DataSender.send_control("PLAY_AUDIO", flag=f"招式2.mp3")
+            videop2[i].main_loop()
+            p2m[i].main_loop()
+        elif i == 2:
+            # 招式 i 主循环
+            DataSender.send_control("PLAY_AUDIO", flag=f"招式3.mp3")
+            videop3[i].main_loop()
+            p3m[i].main_loop()
+        elif i == 3:
+            # 招式 i 主循环
+            DataSender.send_control("PLAY_AUDIO", flag=f"招式4.mp3")
+            videop4[i].main_loop()
+            p4m[i].main_loop()
+        elif i == 4:
+            # 招式 i 主循环
+            DataSender.send_control("PLAY_AUDIO", flag=f"招式5.mp3")
+            videop5[i].main_loop()
+            p5m[i].main_loop()
+        elif i == 5:
+            # 招式 i 主循环
+            DataSender.send_control("PLAY_AUDIO", flag=f"招式6.mp3")
+            videop6[i].main_loop()
+            p6m[i].main_loop()
+        elif i == 6:
+            # 招式 i 主循环
+            DataSender.send_control("PLAY_AUDIO", flag=f"招式7.mp3")
+            videop7[i].main_loop()
+            p7m[i].main_loop()
+        elif i == 7:
+            # 招式 i 主循环
+            # DataSender.send_control("PLAY_AUDIO", flag=f"招式8.mp3")
+            videop8[i].main_loop()
+            p8m[i].main_loop()
+        elif i == 8:
+            # 招式 i 主循环
+            # DataSender.send_control("PLAY_AUDIO", flag=f"招式9.mp3")
+            videop9[i].main_loop()
+            p9m[i].main_loop()
+
+        anim.animate_title(text=f"开始练习", duration=2.0, config=ANIMATOR_CONFIG)
+        routines[i].main_loop()
+
+        # todo:: 用嵌入在config的条件来判断是否需要评分
+        # 招式 i 评分
+        anim.animate_summary(total_score=routines[i].score, move_scores=[routines[i].score], duration=2.5,
+                             config=ANIMATOR_CONFIG)
+
+        # sys.stderr.write(f"已执行片段 {i+1} finished.\n")   # 调试
+
+        # ******** 添加重做/继续逻辑的开始 ********
+        redo_selector = Selector(camera=camera, uuid=unique_id, buttons_config=REDO_SEL_CONFIG, debug=DEBUG,
+                                 win_size=(WIN_SIZE[0], WIN_SIZE[1]))
+        sys.stderr.write(str(redo_selector.buttons_positions))
+        redo_selector.main_loop_with_voice()
+
+        if redo_selector.selection == 0:  # 用户选择了“重做”
+            # 重置当前招式的状态，准备重做
+            routines[i] = Guider(camera=camera, uuid=unique_id, paths=sport_type_config["路径"][f"POSTURE_{i + 1}"],
+                                 debug=DEBUG)
+            continue  # 再次执行当前循环，即重做当前招式
+        elif redo_selector.selection == 1:  # 用户选择了“继续”
+            i += 1  # 进入下一个招式
+        # ******** 添加重做/继续逻辑的结束 ********
+
+    # # 把 differences-<id>.json 文件合并生成
+    # combine_simple(id=unique_id, save_path=Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi")
+
+    # 结束：发送动作分列表至前端
+    DataSender.send_control(command="MOVE_SCORES", data=[t.score for t in routines])
+
+    # 退出 pygame
+    pygame.quit()
+
+
 def run_sport_routine(sport_type_config, anim, camera, pre_align, pre_clip, DEBUG, unique_id):
     # 招式实例列表
     routines = []
@@ -292,14 +687,14 @@ def run_sport_routine(sport_type_config, anim, camera, pre_align, pre_clip, DEBU
     sys.stderr.write(f"Start\n")
 
     # 大标题
-    DataSender.send_control("PLAY_AUDIO", flag=1)
+    DataSender.send_control("PLAY_AUDIO", flag="语音1")
     anim.animate_title(text="iTaichi-系统 正式开始！", duration=5.0, config=ANIMATOR_CONFIG)
 
     # 对齐四点指引
     pre_align.main_loop_with_voice()
 
     # 语音：好，接下来是对齐掩膜指引。
-    DataSender.send_control("PLAY_AUDIO", flag=6)
+    DataSender.send_control("PLAY_AUDIO", flag="语音6")
 
     # 倒计时3s
     anim.animate_countdown(duration=1.0, config=ANIMATOR_CONFIG, cnt=3)
@@ -308,7 +703,7 @@ def run_sport_routine(sport_type_config, anim, camera, pre_align, pre_clip, DEBU
     pre_clip.main_loop()
 
     # 语音：对齐掩膜指引完成，接下来正式开始。
-    DataSender.send_control("PLAY_AUDIO", flag=8)
+    DataSender.send_control("PLAY_AUDIO", flag="语音8")
 
     # 倒计时3s
     anim.animate_countdown(duration=1.0, config=ANIMATOR_CONFIG, cnt=3)
@@ -329,7 +724,7 @@ def run_sport_routine(sport_type_config, anim, camera, pre_align, pre_clip, DEBU
         videos[i].main_loop()
 
         # 招式 i 主循环
-        DataSender.send_control("PLAY_AUDIO", flag=10)
+        DataSender.send_control("PLAY_AUDIO", flag="太极操整体动作介绍.mp3")
         anim.animate_title(text=f"开始练习", duration=2.0, config=ANIMATOR_CONFIG)
         routines[i].main_loop()
 
@@ -406,8 +801,10 @@ if __name__ == "__main__":
             # DataSender.send_control("PLAY_VIDEO", flag ="part1.mp4")
             # time.sleep(8)
             # 太极操 9 式
-            run_sport_routine(sport_type_config=TJC_Learning_CONFIG, anim=anim, camera=camera, pre_align=pre_align,
-                              pre_clip=pre_clip, DEBUG=DEBUG, unique_id=unique_id)
+            run_TJC(sport_type_config=TJC_Learning_CONFIG, anim=anim, camera=camera, pre_align=pre_align,
+                              pre_clip=pre_clip, DEBUG=DEBUG, unique_id=unique_id ,p1=TJC_P1_PATHS,
+                    p2=TJC_P2_PATHS, p3=TJC_P3_PATHS, p4=TJC_P4_PATHS, p5=TJC_P5_PATHS,
+                    p6=TJC_P6_PATHS, p7=TJC_P7_PATHS, p8=TJC_P8_PATHS, p9=TJC_P9_PATHS)
 
         elif sport_selector.selection == 1:
             # DataSender.send_control("PLAY_VIDEO", flag="part1.mp4")
@@ -435,7 +832,7 @@ if __name__ == "__main__":
             # DataSender.send_control("PLAY_VIDEO", flag ="part1.mp4")
             # time.sleep(8)
             # 八法五步
-            run_sport_routine(sport_type_config=BFWB_Training_CONFIG, anim=anim, camera=camera, pre_align=pre_align,
+            run_sport_routine(sport_type_config=TJC_Training_CONFIG, anim=anim, camera=camera, pre_align=pre_align,
                               pre_clip=pre_clip, DEBUG=DEBUG, unique_id=unique_id)
 
         elif sport_selector.selection == 2:
