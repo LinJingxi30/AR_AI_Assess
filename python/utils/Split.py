@@ -56,7 +56,7 @@ def split_and_send_camera_to_udp(camera_index=0, n=2, resolution=(1280, 720),
 
             h, w = frame.shape[:2]
             seg_width = (w + (n - 1) * overlap_width) // n
-            seg_height = min(seg_width*720//512, h)
+            seg_height = min(seg_width*720//500, h)
 
             # 并行发送函数
             def send_segment(seg, sock, target, frame_id):
@@ -71,6 +71,7 @@ def split_and_send_camera_to_udp(camera_index=0, n=2, resolution=(1280, 720),
                         # 头部: [frame_id(4字节)][chunk_idx(2字节)][total_chunks(2字节)]
                         header = struct.pack('!IHH', frame_id, idx, total_chunks)
                         sock.sendto(header + chunk, target)
+                        time.sleep(0.0001)
                 except Exception as e:
                     print(f"发送失败: {e}", file=sys.stderr)
 
@@ -104,7 +105,7 @@ if __name__ == "__main__":
     parser.add_argument('--camera_index', type=int, default=0, help='摄像头设备索引')
     parser.add_argument('--n', type=int, default=2, help='分割份数')
     parser.add_argument('--resolution', type=str, default='4096x2160', help='分辨率格式: WxH')
-    parser.add_argument('--jpeg_quality', type=int, default=80, help='JPEG压缩质量 (0-100)')
+    parser.add_argument('--jpeg_quality', type=int, default=70, help='JPEG压缩质量 (0-100)')
     parser.add_argument('--overlap', type=int, default=0, help='重叠区域宽度（像素）')
 
     args = parser.parse_args()

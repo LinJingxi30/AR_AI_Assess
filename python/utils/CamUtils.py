@@ -5,6 +5,7 @@ import numpy as np
 import struct
 import collections
 import time
+import threading
 
 class CameraUtil:
     def __init__(self, source=0, resolution=(1280, 720)):
@@ -15,6 +16,9 @@ class CameraUtil:
         self.camera = None
         self.udp_sock = None
         self.resolution = resolution
+        self._udp_frame_buffer = collections.deque(maxlen=5)
+        self._udp_thread = None
+        self._udp_thread_stop = threading.Event()
 
         if isinstance(source, str) and source.upper().startswith("UDP://"):
             addr = source[6:]
@@ -24,6 +28,8 @@ class CameraUtil:
             port = int(port)
             self.udp_sock = self.camera_init_udp(host=ip, port=port)
             self.is_udp = True
+            self._udp_thread = threading.Thread(target=self._udp_receiver_thread, daemon=True)
+            self._udp_thread.start()
         elif isinstance(source, int) or (isinstance(source, str) and source.isdigit()):
             self.camera = self.camera_init(source=int(source), resolution=resolution)
             self.is_udp = False
@@ -73,15 +79,15 @@ class CameraUtil:
             return None
         return frame
 
-    def camera_capture_udp(self, sock=None, max_packet_size=65536, timeout=2.0):
-        if sock is None:
-            sock = self.udp_sock
+    def _udp_receiver_thread(self):
+        sock = self.udp_sock
+        max_packet_size = 65536
+        timeout = 2.0
         sock.settimeout(timeout)
         frame_chunks = {}
         chunk_count = {}
         frame_id_last = None
-        start_time = time.time()
-        while True:
+        while not self._udp_thread_stop.is_set():
             try:
                 data, _ = sock.recvfrom(max_packet_size)
                 if len(data) < 8:
@@ -90,27 +96,35 @@ class CameraUtil:
                 frame_id, chunk_idx, total_chunks = struct.unpack('!IHH', header)
                 chunk = data[8:]
                 if frame_id_last is not None and frame_id != frame_id_last:
-                    # 新帧，丢弃旧帧
                     frame_chunks.clear()
                     chunk_count.clear()
                 frame_id_last = frame_id
                 frame_chunks[chunk_idx] = chunk
                 chunk_count[frame_id] = total_chunks
                 if len(frame_chunks) == total_chunks:
-                    # 重组
                     full_data = b''.join(frame_chunks[i] for i in range(total_chunks))
                     np_data = np.frombuffer(full_data, dtype=np.uint8)
                     frame = cv2.imdecode(np_data, cv2.IMREAD_COLOR)
-                    if frame is None:
-                        print("UDP流帧解码失败", file=sys.stderr)
-                    return frame
-                # 超时处理
-                if time.time() - start_time > timeout:
-                    print("UDP流接收超时", file=sys.stderr)
-                    return None
+                    if frame is not None:
+                        self._udp_frame_buffer.append(frame)
+                    frame_chunks.clear()
+                    chunk_count.clear()
             except socket.timeout:
-                print("UDP流接收超时", file=sys.stderr)
+                continue
+            except Exception as e:
+                print(f"UDP接收线程异常: {e}", file=sys.stderr)
+                continue
+
+    def camera_capture_udp(self, sock=None, timeout=2.0):
+        # 直接从缓冲区取最新帧
+        start_time = time.time()
+        while True:
+            if self._udp_frame_buffer:
+                return self._udp_frame_buffer.pop()
+            if time.time() - start_time > timeout:
+                print("UDP流缓冲区取帧超时", file=sys.stderr)
                 return None
+            time.sleep(0.01)
 
     def camera_frame_process(self, target_reso=None, frame=None):
         if frame is None:
@@ -129,3 +143,10 @@ class CameraUtil:
         right = target_w - new_w - left
         bordered = cv2.copyMakeBorder(resized, top, bottom, left, right, cv2.BORDER_CONSTANT, value=[0, 0, 0])
         return bordered,(new_w, new_h)
+
+    def __del__(self):
+        # 停止线程
+        if hasattr(self, '_udp_thread_stop'):
+            self._udp_thread_stop.set()
+        if hasattr(self, '_udp_thread') and self._udp_thread is not None:
+            self._udp_thread.join(timeout=1)
