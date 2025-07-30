@@ -83,17 +83,17 @@
 
       socket.on("process_status", (data) => {
         const { started, uuid } = data;
-        if(started) {
-          startBtn.style.display = "none";
-          stopBtn.style.display = "block";
-          mainModeSelect.style.display = "none";
-          subModeSelect.style.display = "none";
-        } else{
-          startBtn.style.display = "block";
-          stopBtn.style.display = "none";
-          mainModeSelect.style.display = "block";
-          subModeSelect.style.display = "block";
-        }
+        // if(started) {
+        //   startBtn.style.display = "none";
+        //   stopBtn.style.display = "block";
+        //   mainModeSelect.style.display = "none";
+        //   subModeSelect.style.display = "none";
+        // } else{
+        //   startBtn.style.display = "block";
+        //   stopBtn.style.display = "none";
+        //   mainModeSelect.style.display = "block";
+        //   subModeSelect.style.display = "block";
+        // }
       });
 
       socket.on("update_room", (room) => {
@@ -215,6 +215,20 @@
 
         } catch (err) {
           console.error(`无法获取息屏锁: ${err.name}, ${err.message}`);
+          // 新增：弹窗提示用户
+          // alert("⚠️ 无法获取息屏锁，可能导致屏幕自动熄灭。请手动设置屏幕常亮或检查浏览器权限。");
+          // 或者你也可以在页面上显示一个提示条
+          // showWakeLockWarning();
+        }
+      }
+      function showWakeLockWarning() {
+        let warn = document.getElementById('wake-lock-warning');
+        if (!warn) {
+          warn = document.createElement('div');
+          warn.id = 'wake-lock-warning';
+          warn.className = 'fixed top-0 left-0 w-full bg-yellow-400 text-black text-center py-2 z-50';
+          warn.innerText = '⚠️ 无法获取息屏锁，屏幕可能会自动熄灭，请手动保持屏幕常亮。';
+          document.body.appendChild(warn);
         }
       }
 
