@@ -422,22 +422,16 @@ let rtmpState = {
     n: 0
 };
 
-// 启动 RTMP 推流和 main.py
+// 启动 RTMP 推流（不再自动启动 main.py）
 app.post('/api/start_rtmp', async (req, res) => {
     const { n, cameraName, fps } = req.body;
     if (rtmpState.proc) {
         return res.status(400).json({ error: 'RTMP 已在运行' });
     }
     try {
-        
-        // const { proc, rtmpUrls } = await startRtmpStreams(n, cameraName, fps || 10);
-
         const pyPath = path.join('python', 'utils', 'Split.py');
         const pyArgs = [
-            // '--camera_index', '0',
             '--n', String(n),
-            // '--resolution', resolution || '1280x720',
-            // '--jpeg_quality', jpegQuality || '80'
         ];
         const proc = spawn(
             PYTHON_INTERPRETER,
@@ -445,32 +439,26 @@ app.post('/api/start_rtmp', async (req, res) => {
             { stdio: ['ignore', 'pipe', 'pipe'] }
         );
 
-        // 阻塞直到获取到端口列表
         let rtmpUrls = [];
         const getPorts = new Promise((resolve, reject) => {
             let dataBuffer = '';
             const onData = (chunk) => {
                 dataBuffer += chunk.toString();
-                // 假设端口列表一行为JSON数组
                 const regex = /\[.*?\]/s;
                 const match = regex.exec(dataBuffer);
                 if (match) {
                     try {
                         const ports = JSON.parse(match[0]);
-                        // 生成 rtmp url 列表
                         rtmpUrls = ports.map(port => `UDP://127.0.0.1:${port}`);
                         proc.stdout.off('data', onData);
                         resolve();
                     } catch (e) {
-                        // 解析失败，继续等待
                         console.error('解析端口列表时发生错误:', e);
                     }
                 }
             };
             proc.stdout.on('data', onData);
-            proc.stderr.on('data', (err) => {
-                // 若有错误输出也可考虑 reject
-            });
+            proc.stderr.on('data', (err) => {});
             proc.on('close', (code) => {
                 reject(new Error('Split.py 进程提前退出'));
             });
@@ -481,98 +469,13 @@ app.post('/api/start_rtmp', async (req, res) => {
         rtmpState.proc = proc;
         rtmpState.rtmpUrls = rtmpUrls;
         rtmpState.n = n;
-        rtmpState.mainProcs = [];
+        rtmpState.mainProcs = Array(n).fill(null);
 
-        // console.log(`RTMP 推流已启动， 路数: ${n}, 摄像头: ${cameraName}, 帧率: ${fps} rtmpUrls:${rtmpUrls.join(', ')}`);
         console.log(`UDP 推流已启动， 路数: ${n}, 摄像头: ${cameraName}, 帧率: ${fps} rtmpUrls:${rtmpUrls.join(', ')}`);
-
-        // 启动 n 个 main.py，每个传入 uuid 和 rtmp_url
-        for (let i = 0; i < n; i++) {
-            const uuid = uuidv4();
-            const room = `room${i + 1}`;
-            const rtmpUrl = rtmpUrls[i];
-            const pyPath = path.join('python',  'TaiJiGuiderSJTU/main.py');
-            const pyProc = spawn(
-                PYTHON_INTERPRETER,
-                [pyPath, '--unique_id',`${uuid}_${i+1}`, '--rtmp_url', rtmpUrl],
-                { 
-                    stdio: ['ignore', 'pipe', 'pipe'],
-                    shell: true  // 在 Windows 上使用 cmd 运行
-                }
-            );
-            pyProc.room = room;
-            pyProc.idx = i;
-            rtmpState.mainProcs.push(pyProc);
-
-            // 处理图片帧和控制帧
-            let buffer = Buffer.alloc(0);
-            let frameState = null;
-            pyProc.stdout.on('data', async (chunk) => {
-                buffer = Buffer.concat([buffer, chunk]);
-                while (buffer.length > 0) {
-                    if (!frameState) {
-                        const marker = Buffer.from('---FRAME---\n');
-                        const markerIndex = buffer.indexOf(marker);
-                        if (markerIndex === -1) break;
-                        buffer = buffer.slice(markerIndex + marker.length);
-                        frameState = { header: null, expectedLength: 0, receivedBuffer: [] };
-                    }
-                    if (frameState && !frameState.header) {
-                        const newlineIndex = buffer.indexOf(0x0A);
-                        if (newlineIndex === -1) break;
-                        const headerStr = buffer.slice(0, newlineIndex).toString('utf8');
-                        buffer = buffer.slice(newlineIndex + 1);
-                        try {
-                            frameState.header = JSON.parse(headerStr);
-                            if (frameState.header.type === 'control') {
-                                io.to(room).emit('control', frameState.header);
-                                frameState = null;
-                                continue;
-                            } else if (frameState.header.type === 'image') {
-                                frameState.expectedLength = frameState.header.length;
-                                frameState.receivedLength = 0;
-                            } else {
-                                frameState = null;
-                            }
-                        } catch {
-                            frameState = null;
-                        }
-                    }
-                    if (frameState?.header?.type === 'image') {
-                        const remaining = frameState.expectedLength - frameState.receivedLength;
-                        const toTake = Math.min(buffer.length, remaining);
-                        frameState.receivedBuffer.push(buffer.slice(0, toTake));
-                        frameState.receivedLength += toTake;
-                        buffer = buffer.slice(toTake);
-                        if (frameState.receivedLength >= frameState.expectedLength) {
-                            const imageBuffer = Buffer.concat(frameState.receivedBuffer);
-                            try {
-                                // const processedBuffer = await sharp(imageBuffer)
-                                //     .resize(1080, 720)
-                                //     .jpeg({ quality: 60 })
-                                //     .toBuffer();
-                                io.to(room).emit('frame', imageBuffer);
-                            } catch {
-                                io.to(room).emit('frame', imageBuffer);
-                            }
-                            frameState = null;
-                        }
-                    } else {
-                        break;
-                    }
-                }
-            });
-            pyProc.stderr.on('data', (data) => {
-                console.error(`main.py[${room}] 错误:`, data.toString());
-            });
-            pyProc.on('close', (code) => {
-                console.log(`main.py[${room}] 退出，代码: ${code}`);
-            });
-        }
 
         res.json({ rtmpUrls });
     } catch (err) {
-        console.error('启动 RTMP/main.py 失败:', err);
+        console.error('启动 RTMP 失败:', err);
         res.status(500).json({ error: '启动失败' });
     }
 });
@@ -593,6 +496,126 @@ app.post('/api/stop_rtmp', (req, res) => {
     rtmpState.mainProcs = [];
     rtmpState.rtmpUrls = [];
     rtmpState.n = 0;
+    res.json({ success: true });
+});
+
+// 获取 RTMP 房间信息
+app.get('/api/rtmp_rooms', (req, res) => {
+    const rooms = [];
+    for (let i = 0; i < rtmpState.n; i++) {
+        const room = `room${i + 1}`;
+        const running = !!rtmpState.mainProcs[i];
+        const uuid = rtmpState.mainProcs[i]?.uuid || null;
+        rooms.push({
+            room,
+            rtmpUrl: rtmpState.rtmpUrls[i] || null,
+            running,
+            uuid
+        });
+    }
+    res.json({ rooms });
+});
+
+// 启动单个 main.py
+app.post('/api/start_room', (req, res) => {
+    const { idx } = req.body;
+    if (!rtmpState.rtmpUrls[idx]) {
+        return res.status(400).json({ error: '无效的房间索引' });
+    }
+    if (rtmpState.mainProcs[idx]) {
+        return res.status(400).json({ error: '该房间已启动' });
+    }
+    const uuid = uuidv4();
+    const room = `room${idx + 1}`;
+    const rtmpUrl = rtmpState.rtmpUrls[idx];
+    const pyPath = path.join('python', 'TaiJiGuiderSJTU/main.py');
+    const pyProc = spawn(
+        PYTHON_INTERPRETER,
+        [pyPath, '--unique_id', `${uuid}_${idx + 1}`, '--rtmp_url', rtmpUrl],
+        {
+            stdio: ['ignore', 'pipe', 'pipe'],
+        }
+    );
+    pyProc.room = room;
+    pyProc.idx = idx;
+    pyProc.uuid = uuid;
+    rtmpState.mainProcs[idx] = pyProc;
+
+    // 处理图片帧和控制帧（同原有逻辑）
+    let buffer = Buffer.alloc(0);
+    let frameState = null;
+    pyProc.stdout.on('data', async (chunk) => {
+        buffer = Buffer.concat([buffer, chunk]);
+        while (buffer.length > 0) {
+            if (!frameState) {
+                const marker = Buffer.from('---FRAME---\n');
+                const markerIndex = buffer.indexOf(marker);
+                if (markerIndex === -1) break;
+                buffer = buffer.slice(markerIndex + marker.length);
+                frameState = { header: null, expectedLength: 0, receivedBuffer: [] };
+            }
+            if (frameState && !frameState.header) {
+                const newlineIndex = buffer.indexOf(0x0A);
+                if (newlineIndex === -1) break;
+                const headerStr = buffer.slice(0, newlineIndex).toString('utf8');
+                buffer = buffer.slice(newlineIndex + 1);
+                try {
+                    frameState.header = JSON.parse(headerStr);
+                    if (frameState.header.type === 'control') {
+                        io.to(room).emit('control', frameState.header);
+                        frameState = null;
+                        continue;
+                    } else if (frameState.header.type === 'image') {
+                        frameState.expectedLength = frameState.header.length;
+                        frameState.receivedLength = 0;
+                    } else {
+                        frameState = null;
+                    }
+                } catch {
+                    frameState = null;
+                }
+            }
+            if (frameState?.header?.type === 'image') {
+                const remaining = frameState.expectedLength - frameState.receivedLength;
+                const toTake = Math.min(buffer.length, remaining);
+                frameState.receivedBuffer.push(buffer.slice(0, toTake));
+                frameState.receivedLength += toTake;
+                buffer = buffer.slice(toTake);
+                if (frameState.receivedLength >= frameState.expectedLength) {
+                    const imageBuffer = Buffer.concat(frameState.receivedBuffer);
+                    try {
+                        io.to(room).emit('frame', imageBuffer);
+                    } catch {
+                        io.to(room).emit('frame', imageBuffer);
+                    }
+                    frameState = null;
+                }
+            } else {
+                break;
+            }
+        }
+    });
+    pyProc.stderr.on('data', (data) => {
+        console.error(`main.py[${room}] 错误:`, data.toString());
+    });
+    pyProc.on('close', (code) => {
+        console.log(`main.py[${room}] 退出，代码: ${code}`);
+        rtmpState.mainProcs[idx] = null;
+    });
+
+    res.json({ success: true, uuid });
+});
+
+// 停止单个 main.py
+app.post('/api/stop_room', (req, res) => {
+    const { idx } = req.body;
+    const pyProc = rtmpState.mainProcs[idx];
+    if (pyProc) {
+        try {
+            pyProc.kill();
+        } catch {}
+        rtmpState.mainProcs[idx] = null;
+    }
     res.json({ success: true });
 });
 

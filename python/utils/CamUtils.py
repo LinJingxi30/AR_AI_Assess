@@ -2,6 +2,9 @@ import sys
 import cv2
 import socket
 import numpy as np
+import struct
+import collections
+import time
 
 class CameraUtil:
     def __init__(self, source=0, resolution=(1280, 720)):
@@ -74,16 +77,40 @@ class CameraUtil:
         if sock is None:
             sock = self.udp_sock
         sock.settimeout(timeout)
-        try:
-            data, _ = sock.recvfrom(max_packet_size)
-            np_data = np.frombuffer(data, dtype=np.uint8)
-            frame = cv2.imdecode(np_data, cv2.IMREAD_COLOR)
-            if frame is None:
-                print("UDP流帧解码失败", file=sys.stderr)
-            return frame
-        except socket.timeout:
-            print("UDP流接收超时", file=sys.stderr)
-            return None
+        frame_chunks = {}
+        chunk_count = {}
+        frame_id_last = None
+        start_time = time.time()
+        while True:
+            try:
+                data, _ = sock.recvfrom(max_packet_size)
+                if len(data) < 8:
+                    continue
+                header = data[:8]
+                frame_id, chunk_idx, total_chunks = struct.unpack('!IHH', header)
+                chunk = data[8:]
+                if frame_id_last is not None and frame_id != frame_id_last:
+                    # 新帧，丢弃旧帧
+                    frame_chunks.clear()
+                    chunk_count.clear()
+                frame_id_last = frame_id
+                frame_chunks[chunk_idx] = chunk
+                chunk_count[frame_id] = total_chunks
+                if len(frame_chunks) == total_chunks:
+                    # 重组
+                    full_data = b''.join(frame_chunks[i] for i in range(total_chunks))
+                    np_data = np.frombuffer(full_data, dtype=np.uint8)
+                    frame = cv2.imdecode(np_data, cv2.IMREAD_COLOR)
+                    if frame is None:
+                        print("UDP流帧解码失败", file=sys.stderr)
+                    return frame
+                # 超时处理
+                if time.time() - start_time > timeout:
+                    print("UDP流接收超时", file=sys.stderr)
+                    return None
+            except socket.timeout:
+                print("UDP流接收超时", file=sys.stderr)
+                return None
 
     def camera_frame_process(self, target_reso=None, frame=None):
         if frame is None:

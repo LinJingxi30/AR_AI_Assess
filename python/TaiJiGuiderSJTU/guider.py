@@ -195,6 +195,7 @@ class Guider:
             """步进跳帧"""
             if self.debug:
                 self.conditions = [True] * len(POSE_ALIGN_LANDMARKS)  # 调试
+
             if self.std_skips[self.current_std_index]:
                 # 如果当前帧是自动不停播帧，跳过条件检查
                 self.conditions = [True] * len(POSE_ALIGN_LANDMARKS)
@@ -379,25 +380,25 @@ class Guider:
 
     def canvas_render(self, rt_frame, conditions):
         """绘制实时画面帧，新增各步骤耗时统计"""
-        start_total = time.time()  # 总耗时起点
+        # start_total = time.time()  # 总耗时起点
         self.canvas = rt_frame  # 复制实时画面帧到画布
-        end_std_load = time.time()
-        sys.stderr.write(f"canvas copy: {end_std_load - start_total:.6f} 秒\n")
+        # end_std_load = time.time()
+        # sys.stderr.write(f"canvas copy: {end_std_load - start_total:.6f} 秒\n")
 
         # ---- 标准对齐点加载 步骤计时 ----
-        start_std_load = time.time()
+        # start_std_load = time.time()
         self.std_pose_list = self.std_pose_lists[self.current_std_index]
         self.std_landmarks_list = self.get_landmarks_list(self.std_pose_list, landmarks=POSE_ALIGN_LANDMARKS)
         self.std_overlay = self.get_current_std_overlay(paths=self.std_overlay_paths, overlay_idx=self.current_std_index)
-        end_std_load = time.time()
-        sys.stderr.write(f"std points: {end_std_load - start_std_load:.6f} 秒\n")
+        # end_std_load = time.time()
+        # sys.stderr.write(f"std points: {end_std_load - start_std_load:.6f} 秒\n")
 
         # ---- 实时对齐点获取 步骤计时 ----
-        start_rt_load = time.time()
+        # start_rt_load = time.time()
         self.rt_pose_list = self.pose_detection(self.real_world_frame)
         self.rt_landmarks_list = self.get_landmarks_list(self.rt_pose_list, landmarks=POSE_ALIGN_LANDMARKS)
-        end_rt_load = time.time()
-        sys.stderr.write(f"real time points: {end_rt_load - start_rt_load:.6f} 秒\n")
+        # end_rt_load = time.time()
+        # sys.stderr.write(f"real time points: {end_rt_load - start_rt_load:.6f} 秒\n")
 
         global STD_SCALE
         if self.current_std_index==0:
@@ -408,38 +409,38 @@ class Guider:
         # self.rt_center = (self.rt_center[0], self.rt_center[1] + BENEATH)   # 参数调整中心点位置，向下偏移 BENEATH 像素
         self.std_center = (self.std_pose_list[0][0] * STD_SCALE, self.std_pose_list[0][1] * STD_SCALE)  # std_pose_list 的第一个元组是标点中心点 (3d to 2d)
 
-        # ---- 获取实时/标准中心 步骤计时 ----
-        self.rt_center = self.get_center_from_points_2d(self.rt_pose_list, from_pts_idx=RT_PTS_TO_CENTER, win_size=WIN_SIZE, y_offset=STD_CENTER_Y_OFFSET)
-        self.std_center = (self.std_pose_list[0][0] * STD_SCALE, self.std_pose_list[0][1] * STD_SCALE)
+        # # ---- 获取实时/标准中心 步骤计时 ----
+        # self.rt_center = self.get_center_from_points_2d(self.rt_pose_list, from_pts_idx=RT_PTS_TO_CENTER, win_size=WIN_SIZE, y_offset=STD_CENTER_Y_OFFSET)
+        # self.std_center = (self.std_pose_list[0][0] * STD_SCALE, self.std_pose_list[0][1] * STD_SCALE)
 
         # ---- 对齐点吸附 步骤计时 ----
         self.align_pose_to_target_by_center_2d(self.std_landmarks_list, center=self.std_center, target=self.rt_center, scale=STD_SCALE, win_size=WIN_SIZE)
 
         # ---- 画布亮度调整 + 掩膜叠加 步骤计时 ----
-        start_canvas = time.time()
+        # start_canvas = time.time()
         # self.canvas = (self.canvas * LIGHTNESS).astype(np.uint8)
-        end_canvas = time.time()
-        sys.stderr.write(f"canvas change brightness: {end_canvas - start_canvas:.6f} 秒\n")
-        start_canvas = time.time()
+        # end_canvas = time.time()
+        # sys.stderr.write(f"canvas change brightness: {end_canvas - start_canvas:.6f} 秒\n")
+        # start_canvas = time.time()
         self.canvas = draw.draw_overlay_centered(self.canvas, self.std_overlay,
                                                     center=self.std_center, target=self.rt_center,
                                                     win_size=WIN_SIZE,
                                                     scale=STD_SCALE,
                                                     opacity=STD_OVERLAY_OPACITY)
         end_canvas = time.time()
-        sys.stderr.write(f"mask total time: {end_canvas - start_canvas:.6f} 秒\n")
+        # sys.stderr.write(f"mask total time: {end_canvas - start_canvas:.6f} 秒\n")
 
         # ---- 绘制点和箭头 步骤计时 ----
-        start_draw = time.time()
+        # start_draw = time.time()
         self.canvas = draw.draw_points_and_arrows(self.canvas,
                                                   self.std_landmarks_list,
                                                   self.rt_landmarks_list,
                                                   conditions)
-        end_draw = time.time()
-        sys.stderr.write(f"Point and arrow: {end_draw - start_draw:.6f} 秒\n")
+        # end_draw = time.time()
+        # sys.stderr.write(f"Point and arrow: {end_draw - start_draw:.6f} 秒\n")
 
-        end_total = time.time()
-        sys.stderr.write(f"canvas_render total cost: {end_total - start_total:.6f} 秒\n\n")
+        # end_total = time.time()
+        # sys.stderr.write(f"canvas_render total cost: {end_total - start_total:.6f} 秒\n\n")
 
     def get_scale(self,std_pose_list):
         """
@@ -653,7 +654,8 @@ class Guider:
                 # 自动不停播列表（bool）
                 # 尝试获取 frame_dict["points"] 字典中的 "skip" 键，如果不存在则返回默认值 False，
                 # 因此即使 JSON 中缺少 "skip" 键，也不会报错。
-                std_skips.append(frame_dict["points"].get("skip", False))   # 标签程序写不好，嵌套在points里了
+                # std_skips.append(False)   # 标签程序写不好，嵌套在points里了
+                std_skips.append(frame_dict["points"].get("skip", False))
                 std_img_names.append(frame_dict["image"])  # 新增：记录图片名，后续按照图片名进行匹配
 
         # [[33 * tuple(x, y, z=0)], ..., ] len(json)

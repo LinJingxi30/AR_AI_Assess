@@ -380,6 +380,11 @@ TJC_P9_PATHS = {
         "背景音乐": Path(PY_ROOT) / "gameAssets" / "sounds" / "SJTUbgm.mp3",
     }
 }
+TJC_ALL_PATHS = {
+        "标准 JSON 文件路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC" / "LearningMode" / "odd.json",
+        "标准掩膜图片路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC",
+        "背景音乐": Path(PY_ROOT) / "gameAssets" / "sounds" / "SJTUbgm.mp3",
+}
 TJC_Learning_CONFIG = {
     # todo:: 音频路径？
     "路径": TJC_Learning_PATHS,
@@ -494,7 +499,7 @@ def parse_args():
 
 # main.py
 
-def run_TJC(sport_type_config, anim, camera, pre_align, pre_clip, DEBUG, unique_id,p1,p2,p3,p4,p5,p6,p7,p8,p9):
+def run_TJC(sport_type_config, anim, camera, pre_align, pre_clip, DEBUG, unique_id,p1,p2,p3,p4,p5,p6,p7,p8,p9,all):
     # 招式实例列表
     routines = []
     videos = []
@@ -550,7 +555,7 @@ def run_TJC(sport_type_config, anim, camera, pre_align, pre_clip, DEBUG, unique_
             Guider(camera=camera, uuid=unique_id, paths=p9[f"m_{a + 1}"], debug=DEBUG))
         videop9.append(
             Video(camera=camera, uuid=unique_id, paths=p9[f"m_{a+1}"], debug=DEBUG))
-
+    video_all = Video(camera=camera, uuid=unique_id, paths=all, debug=DEBUG)
     # ?
     sys.stderr.write(f"Start\n")
 
@@ -578,6 +583,7 @@ def run_TJC(sport_type_config, anim, camera, pre_align, pre_clip, DEBUG, unique_
 
     # 语音：太极操整体动作讲解。
     DataSender.send_control("PLAY_AUDIO", flag="太极操整体动作介绍.mp3")
+    video_all.main_loop()
 
     # 运动开始：遍历每个片段
     i = 0
@@ -597,51 +603,136 @@ def run_TJC(sport_type_config, anim, camera, pre_align, pre_clip, DEBUG, unique_
         if i == 0:
             # 招式 i 主循环
             DataSender.send_control("PLAY_AUDIO", flag=f"招式1.mp3")
-            videop1[i].main_loop()
-            p1m[i].main_loop()
-        elif i == 1:
+            # time.sleep(2)  # 等待音频播放
+            for j in range(len(p1m)):
+
+                videop1[j].main_loop()
+                p1m[j].main_loop()
+            
+            anim.animate_title(text=f"开始练习", duration=2.0, config=ANIMATOR_CONFIG)
+            routines[0].main_loop()
+
+        if i == 1:
             # 招式 i 主循环
-            # DataSender.send_control("PLAY_AUDIO", flag=f"招式2.mp3")
-            videop2[i].main_loop()
-            p2m[i].main_loop()
-        elif i == 2:
+            DataSender.send_control("PLAY_AUDIO", flag=f"招式2.mp3")
+            for j in range(len(p2m)):
+                # DataSender.send_control("PLAY_VIDEO", flag=f"part1.mp4")
+                # time.sleep(8)
+                videop2[j].main_loop()
+                p2m[j].main_loop()
+
+            anim.animate_title(text=f"开始练习", duration=2.0, config=ANIMATOR_CONFIG)
+            routines[0].main_loop()
+            routines[1].main_loop()
+        if i == 2:
             # 招式 i 主循环
             DataSender.send_control("PLAY_AUDIO", flag=f"招式3.mp3")
-            videop3[i].main_loop()
-            p3m[i].main_loop()
-        elif i == 3:
+            for j in range(len(p3m)):
+                # DataSender.send_control("PLAY_VIDEO", flag=f"part1.mp4")
+                # time.sleep(8)
+                videop3[j].main_loop()
+                p3m[j].main_loop()
+            anim.animate_title(text=f"开始练习", duration=2.0, config=ANIMATOR_CONFIG)
+            routines[0].main_loop()
+            routines[1].main_loop()
+            routines[2].main_loop()
+        if i == 3:
             # 招式 i 主循环
             DataSender.send_control("PLAY_AUDIO", flag=f"招式4.mp3")
-            videop4[i].main_loop()
-            p4m[i].main_loop()
-        elif i == 4:
+            for j in range(len(p4m)):
+                # DataSender.send_control("PLAY_VIDEO", flag=f"part1.mp4")
+                # time.sleep(8)
+                videop4[j].main_loop()
+                p4m[j].main_loop()
+            anim.animate_title(text=f"开始练习", duration=2.0, config=ANIMATOR_CONFIG)
+            routines[0].main_loop()
+            routines[1].main_loop()
+            routines[2].main_loop()
+            routines[3].main_loop()
+
+        if i == 4:
             # 招式 i 主循环
             DataSender.send_control("PLAY_AUDIO", flag=f"招式5.mp3")
-            videop5[i].main_loop()
-            p5m[i].main_loop()
-        elif i == 5:
+            for j in range(len(p5m)):
+                # DataSender.send_control("PLAY_VIDEO", flag=f"part1.mp4")
+                # time.sleep(8)
+                videop5[j].main_loop()
+                p5m[j].main_loop()
+            anim.animate_title(text=f"开始练习", duration=2.0, config=ANIMATOR_CONFIG)
+            routines[0].main_loop()
+            routines[1].main_loop()
+            routines[2].main_loop()
+            routines[3].main_loop()
+            routines[4].main_loop()
+        if i == 5:
             # 招式 i 主循环
             DataSender.send_control("PLAY_AUDIO", flag=f"招式6.mp3")
-            videop6[i].main_loop()
-            p6m[i].main_loop()
-        elif i == 6:
+            for j in range(len(p6m)):
+                # DataSender.send_control("PLAY_VIDEO", flag=f"part1.mp4")
+                # time.sleep(8)
+                videop6[j].main_loop()
+                p6m[j].main_loop()
+            anim.animate_title(text=f"开始练习", duration=2.0, config=ANIMATOR_CONFIG)
+            routines[0].main_loop()
+            routines[1].main_loop()
+            routines[2].main_loop()
+            routines[3].main_loop()
+            routines[4].main_loop()
+            routines[5].main_loop()
+        if i == 6:
             # 招式 i 主循环
             DataSender.send_control("PLAY_AUDIO", flag=f"招式7.mp3")
-            videop7[i].main_loop()
-            p7m[i].main_loop()
-        elif i == 7:
+            for j in range(len(p7m)):
+                # DataSender.send_control("PLAY_VIDEO", flag=f"part1.mp4")
+                # time.sleep(8)
+                videop7[j].main_loop()
+                p7m[j].main_loop()
+            anim.animate_title(text=f"开始练习", duration=2.0, config=ANIMATOR_CONFIG)
+            routines[0].main_loop()
+            routines[1].main_loop()
+            routines[2].main_loop()
+            routines[3].main_loop()
+            routines[4].main_loop()
+            routines[5].main_loop()
+            routines[6].main_loop()
+        if i == 7:
             # 招式 i 主循环
-            # DataSender.send_control("PLAY_AUDIO", flag=f"招式8.mp3")
-            videop8[i].main_loop()
-            p8m[i].main_loop()
-        elif i == 8:
+            DataSender.send_control("PLAY_AUDIO", flag=f"招式8.mp3")
+            for j in range(len(p8m)):
+                # DataSender.send_control("PLAY_VIDEO", flag=f"part1.mp4")
+                # time.sleep(8)
+                videop8[j].main_loop()
+                p8m[j].main_loop()
+            anim.animate_title(text=f"开始练习", duration=2.0, config=ANIMATOR_CONFIG)
+            routines[0].main_loop()
+            routines[1].main_loop()
+            routines[2].main_loop()
+            routines[3].main_loop()
+            routines[4].main_loop()
+            routines[5].main_loop()
+            routines[6].main_loop()
+            routines[7].main_loop() 
+        if i == 8:
             # 招式 i 主循环
-            # DataSender.send_control("PLAY_AUDIO", flag=f"招式9.mp3")
-            videop9[i].main_loop()
-            p9m[i].main_loop()
+            DataSender.send_control("PLAY_AUDIO", flag=f"招式9.mp3")
+            for j in range(len(p9m)):
+                # DataSender.send_control("PLAY_VIDEO", flag=f"part1.mp4")
+                # time.sleep(8)
+                videop9[j].main_loop()
+                p9m[j].main_loop()
+            anim.animate_title(text=f"开始练习", duration=2.0, config=ANIMATOR_CONFIG)
+            routines[0].main_loop()
+            routines[1].main_loop()
+            routines[2].main_loop()
+            routines[3].main_loop()
+            routines[4].main_loop()
+            routines[5].main_loop()
+            routines[6].main_loop()
+            routines[7].main_loop() 
+            routines[8].main_loop()
 
-        anim.animate_title(text=f"开始练习", duration=2.0, config=ANIMATOR_CONFIG)
-        routines[i].main_loop()
+        # anim.animate_title(text=f"开始练习", duration=2.0, config=ANIMATOR_CONFIG)
+        # routines[i].main_loop()
 
         # todo:: 用嵌入在config的条件来判断是否需要评分
         # 招式 i 评分
@@ -804,7 +895,7 @@ if __name__ == "__main__":
             run_TJC(sport_type_config=TJC_Learning_CONFIG, anim=anim, camera=camera, pre_align=pre_align,
                               pre_clip=pre_clip, DEBUG=DEBUG, unique_id=unique_id ,p1=TJC_P1_PATHS,
                     p2=TJC_P2_PATHS, p3=TJC_P3_PATHS, p4=TJC_P4_PATHS, p5=TJC_P5_PATHS,
-                    p6=TJC_P6_PATHS, p7=TJC_P7_PATHS, p8=TJC_P8_PATHS, p9=TJC_P9_PATHS)
+                    p6=TJC_P6_PATHS, p7=TJC_P7_PATHS, p8=TJC_P8_PATHS, p9=TJC_P9_PATHS,all=TJC_ALL_PATHS)
 
         elif sport_selector.selection == 1:
             # DataSender.send_control("PLAY_VIDEO", flag="part1.mp4")
@@ -832,7 +923,7 @@ if __name__ == "__main__":
             # DataSender.send_control("PLAY_VIDEO", flag ="part1.mp4")
             # time.sleep(8)
             # 八法五步
-            run_sport_routine(sport_type_config=TJC_Training_CONFIG, anim=anim, camera=camera, pre_align=pre_align,
+            run_sport_routine(sport_type_config=BFWB_Training_CONFIG, anim=anim, camera=camera, pre_align=pre_align,
                               pre_clip=pre_clip, DEBUG=DEBUG, unique_id=unique_id)
 
         elif sport_selector.selection == 2:

@@ -29,7 +29,7 @@ def draw_overlay_centered(canvas, std_overlay, center, target, win_size, scale=1
     if std_overlay is None:
         return canvas
 
-    start_time = time.time()
+    # start_time = time.time()
     # 缩放掩膜
     overlay_resized = cv2.resize(std_overlay, (0, 0), fx=scale, fy=scale)
     end_time = time.time()
@@ -79,7 +79,7 @@ def draw_overlay_centered(canvas, std_overlay, center, target, win_size, scale=1
     # 检查是否有可绘制区域
     if x_start >= x_end or y_start >= y_end:
         return canvas
-    start_time = time.time()
+    # start_time = time.time()
     # 叠加掩膜（支持带 alpha 通道的 BGRA），支持 opacity
     if overlay_resized.shape[2] == 4:
         # 提取ROI区域，使用视图而非复制
@@ -87,7 +87,7 @@ def draw_overlay_centered(canvas, std_overlay, center, target, win_size, scale=1
         canvas_roi = canvas[y_start:y_end, x_start:x_end]
         
         # 预分配并计算alpha通道，使用更高效的类型转换
-        alpha_overlay = overlay_roi[..., 3].astype(np.float32)
+        alpha_overlay = overlay_roi[..., 3].astype(np.float16)
         alpha_overlay *= opacity / 255.0  # 合并运算减少步骤
         np.clip(alpha_overlay, 0.0, 1.0, out=alpha_overlay)  # 原地操作
         
@@ -96,11 +96,11 @@ def draw_overlay_centered(canvas, std_overlay, center, target, win_size, scale=1
         alpha_canvas_3d = 1.0 - alpha_overlay_3d
         
         # 分离overlay的RGB通道
-        overlay_rgb = overlay_roi[..., :3].astype(np.float32)
+        overlay_rgb = overlay_roi[..., :3].astype(np.float16)
         
         # 计算混合结果并转换回uint8，使用out参数避免临时数组
         np.multiply(alpha_overlay_3d, overlay_rgb, out=overlay_rgb)  # 原地计算 overlay部分
-        temp = canvas_roi.astype(np.float32)
+        temp = canvas_roi.astype(np.float16)
         np.multiply(alpha_canvas_3d, temp, out=temp)  # 原地计算 canvas部分
         np.add(overlay_rgb, temp, out=temp)  # 合并结果
         
@@ -112,7 +112,7 @@ def draw_overlay_centered(canvas, std_overlay, center, target, win_size, scale=1
         canvas[y_start:y_end, x_start:x_end] = overlay_resized[overlay_y_start:overlay_y_end,
                                               overlay_x_start:overlay_x_end]
     
-    end_time = time.time()
+    # end_time = time.time()
     # sys.stderr.write(f"[MASK] mask apply: {end_time - start_time:.6f}s\n")
 
     # 调试用：绘制画布中心点（target）
@@ -128,21 +128,21 @@ def draw_points_and_arrows(canvas, std_landmarks_list, rt_landmarks_list, condit
         # 选择点对颜色
         # color = PTS_PAIR_COLORS[idx % len(PTS_PAIR_COLORS)]
         color = colors[idx]
-        start_time = time.time()
+        # start_time = time.time()
         # 绘制标准点（配对配色）
         # print(type(std_lm_pt))
         # print(type(rt_lm_pt))
         # std_lm_pt = (int(std_lm_pt[0]), int(std_lm_pt[1]))  # 将点坐标转换为整数
         draw_transparent_circle(canvas, std_lm_pt, radius=35, color=color, opacity=0.3, thickness=2)
 
-        end_time = time.time()
+        # end_time = time.time()
         # sys.stderr.write(f"[Points and Arrow] std_lm_pt: {end_time - start_time:.6f}s\n")
-        start_time = time.time()
+        # start_time = time.time()
         # 绘制实时点（配对配色）
         if rt_lm_pt:
             draw_gradient_point(canvas, rt_lm_pt, color, size=30, steps=2)
 
-        end_time = time.time()
+        # end_time = time.time()
         # sys.stderr.write(f"[Points and Arrow] rt_lm_pt: {end_time - start_time:.6f}s\n")
 
         # 绘制箭头
@@ -152,14 +152,14 @@ def draw_points_and_arrows(canvas, std_landmarks_list, rt_landmarks_list, condit
         else:
             arrow_color = ARROW_COLORS["normal"]
 
-        start_time = time.time()
+        # start_time = time.time()
         # 绘制箭头
         draw_arrows_line(canvas,
                          start=rt_lm_pt, end=std_lm_pt,
                          arrow_num=ARROW_NUM,
                          color=arrow_color, size=ARROW_SIZE, thickness=ARROW_THICKNESS)
         
-        end_time = time.time()
+        # end_time = time.time()
         # sys.stderr.write(f"[Points and Arrow] draw_arrows_line: {end_time - start_time:.6f}s\n")
 
     return canvas

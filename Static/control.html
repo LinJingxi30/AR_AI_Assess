@@ -65,8 +65,8 @@
 
       socket.on('connect', () => {
         // 默认加入 和id相同名字的 房间
-        if (sessionStorage.getItem("roomID")) {
-          roomID = sessionStorage.getItem("roomID");
+        if (localStorage.getItem("roomID")) {
+          roomID = localStorage.getItem("roomID");
           socket.emit("join_room", { room: roomID });
         }
         socket.emit("get_process_status");
@@ -89,7 +89,7 @@
 
       socket.on("update_room", (room) => {
         roomID = room;
-        sessionStorage.setItem("roomID", roomID);
+        localStorage.setItem("roomID", roomID);
         console.log(`房间已更新: ${roomID}`);
       });
 

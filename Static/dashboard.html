@@ -40,6 +40,7 @@
           <tbody id="connections-table"></tbody>
         </table>
       </div>
+      <div id="rtmpRooms" class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6"></div>
     </div>
 
     <script>
@@ -103,6 +104,93 @@
           .catch((error) => console.error("Error:", error));
       }
 
+      // 用于管理每个房间的socket和img
+      const roomSockets = {};
+
+      async function refreshRtmpRooms() {
+        const res = await axios.get('/api/rtmp_rooms');
+        const rooms = res.data.rooms;
+        const container = document.getElementById('rtmpRooms');
+        if (!rooms.length) {
+          container.innerHTML = '';
+          // 断开所有socket
+          Object.values(roomSockets).forEach(({ socket }) => socket.disconnect());
+          Object.keys(roomSockets).forEach(k => delete roomSockets[k]);
+          return;
+        }
+        container.innerHTML = rooms.map((room, idx) => `
+          <div class="bg-white rounded shadow p-4 flex flex-col gap-2">
+            <div class="font-bold">房间: ${room.room}</div>
+            <div>RTMP地址: <span class="break-all">${room.rtmpUrl || '-'}</span></div>
+            <div>状态: <span class="${room.running ? 'text-green-600' : 'text-gray-500'}">${room.running ? '运行中' : '未启动'}</span></div>
+            <div>UUID: <span class="break-all">${room.uuid || '-'}</span></div>
+            <div class="flex gap-2">
+              <button onclick="startRoom(${idx})" class="bg-blue-600 text-white px-2 py-1 rounded hover:bg-blue-700" ${room.running ? 'disabled' : ''}>启动</button>
+              <button onclick="stopRoom(${idx})" class="bg-red-600 text-white px-2 py-1 rounded hover:bg-red-700" ${!room.running ? 'disabled' : ''}>停止</button>
+            </div>
+            <img id="room-img-${idx}" class="w-full h-full object-contain bg-gray-200" alt="画面" />
+          </div>
+        `).join('');
+
+        // 为每个运行中的房间建立socket并渲染画面
+        rooms.forEach((room, idx) => {
+          const imgId = `room-img-${idx}`;
+          if (room.running) {
+            if (!roomSockets[idx]) {
+              // 新建socket并加入房间
+              const s = io(window.location.origin, { transports: ['websocket'] });
+              s.emit('join_room', { room: room.room });
+              s.on('frame', (data) => {
+                // 渲染图片
+                const img = document.getElementById(imgId);
+                if (img && data) {
+                  const blob = new Blob([data], { type: "image/jpeg" });
+                  const url = URL.createObjectURL(blob);
+                  img.src = url;
+                  // 释放旧的URL
+                  if (img._lastUrl) URL.revokeObjectURL(img._lastUrl);
+                  img._lastUrl = url;
+                }
+              });
+              roomSockets[idx] = { socket: s };
+            }
+          } else {
+            // 未运行则断开socket并清空画面
+            if (roomSockets[idx]) {
+              roomSockets[idx].socket.disconnect();
+              delete roomSockets[idx];
+            }
+            const img = document.getElementById(imgId);
+            if (img) img.src = "";
+          }
+        });
+        // 清理多余的socket
+        Object.keys(roomSockets).forEach(idx => {
+          if (!rooms[idx] || !rooms[idx].running) {
+            roomSockets[idx].socket.disconnect();
+            delete roomSockets[idx];
+          }
+        });
+      }
+
+      async function startRoom(idx) {
+        try {
+          await axios.post('/api/start_room', { idx });
+          setTimeout(refreshRtmpRooms, 500);
+        } catch (e) {
+          alert('启动失败: ' + (e.response?.data?.error || e.message));
+        }
+      }
+      async function stopRoom(idx) {
+        try {
+          await axios.post('/api/stop_room', { idx });
+          setTimeout(refreshRtmpRooms, 500);
+        } catch (e) {
+          alert('停止失败: ' + (e.response?.data?.error || e.message));
+        }
+      }
+
+      // 启动/停止RTMP后刷新房间卡片
       async function startRtmp() {
         const n = parseInt(document.getElementById('rtmpN').value, 10);
         const cameraName = document.getElementById('cameraName').value;
@@ -110,20 +198,25 @@
         try {
           const res = await axios.post('/api/start_rtmp', { n, cameraName });
           document.getElementById('rtmpResult').innerText = 'RTMP地址:\n' + res.data.rtmpUrls.join('\n');
+          setTimeout(refreshRtmpRooms, 500);
         } catch (e) {
           document.getElementById('rtmpResult').innerText = '启动失败: ' + (e.response?.data?.error || e.message);
         }
       }
-
       async function stopRtmp() {
         document.getElementById('rtmpResult').innerText = '停止中...';
         try {
           await axios.post('/api/stop_rtmp');
           document.getElementById('rtmpResult').innerText = '已停止';
+          setTimeout(refreshRtmpRooms, 500);
         } catch (e) {
           document.getElementById('rtmpResult').innerText = '停止失败: ' + (e.response?.data?.error || e.message);
         }
       }
+
+      // 页面加载时自动刷新
+      refreshRtmpRooms();
+      // setInterval(refreshRtmpRooms, 200);
     </script>
   </body>
 </html>
