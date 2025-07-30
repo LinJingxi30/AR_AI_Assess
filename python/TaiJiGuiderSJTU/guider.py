@@ -16,6 +16,7 @@ PY_ROOT = Path(__file__).resolve().parent.parent
 sys.path.append(str(PY_ROOT))   # 添加 Python 根目录到模块搜索路径中
 from TaiJiGuiderSJTU import draw
 from Config import WIN_SIZE, STD_SPORTS_RESULTS_ROOT
+import Config
 from utils.DataSender import DataSender
 import utils.CamUtils as CamUtils
 
@@ -158,7 +159,8 @@ class Guider:
 
     def main_update(self, frame=None):
         # 可以从外部传实时帧
-        if self.running:
+        
+        if self.running and (not Config.IS_PAUSE):
 
             """处理 Pygame 窗口事件"""
             self.window_events()

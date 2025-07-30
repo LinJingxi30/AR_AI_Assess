@@ -1,0 +1,2 @@
+IS_PAUSE = False
+ACTION_FLAG = 1

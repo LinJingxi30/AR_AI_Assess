@@ -436,7 +436,7 @@ app.post('/api/start_rtmp', async (req, res) => {
         const proc = spawn(
             PYTHON_INTERPRETER,
             [pyPath, ...pyArgs],
-            { stdio: ['ignore', 'pipe', 'pipe'] }
+            { stdio: ['pipe', 'pipe', 'pipe'] }
         );
 
         let rtmpUrls = [];
@@ -533,7 +533,7 @@ app.post('/api/start_room', (req, res) => {
         PYTHON_INTERPRETER,
         [pyPath, '--unique_id', `${uuid}_${idx + 1}`, '--rtmp_url', rtmpUrl],
         {
-            stdio: ['ignore', 'pipe', 'pipe'],
+            stdio: ['pipe', 'pipe', 'pipe'],
         }
     );
     pyProc.room = room;
@@ -617,6 +617,24 @@ app.post('/api/stop_room', (req, res) => {
         rtmpState.mainProcs[idx] = null;
     }
     res.json({ success: true });
+});
+
+app.post('/api/send_command', (req, res) => {
+    const { idx, command } = req.body;
+    if (
+        typeof idx !== 'number' ||
+        typeof command !== 'string' ||
+        !rtmpState.mainProcs[idx]
+    ) {
+        return res.status(400).json({ error: '参数错误或房间未启动' });
+    }
+    const pyProc = rtmpState.mainProcs[idx];
+    if (pyProc.stdin && pyProc.stdin.writable) {
+        pyProc.stdin.write(command + '\n');
+        res.json({ success: true });
+    } else {
+        res.status(500).json({ error: 'Python进程不可写' });
+    }
 });
 
 

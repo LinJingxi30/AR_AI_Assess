@@ -107,6 +107,19 @@
       // 用于管理每个房间的socket和img
       const roomSockets = {};
 
+      function sendRoomCommand(idx) {
+        const input = document.getElementById(`cmd-input-${idx}`);
+        const cmd = input.value.trim();
+        if (!cmd) return;
+        axios.post('/api/send_command', { idx, command: cmd })
+          .then(() => {
+            input.value = '';
+          })
+          .catch(e => {
+            alert('发送失败: ' + (e.response?.data?.error || e.message));
+          });
+      }
+
       async function refreshRtmpRooms() {
         const res = await axios.get('/api/rtmp_rooms');
         const rooms = res.data.rooms;
@@ -129,6 +142,10 @@
               <button onclick="stopRoom(${idx})" class="bg-red-600 text-white px-2 py-1 rounded hover:bg-red-700" ${!room.running ? 'disabled' : ''}>停止</button>
             </div>
             <img id="room-img-${idx}" class="w-full h-full object-contain bg-gray-200" alt="画面" />
+            <div class="flex gap-2 mt-2">
+              <input id="cmd-input-${idx}" type="text" placeholder="输入指令" class="border px-2 py-1 rounded flex-1" />
+              <button onclick="sendRoomCommand(${idx})" class="bg-purple-600 text-white px-2 py-1 rounded hover:bg-purple-700">发送指令</button>
+            </div>
           </div>
         `).join('');
 

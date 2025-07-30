@@ -1,6 +1,8 @@
 import json
 import sys
 from pathlib import Path
+import threading
+
 
 PY_ROOT = Path(__file__).resolve().parent.parent
 sys.path.append(str(PY_ROOT))  # 添加 Python 根目录到模块搜索路径中
@@ -14,7 +16,7 @@ import pygame
 import argparse
 import time
 
-from Config import STD_SPORTS_RESULTS_ROOT, WIN_SIZE
+from Config import STD_SPORTS_RESULTS_ROOT, WIN_SIZE,IS_PAUSE,ACTION_FLAG
 from utils.CamUtils import CameraUtil
 from utils.DataSender import DataSender
 
@@ -849,8 +851,27 @@ def run_sport_routine(sport_type_config, anim, camera, pre_align, pre_clip, DEBU
     # 退出 pygame
     pygame.quit()
 
+def stdin_command_listener():
+    import Config
+    import sys
+    print(f"{Config.IS_PAUSE}", file=sys.stderr)
+    while True:
+        line = sys.stdin.readline()
+        if not line:
+            break
+        cmd = line.strip()
+        # 你可以根据实际需求解析cmd并执行
+        if cmd:
+            print(f"[STDIN_CMD] 收到指令: {cmd}", file=sys.stderr)
+            if cmd == "PAUSE":
+                print(f"[PAUSE] PAUSE", file=sys.stderr)
+                Config.IS_PAUSE = True
+            elif cmd == "CONTINUE":
+                Config.IS_PAUSE = False
+            # 例如：if cmd == "pause": ...  # 这里写你的处理逻辑
 
 if __name__ == "__main__":
+    threading.Thread(target=stdin_command_listener, daemon=True).start()
     # 解析命令行参数
     args = parse_args()
     unique_id = args.unique_id
