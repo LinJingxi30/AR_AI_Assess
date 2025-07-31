@@ -32,14 +32,6 @@ Temp/
 display/
 **/json2predd.py
 
-# 标准视频生成的帧文件和 JSON 文件
-python/StdProcess/**
-# 标准视频生成脚本
-!python/StdProcess/**/*.py
-python/StdSportsResults/
-
-# 标准视频生成的结果文件
-python/StdSportsResults/
 
 # 嵌入式python
 env/
