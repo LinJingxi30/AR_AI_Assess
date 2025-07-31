@@ -118,7 +118,6 @@ TJC_Learning_PATHS = {
         "背景音乐": Path(PY_ROOT) / "gameAssets" / "sounds" / "SJTUbgm.mp3",
     },
 }
-
 TJC_P1_PATHS = {
         "m_1": {
             "标准 JSON 文件路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC" / "LearningMode" / "p1" / "p1m1.json",
@@ -413,7 +412,7 @@ TJC_Training_PATHS = {
 
 TJC_Training_CONFIG = {
     "路径": TJC_Training_PATHS,
-    "片段标题": ["完整演示"],
+    "片段标题": ["完整练习"],
 }
 
 ANIMATOR_CONFIG = {
@@ -442,7 +441,7 @@ BFWB_Training_PATHS =  {
 
 BFWB_Training_CONFIG = {
     "路径": BFWB_Training_PATHS,
-    "片段标题": ["完整演示"],
+    "片段标题": ["完整练习"],
 }
 
 def combine_simple(id, save_path):
@@ -565,8 +564,9 @@ def run_TJC(sport_type_config, anim, camera, pre_align, pre_clip, DEBUG, unique_
     DataSender.send_control("PLAY_AUDIO", flag="语音1.mp3")
     anim.animate_title(text="iTaichi-系统 正式开始！", duration=5.0, config=ANIMATOR_CONFIG)
 
-    # 对齐四点指引
-    pre_align.main_loop_with_voice()
+    # # 对齐四点指引
+    # anim.animate_title(text="请按顺序 对齐点！", duration=4.0, config=ANIMATOR_CONFIG)
+    # pre_align.main_loop_with_voice()
 
     # 语音：好，接下来是对齐掩膜指引。
     DataSender.send_control("PLAY_AUDIO", flag="语音6.mp3")
@@ -611,7 +611,7 @@ def run_TJC(sport_type_config, anim, camera, pre_align, pre_clip, DEBUG, unique_
                 videop1[j].main_loop()
                 p1m[j].main_loop()
             
-            anim.animate_title(text=f"开始练习", duration=2.0, config=ANIMATOR_CONFIG)
+            anim.animate_title(text=f"开始练习招式1", duration=2.0, config=ANIMATOR_CONFIG)
             routines[0].main_loop()
 
         if i == 1:
@@ -623,7 +623,7 @@ def run_TJC(sport_type_config, anim, camera, pre_align, pre_clip, DEBUG, unique_
                 videop2[j].main_loop()
                 p2m[j].main_loop()
 
-            anim.animate_title(text=f"开始练习", duration=2.0, config=ANIMATOR_CONFIG)
+            anim.animate_title(text=f"开始练习招式1~2", duration=2.0, config=ANIMATOR_CONFIG)
             routines[0].main_loop()
             routines[1].main_loop()
         if i == 2:
@@ -634,7 +634,7 @@ def run_TJC(sport_type_config, anim, camera, pre_align, pre_clip, DEBUG, unique_
                 # time.sleep(8)
                 videop3[j].main_loop()
                 p3m[j].main_loop()
-            anim.animate_title(text=f"开始练习", duration=2.0, config=ANIMATOR_CONFIG)
+            anim.animate_title(text=f"开始练习招式1~3", duration=2.0, config=ANIMATOR_CONFIG)
             routines[0].main_loop()
             routines[1].main_loop()
             routines[2].main_loop()
@@ -646,7 +646,7 @@ def run_TJC(sport_type_config, anim, camera, pre_align, pre_clip, DEBUG, unique_
                 # time.sleep(8)
                 videop4[j].main_loop()
                 p4m[j].main_loop()
-            anim.animate_title(text=f"开始练习", duration=2.0, config=ANIMATOR_CONFIG)
+            anim.animate_title(text=f"开始练习招式1~4", duration=2.0, config=ANIMATOR_CONFIG)
             routines[0].main_loop()
             routines[1].main_loop()
             routines[2].main_loop()
@@ -660,7 +660,7 @@ def run_TJC(sport_type_config, anim, camera, pre_align, pre_clip, DEBUG, unique_
                 # time.sleep(8)
                 videop5[j].main_loop()
                 p5m[j].main_loop()
-            anim.animate_title(text=f"开始练习", duration=2.0, config=ANIMATOR_CONFIG)
+            anim.animate_title(text=f"开始练习招式1~5", duration=2.0, config=ANIMATOR_CONFIG)
             routines[0].main_loop()
             routines[1].main_loop()
             routines[2].main_loop()
@@ -674,7 +674,7 @@ def run_TJC(sport_type_config, anim, camera, pre_align, pre_clip, DEBUG, unique_
                 # time.sleep(8)
                 videop6[j].main_loop()
                 p6m[j].main_loop()
-            anim.animate_title(text=f"开始练习", duration=2.0, config=ANIMATOR_CONFIG)
+            anim.animate_title(text=f"开始练习招式1~6", duration=2.0, config=ANIMATOR_CONFIG)
             routines[0].main_loop()
             routines[1].main_loop()
             routines[2].main_loop()
@@ -689,7 +689,7 @@ def run_TJC(sport_type_config, anim, camera, pre_align, pre_clip, DEBUG, unique_
                 # time.sleep(8)
                 videop7[j].main_loop()
                 p7m[j].main_loop()
-            anim.animate_title(text=f"开始练习", duration=2.0, config=ANIMATOR_CONFIG)
+            anim.animate_title(text=f"开始练习招式1~7", duration=2.0, config=ANIMATOR_CONFIG)
             routines[0].main_loop()
             routines[1].main_loop()
             routines[2].main_loop()
@@ -705,7 +705,7 @@ def run_TJC(sport_type_config, anim, camera, pre_align, pre_clip, DEBUG, unique_
                 # time.sleep(8)
                 videop8[j].main_loop()
                 p8m[j].main_loop()
-            anim.animate_title(text=f"开始练习", duration=2.0, config=ANIMATOR_CONFIG)
+            anim.animate_title(text=f"开始练习招式1~8", duration=2.0, config=ANIMATOR_CONFIG)
             routines[0].main_loop()
             routines[1].main_loop()
             routines[2].main_loop()
@@ -722,7 +722,7 @@ def run_TJC(sport_type_config, anim, camera, pre_align, pre_clip, DEBUG, unique_
                 # time.sleep(8)
                 videop9[j].main_loop()
                 p9m[j].main_loop()
-            anim.animate_title(text=f"开始练习", duration=2.0, config=ANIMATOR_CONFIG)
+            anim.animate_title(text=f"开始练习招式1~9", duration=2.0, config=ANIMATOR_CONFIG)
             routines[0].main_loop()
             routines[1].main_loop()
             routines[2].main_loop()
@@ -783,8 +783,8 @@ def run_sport_routine(sport_type_config, anim, camera, pre_align, pre_clip, DEBU
     DataSender.send_control("PLAY_AUDIO", flag="语音1")
     anim.animate_title(text="iTaichi-系统 正式开始！", duration=5.0, config=ANIMATOR_CONFIG)
 
-    # 对齐四点指引
-    pre_align.main_loop_with_voice()
+    # # 对齐四点指引
+    # pre_align.main_loop_with_voice()
 
     # 语音：好，接下来是对齐掩膜指引。
     DataSender.send_control("PLAY_AUDIO", flag="语音6")
@@ -839,7 +839,9 @@ def run_sport_routine(sport_type_config, anim, camera, pre_align, pre_clip, DEBU
             routines[i] = Guider(camera=camera,uuid = unique_id, paths=sport_type_config["路径"][f"POSTURE_{i + 1}"], debug=DEBUG)
             continue  # 再次执行当前循环，即重做当前招式
         elif redo_selector.selection == 1:  # 用户选择了“继续”
-            i += 1  # 进入下一个招式
+            # i += 1  # 进入下一个招式
+            anim.animate_title(text=f"练习结束", duration=4.0, config=ANIMATOR_CONFIG)
+            break
         # ******** 添加重做/继续逻辑的结束 ********
 
     # # 把 differences-<id>.json 文件合并生成
@@ -922,7 +924,7 @@ if __name__ == "__main__":
             # DataSender.send_control("PLAY_VIDEO", flag="part1.mp4")
             # time.sleep(8)
             # 八法五步
-            run_sport_routine(sport_type_config=TJC_Learning_CONFIG, anim=anim, camera=camera, pre_align=pre_align,
+            run_sport_routine(sport_type_config=BFWB_Training_CONFIG, anim=anim, camera=camera, pre_align=pre_align,
                               pre_clip=pre_clip, DEBUG=DEBUG, unique_id=unique_id)
 
         elif sport_selector.selection == 2:
