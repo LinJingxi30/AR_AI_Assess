@@ -11,7 +11,7 @@ from guider import Guider
 from selector import Selector
 from animator import Animator
 from pregame_align import PreAlignerPoints
-from Video import Video
+from Video import Video,pre_clip
 import pygame
 import argparse
 import time
@@ -579,11 +579,11 @@ TJQ24_P4_PATHS = {
             "背景音乐": Path(PY_ROOT) / "gameAssets" / "sounds" / "SJTUbgm.mp3",
         }
 }
-TJQ24_ALL_PATHS = {
-        "标准 JSON 文件路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "24" / "LearningMode" / "all.json",
-        "标准掩膜图片路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "24",
-        "背景音乐": Path(PY_ROOT) / "gameAssets" / "sounds" / "SJTUbgm.mp3",
-}
+# TJQ24_ALL_PATHS = {
+#         "标准 JSON 文件路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "24" / "LearningMode" / "all.json",
+#         "标准掩膜图片路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "24",
+#         "背景音乐": Path(PY_ROOT) / "gameAssets" / "sounds" / "SJTUbgm.mp3",
+# }
 TJQ24_Learning_CONFIG = {
     # todo:: 音频路径？
     "路径": TJQ24_Learning_PATHS,
@@ -693,57 +693,57 @@ def run_TJC(sport_type_config, anim, camera, pre_align, pre_clip, DEBUG, unique_
     videos = []
     for i in range(len(sport_type_config["路径"])):
         routines.append(
-            Guider(camera=camera, uuid=unique_id, paths=sport_type_config["路径"][f"POSTURE_{i + 1}"], debug=DEBUG))
+            Guider(camera=camera, uuid=unique_id,scale =0, paths=sport_type_config["路径"][f"POSTURE_{i + 1}"], debug=DEBUG))
         videos.append(
-            Video(camera=camera, uuid=unique_id, paths=sport_type_config["路径"][f"POSTURE_{i + 1}"], debug=DEBUG))
+            Video(camera=camera, uuid=unique_id,scale = 0, paths=sport_type_config["路径"][f"POSTURE_{i + 1}"], debug=DEBUG))
     p1m = [] ; p2m = []; p3m = [];p4m = [];p5m = []; p6m = []; p7m = []; p8m = [];p9m = []
     videop1 = [];videop2 = []; videop3 = []; videop4 = []; videop5 = [];videop6 = [];videop7 = []; videop8 = []; videop9 = []
     for i in range(len(p1)):
         p1m.append(
-            Guider(camera=camera, uuid=unique_id, paths=p1[f"m_{i+1}"], debug=DEBUG))
+            Guider(camera=camera, uuid=unique_id,scale = 0, paths=p1[f"m_{i+1}"], debug=DEBUG))
         videop1.append(
-            Video(camera=camera, uuid=unique_id, paths=p1[f"m_{i+1}"], debug=DEBUG))
+            Video(camera=camera, uuid=unique_id,scale = 0, paths=p1[f"m_{i+1}"], debug=DEBUG))
     for a in range(len(p2)):
         p2m.append(
-            Guider(camera=camera, uuid=unique_id, paths=p2[f"m_{a+1}"], debug=DEBUG))
+            Guider(camera=camera, uuid=unique_id,scale = 0, paths=p2[f"m_{a+1}"], debug=DEBUG))
         videop2.append(
-            Video(camera=camera, uuid=unique_id, paths=p2[f"m_{a+1}"], debug=DEBUG))
+            Video(camera=camera, uuid=unique_id,scale = 0, paths=p2[f"m_{a+1}"], debug=DEBUG))
     for a in range(len(p3)):
         p3m.append(
-            Guider(camera=camera, uuid=unique_id, paths=p3[f"m_{a+1}"], debug=DEBUG))
+            Guider(camera=camera, uuid=unique_id,scale = 0, paths=p3[f"m_{a+1}"], debug=DEBUG))
         videop3.append(
-            Video(camera=camera, uuid=unique_id, paths=p3[f"m_{a+1}"], debug=DEBUG))
+            Video(camera=camera, uuid=unique_id,scale = 0, paths=p3[f"m_{a+1}"], debug=DEBUG))
     for a in range(len(p4)):
         p4m.append(
-            Guider(camera=camera, uuid=unique_id, paths=p4[f"m_{a+1}"], debug=DEBUG))
+            Guider(camera=camera, uuid=unique_id,scale = 0, paths=p4[f"m_{a+1}"], debug=DEBUG))
         videop4.append(
-            Video(camera=camera, uuid=unique_id, paths=p4[f"m_{a+1}"], debug=DEBUG))
+            Video(camera=camera, uuid=unique_id,scale = 0, paths=p4[f"m_{a+1}"], debug=DEBUG))
     for a in range(len(p5)):
         p5m.append(
-            Guider(camera=camera, uuid=unique_id, paths=p5[f"m_{a + 1}"], debug=DEBUG))
+            Guider(camera=camera, uuid=unique_id,scale = 0, paths=p5[f"m_{a + 1}"], debug=DEBUG))
         videop5.append(
-            Video(camera=camera, uuid=unique_id, paths=p5[f"m_{a+1}"], debug=DEBUG))
+            Video(camera=camera, uuid=unique_id,scale = 0, paths=p5[f"m_{a+1}"], debug=DEBUG))
     for a in range(len(p6)):
         p6m.append(
-            Guider(camera=camera, uuid=unique_id, paths=p6[f"m_{a + 1}"], debug=DEBUG))
+            Guider(camera=camera, uuid=unique_id,scale = 0, paths=p6[f"m_{a + 1}"], debug=DEBUG))
         videop6.append(
-            Video(camera=camera, uuid=unique_id, paths=p6[f"m_{a+1}"], debug=DEBUG))
+            Video(camera=camera, uuid=unique_id,scale = 0, paths=p6[f"m_{a+1}"], debug=DEBUG))
     for a in range(len(p7)):
         p7m.append(
-            Guider(camera=camera, uuid=unique_id, paths=p7[f"m_{a + 1}"], debug=DEBUG))
+            Guider(camera=camera, uuid=unique_id,scale = 0, paths=p7[f"m_{a + 1}"], debug=DEBUG))
         videop7.append(
-            Video(camera=camera, uuid=unique_id, paths=p7[f"m_{a+1}"], debug=DEBUG))
+            Video(camera=camera, uuid=unique_id,scale = 0, paths=p7[f"m_{a+1}"], debug=DEBUG))
     for a in range(len(p8)):
         p8m.append(
-            Guider(camera=camera, uuid=unique_id, paths=p8[f"m_{a + 1}"], debug=DEBUG))
+            Guider(camera=camera, uuid=unique_id,scale = 0, paths=p8[f"m_{a + 1}"], debug=DEBUG))
         videop8.append(
-            Video(camera=camera, uuid=unique_id, paths=p8[f"m_{a+1}"], debug=DEBUG))
+            Video(camera=camera, uuid=unique_id,scale = 0, paths=p8[f"m_{a+1}"], debug=DEBUG))
     for a in range(len(p9)):
         p9m.append(
-            Guider(camera=camera, uuid=unique_id, paths=p9[f"m_{a + 1}"], debug=DEBUG))
+            Guider(camera=camera, uuid=unique_id,scale = 0, paths=p9[f"m_{a + 1}"], debug=DEBUG))
         videop9.append(
-            Video(camera=camera, uuid=unique_id, paths=p9[f"m_{a+1}"], debug=DEBUG))
-    video_all = Video(camera=camera, uuid=unique_id, paths=all, debug=DEBUG)
+            Video(camera=camera, uuid=unique_id,scale = 0, paths=p9[f"m_{a+1}"], debug=DEBUG))
+    video_all = Video(camera=camera, uuid=unique_id,scale = 0, paths=all, debug=DEBUG)
     # ?
     sys.stderr.write(f"Start\n")
 
@@ -955,44 +955,52 @@ def run_TJC(sport_type_config, anim, camera, pre_align, pre_clip, DEBUG, unique_
     pygame.quit()
 
 
-def run_24(sport_type_config, anim, camera, pre_align, pre_clip, DEBUG, unique_id, p1, p2, p3, p4,all,slow):
+def run_24(sport_type_config, anim, camera, pre_align, pre_clip, DEBUG, unique_id, p1, p2, p3, p4,slow):
     # 招式实例列表
     routines = []
     videos = []
     videos_slow = []
     for i in range(len(sport_type_config["路径"])):
-        routines.append(
-            Guider(camera=camera, uuid=unique_id, paths=sport_type_config["路径"][f"POSTURE_{i + 1}"], debug=DEBUG))
-        videos.append(
-            Video(camera=camera, uuid=unique_id, paths=sport_type_config["路径"][f"POSTURE_{i + 1}"], debug=DEBUG))
-        videos_slow.append(
-            Video(camera=camera, uuid=unique_id, paths=slow[f"POSTURE_{i + 1}"], debug=DEBUG))
+        if i < 3 :
+            routines.append(
+                Guider(camera=camera, uuid=unique_id,scale = 1, paths=sport_type_config["路径"][f"POSTURE_{i + 1}"], debug=DEBUG))
+            videos.append(
+                Video(camera=camera, uuid=unique_id,scale = 1, paths=sport_type_config["路径"][f"POSTURE_{i + 1}"], debug=DEBUG))
+            videos_slow.append(
+                Video(camera=camera, uuid=unique_id,scale = 1, paths=slow[f"POSTURE_{i + 1}"], debug=DEBUG))
+        if i >= 3 :
+            routines.append(
+                Guider(camera=camera, uuid=unique_id,scale = 2, paths=sport_type_config["路径"][f"POSTURE_{i + 1}"], debug=DEBUG))
+            videos.append(
+                Video(camera=camera, uuid=unique_id,scale = 2, paths=sport_type_config["路径"][f"POSTURE_{i + 1}"], debug=DEBUG))
+            videos_slow.append(
+                Video(camera=camera, uuid=unique_id,scale = 2, paths=slow[f"POSTURE_{i + 1}"], debug=DEBUG))
     p1m = [];p2m = [];p3m = [];p4m = []
     # p5m = [];p6m = [];p7m = [];p8m = [];p9m = []
     videop1 = [];videop2 = [];videop3 = [];videop4 = []
     # videop5 = [];videop6 = [];videop7 = [];videop8 = [];videop9 = []
     for i in range(len(p1)):
         p1m.append(
-            Guider(camera=camera, uuid=unique_id, paths=p1[f"m_{i + 1}"], debug=DEBUG))
+            Guider(camera=camera, uuid=unique_id,scale = 1, paths=p1[f"m_{i + 1}"], debug=DEBUG))
         videop1.append(
-            Video(camera=camera, uuid=unique_id, paths=p1[f"m_{i + 1}"], debug=DEBUG))
+            Video(camera=camera, uuid=unique_id,scale = 1, paths=p1[f"m_{i + 1}"], debug=DEBUG))
     for a in range(len(p2)):
         p2m.append(
-            Guider(camera=camera, uuid=unique_id, paths=p2[f"m_{a + 1}"], debug=DEBUG))
+            Guider(camera=camera, uuid=unique_id,scale = 1, paths=p2[f"m_{a + 1}"], debug=DEBUG))
         videop2.append(
-            Video(camera=camera, uuid=unique_id, paths=p2[f"m_{a + 1}"], debug=DEBUG))
+            Video(camera=camera, uuid=unique_id,scale = 1, paths=p2[f"m_{a + 1}"], debug=DEBUG))
     for a in range(len(p3)):
         p3m.append(
-            Guider(camera=camera, uuid=unique_id, paths=p3[f"m_{a + 1}"], debug=DEBUG))
+            Guider(camera=camera, uuid=unique_id,scale = 1, paths=p3[f"m_{a + 1}"], debug=DEBUG))
         videop3.append(
-            Video(camera=camera, uuid=unique_id, paths=p3[f"m_{a + 1}"], debug=DEBUG))
+            Video(camera=camera, uuid=unique_id,scale = 1, paths=p3[f"m_{a + 1}"], debug=DEBUG))
     for a in range(len(p4)):
         p4m.append(
-            Guider(camera=camera, uuid=unique_id, paths=p4[f"m_{a + 1}"], debug=DEBUG))
+            Guider(camera=camera, uuid=unique_id,scale = 2, paths=p4[f"m_{a + 1}"], debug=DEBUG))
         videop4.append(
-            Video(camera=camera, uuid=unique_id, paths=p4[f"m_{a + 1}"], debug=DEBUG))
+            Video(camera=camera, uuid=unique_id,scale = 2, paths=p4[f"m_{a + 1}"], debug=DEBUG))
 
-    video_all = Video(camera=camera, uuid=unique_id, paths=all, debug=DEBUG)
+    # video_all = Video(camera=camera, uuid=unique_id, paths=all, debug=DEBUG)
     # ?
     sys.stderr.write(f"Start\n")
 
@@ -1022,7 +1030,15 @@ def run_24(sport_type_config, anim, camera, pre_align, pre_clip, DEBUG, unique_i
     # 语音：太极操整体动作讲解。
     # DataSender.send_control("PLAY_AUDIO", flag="太极操整体动作介绍.mp3")
     anim.animate_title(text="招式1~4整体动画！", duration=3.0, config=ANIMATOR_CONFIG)
-    video_all.main_loop()
+    for i in range(len(p1)):
+        videop1[i].main_loop()
+    for i in range(len(p2)):
+        videop2[i].main_loop()
+    for i in range(len(p3)):
+        videop3[i].main_loop()
+    for i in range(len(p4)):
+        videop4[i].main_loop()
+    # video_all.main_loop()
 
 
     anim.animate_title(text="下面开始分动作练习", duration=3.0, config=ANIMATOR_CONFIG)
@@ -1136,7 +1152,7 @@ def run_24(sport_type_config, anim, camera, pre_align, pre_clip, DEBUG, unique_i
 
         if redo_selector.selection == 0:  # 用户选择了“重做”
             # 重置当前招式的状态，准备重做
-            routines[i] = Guider(camera=camera, uuid=unique_id, paths=sport_type_config["路径"][f"POSTURE_{i + 1}"],
+            routines[i] = Guider(camera=camera, uuid=unique_id,scale=0, paths=sport_type_config["路径"][f"POSTURE_{i + 1}"],
                                  debug=DEBUG)
             continue  # 再次执行当前循环，即重做当前招式
         elif redo_selector.selection == 1:  # 用户选择了“继续”
@@ -1272,7 +1288,7 @@ if __name__ == "__main__":
                              win_size=(WIN_SIZE[0], WIN_SIZE[1]))
     anim = Animator(camera=camera)
     pre_align = PreAlignerPoints(camera=camera,uuid = unique_id, _paths=PRE_GAME_ALIGN_PATHS, debug=DEBUG)
-    pre_clip = Guider(camera=camera,uuid = unique_id, paths=PRE_GAME_CLIP_PATHS, debug=DEBUG)
+    pre_clip = pre_clip(camera=camera,uuid = unique_id,scale = 0, paths=PRE_GAME_CLIP_PATHS, debug=DEBUG)
 
     anim.animate_title(text="欢迎来到iTaichi-系统", duration=5.0, config=ANIMATOR_CONFIG)
     # anim.animate_title(text="下面请选择运动项目", duration=5.0, config=ANIMATOR_CONFIG)
@@ -1309,7 +1325,7 @@ if __name__ == "__main__":
         elif sport_selector.selection == 2:
             run_24(sport_type_config=TJQ24_Learning_CONFIG, anim=anim, camera=camera, pre_align=pre_align,
                               pre_clip=pre_clip, DEBUG=DEBUG, unique_id=unique_id,p1=TJQ24_P1_PATHS, p2=TJQ24_P2_PATHS,
-                   p3=TJQ24_P3_PATHS, p4=TJQ24_P4_PATHS,all=TJQ24_ALL_PATHS,slow=TJQ24_Slow_PATHS)
+                   p3=TJQ24_P3_PATHS, p4=TJQ24_P4_PATHS,slow=TJQ24_Slow_PATHS)
     elif mode_selector.selection == 1:
         if sport_selector.selection == 0:
             run_sport_routine(sport_type_config=TJC_Training_CONFIG, anim=anim, camera=camera, pre_align=pre_align,

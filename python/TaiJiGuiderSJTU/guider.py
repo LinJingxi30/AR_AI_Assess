@@ -75,13 +75,13 @@ PATHS = {
 }
 
 class Guider:
-    def __init__(self, camera,uuid, paths=PATHS, debug=False):
+    def __init__(self, camera,uuid,scale, paths=PATHS, debug=False):
         # config 配置
         win_topic = "AR太极拳助手"+uuid
         self.frame_rate = 60
 
         self.uuid = uuid
-
+        self.s = scale
         # path 路径
         self.std_json_path = paths["标准 JSON 文件路径"]
         self.std_frame_path = paths["标准掩膜图片路径"]
@@ -451,37 +451,25 @@ class Guider:
         # std_pose_list 是 [33 * (x, y, z=0)]，其中左指尖、右指尖、左脚尖、右脚尖分别在 POSE_ALIGN_LANDMARKS 索引
         # 以左右指尖和左右脚尖的最大横向距离为基准，和 1100 像素做比例
         if not std_pose_list or len(std_pose_list) < max(POSE_ALIGN_LANDMARKS) + 1:
-            return 0.8  # 防止异常，返回默认缩放比例
+            return 0.7  # 防止异常，返回默认缩放比例
 
         # 获取四个关键点的 x 坐标
-        x_coords = [std_pose_list[idx][1] for idx,_ in enumerate(std_pose_list)]
+        y_coords = [std_pose_list[idx][1] for idx,_ in enumerate(std_pose_list)]
         # 计算最大和最小 x 坐标的距离
-        pose_width = max(x_coords) - min(x_coords)
+        pose_width = max(y_coords) - min(y_coords)
         if pose_width == 0:
             return 0.8  # 防止除零
+        if self.s == 0:
+            scale = pose_width / 600.0
+            return scale
+        if  self.s ==1:
+            scale = pose_width / 1600.0
+            return scale
+        if self.s ==2:
+            scale = pose_width / 2000.0
+            return scale
 
-        scale = pose_width / 600.0 
-        return scale
 
-
-    def get_scale(self,std_pose_list):
-        """
-        获取缩放比例
-        """
-        # std_pose_list 是 [33 * (x, y, z=0)]，其中左指尖、右指尖、左脚尖、右脚尖分别在 POSE_ALIGN_LANDMARKS 索引
-        # 以左右指尖和左右脚尖的最大横向距离为基准，和 1100 像素做比例
-        if not std_pose_list or len(std_pose_list) < max(POSE_ALIGN_LANDMARKS) + 1:
-            return 0.8  # 防止异常，返回默认缩放比例
-
-        # 获取四个关键点的 x 坐标
-        x_coords = [std_pose_list[idx][1] for idx,_ in enumerate(std_pose_list)]
-        # 计算最大和最小 x 坐标的距离
-        pose_width = max(x_coords) - min(x_coords)
-        if pose_width == 0:
-            return 0.8  # 防止除零
-
-        scale = pose_width / 600.0 
-        return scale
 
 
     def window_events(self):
