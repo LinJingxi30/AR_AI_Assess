@@ -496,6 +496,8 @@ def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--unique_id", required=True, help="运动记录的唯一ID")
     parser.add_argument("--rtmp_url", required=False, help="RTMP流地址")
+    parser.add_argument("--mode", required=False, help="直接指定模式（学习/训练）")  # 新增
+    parser.add_argument("--sport", required=False, help="直接指定运动项目")  # 新增
     return parser.parse_args()
 
 # main.py
@@ -874,84 +876,64 @@ def stdin_command_listener():
 
 if __name__ == "__main__":
     threading.Thread(target=stdin_command_listener, daemon=True).start()
-    # 解析命令行参数
     args = parse_args()
     unique_id = args.unique_id
     rtmp_url = args.rtmp_url
+    mode_arg = getattr(args, "mode", None)
+    sport_arg = getattr(args, "sport", None)
     video_source = rtmp_url if rtmp_url else 0
     camera = CameraUtil(source=video_source, resolution=(1280, 720))  # WIN_SIZE=(1280, 720) 默认分辨率
 
     DEBUG = 0
-    # todo:: winsize问题，按钮会超框，因为根据的是未分割的窗口尺寸
     sport_selector = Selector(camera=camera,uuid = unique_id, buttons_config=SPORTS_SEL, debug=0,
-                              win_size=(WIN_SIZE[0], WIN_SIZE[1]))  # debug=0 使用udp相机
+                              win_size=(WIN_SIZE[0], WIN_SIZE[1]))
     mode_selector = Selector(camera=camera,uuid = unique_id, buttons_config=MODES_SEL, debug=0,
-                             win_size=(WIN_SIZE[0], WIN_SIZE[1]))  # debug=0 使用udp相机
+                             win_size=(WIN_SIZE[0], WIN_SIZE[1]))
     anim = Animator(camera=camera)
     pre_align = PreAlignerPoints(camera=camera,uuid = unique_id, _paths=PRE_GAME_ALIGN_PATHS, debug=DEBUG)
     pre_clip = Guider(camera=camera,uuid = unique_id, paths=PRE_GAME_CLIP_PATHS, debug=DEBUG)
 
-    # 引导的标题
     anim.animate_title(text="欢迎来到iTaichi-系统", duration=5.0, config=ANIMATOR_CONFIG)
     anim.animate_title(text="下面请选择运动项目", duration=5.0, config=ANIMATOR_CONFIG)
-    # 倒计时3s
     anim.animate_countdown(duration=0.5, config=ANIMATOR_CONFIG, cnt=3)
-    # 选择运动项目
-    sport_selector.main_loop_with_voice()  # -> sport_selector.selection
 
+    # 运动项目选择
+    if sport_arg is not None and sport_arg in SPORTS_SEL["texts"]:
+        sport_idx = SPORTS_SEL["texts"].index(sport_arg)
+        sport_selector.selection = sport_idx
+    else:
+        sport_selector.main_loop_with_voice()  # -> sport_selector.selection
 
-    anim.animate_title(text="下面请选择模式", duration=5.0, config=ANIMATOR_CONFIG)
-    # 倒计时3s
-    anim.animate_countdown(duration=0.5, config=ANIMATOR_CONFIG, cnt=3)
-    # todo:: 发送控制帧，告诉前端要播放哪个视频
-    # 选择模式
-    mode_selector.main_loop_with_voice()  # -> mode_selector.selection
+    # 模式选择
+    if mode_arg is not None and mode_arg in MODES_SEL["texts"]:
+        mode_idx = MODES_SEL["texts"].index(mode_arg)
+        mode_selector.selection = mode_idx
+        anim.animate_title(text=f"已选择模式：{mode_arg}", duration=2.0, config=ANIMATOR_CONFIG)
+    else:
+        anim.animate_title(text="下面请选择模式", duration=5.0, config=ANIMATOR_CONFIG)
+        anim.animate_countdown(duration=0.5, config=ANIMATOR_CONFIG, cnt=3)
+        mode_selector.main_loop_with_voice()  # -> mode_selector.selection
 
     # 根据选择的模式
     if mode_selector.selection == 0:
-        # 学习模式
-        # 根据选择的运动项目 创建对应的（路径） Guider 实例
         if sport_selector.selection == 0:
-            # DataSender.send_control("PLAY_VIDEO", flag ="part1.mp4")
-            # time.sleep(8)
-            # 太极操 9 式
             run_TJC(sport_type_config=TJC_Learning_CONFIG, anim=anim, camera=camera, pre_align=pre_align,
-                              pre_clip=pre_clip, DEBUG=DEBUG, unique_id=unique_id ,p1=TJC_P1_PATHS,
+                    pre_clip=pre_clip, DEBUG=DEBUG, unique_id=unique_id ,p1=TJC_P1_PATHS,
                     p2=TJC_P2_PATHS, p3=TJC_P3_PATHS, p4=TJC_P4_PATHS, p5=TJC_P5_PATHS,
                     p6=TJC_P6_PATHS, p7=TJC_P7_PATHS, p8=TJC_P8_PATHS, p9=TJC_P9_PATHS,all=TJC_ALL_PATHS)
-
         elif sport_selector.selection == 1:
-            # DataSender.send_control("PLAY_VIDEO", flag="part1.mp4")
-            # time.sleep(8)
-            # 八法五步
             run_sport_routine(sport_type_config=BFWB_Training_CONFIG, anim=anim, camera=camera, pre_align=pre_align,
                               pre_clip=pre_clip, DEBUG=DEBUG, unique_id=unique_id)
-
         elif sport_selector.selection == 2:
-            # DataSender.send_control("PLAY_VIDEO", flag="part1.mp4")
-            # time.sleep(8)
-            # 24式太极拳
             run_sport_routine(sport_type_config=TJC_Learning_CONFIG, anim=anim, camera=camera, pre_align=pre_align,
                               pre_clip=pre_clip, DEBUG=DEBUG, unique_id=unique_id)
     elif mode_selector.selection == 1:
-        # 训练模式
-        # 选择的运动项目
         if sport_selector.selection == 0:
-            # DataSender.send_control("PLAY_VIDEO", flag ="part1.mp4")
-            # time.sleep(8)
-            # 太极操 9 式
             run_sport_routine(sport_type_config=TJC_Training_CONFIG, anim=anim, camera=camera, pre_align=pre_align,
                               pre_clip=pre_clip, DEBUG=DEBUG, unique_id=unique_id)
         elif sport_selector.selection == 1:
-            # DataSender.send_control("PLAY_VIDEO", flag ="part1.mp4")
-            # time.sleep(8)
-            # 八法五步
             run_sport_routine(sport_type_config=BFWB_Training_CONFIG, anim=anim, camera=camera, pre_align=pre_align,
                               pre_clip=pre_clip, DEBUG=DEBUG, unique_id=unique_id)
-
         elif sport_selector.selection == 2:
-            # DataSender.send_control("PLAY_VIDEO", flag ="part1.mp4")
-            # time.sleep(8)
-            # 24式太极拳
             run_sport_routine(sport_type_config=TJC_Training_CONFIG, anim=anim, camera=camera, pre_align=pre_align,
                               pre_clip=pre_clip, DEBUG=DEBUG, unique_id=unique_id)

@@ -518,7 +518,7 @@ app.get('/api/rtmp_rooms', (req, res) => {
 
 // 启动单个 main.py
 app.post('/api/start_room', (req, res) => {
-    const { idx } = req.body;
+    const { idx, mode, sport } = req.body; // 新增 mode, sport
     if (!rtmpState.rtmpUrls[idx]) {
         return res.status(400).json({ error: '无效的房间索引' });
     }
@@ -529,9 +529,21 @@ app.post('/api/start_room', (req, res) => {
     const room = `room${idx + 1}`;
     const rtmpUrl = rtmpState.rtmpUrls[idx];
     const pyPath = path.join('python', 'TaiJiGuiderSJTU/main.py');
+    // 构建参数
+    const pyArgs = [
+        pyPath,
+        '--unique_id', `${uuid}_${idx + 1}`,
+        '--rtmp_url', rtmpUrl
+    ];
+    if (sport) {
+        pyArgs.push('--sport', sport);
+    }
+    if (mode) {
+        pyArgs.push('--mode', mode);
+    }
     const pyProc = spawn(
         PYTHON_INTERPRETER,
-        [pyPath, '--unique_id', `${uuid}_${idx + 1}`, '--rtmp_url', rtmpUrl],
+        pyArgs,
         {
             stdio: ['pipe', 'pipe', 'pipe'],
         }
