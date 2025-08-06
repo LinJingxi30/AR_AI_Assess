@@ -170,6 +170,14 @@
           </div>
         `).join('');
 
+        // 设置下拉栏选中项
+        rooms.forEach((room, idx) => {
+          const sportSel = document.getElementById(`sport-select-${idx}`);
+          const modeSel = document.getElementById(`mode-select-${idx}`);
+          if (sportSel && room.sport) sportSel.value = room.sport;
+          if (modeSel && room.mode) modeSel.value = room.mode;
+        });
+
         // 为每个运行中的房间建立socket并渲染画面
         rooms.forEach((room, idx) => {
           const imgId = `room-img-${idx}`;

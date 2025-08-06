@@ -506,11 +506,15 @@ app.get('/api/rtmp_rooms', (req, res) => {
         const room = `room${i + 1}`;
         const running = !!rtmpState.mainProcs[i];
         const uuid = rtmpState.mainProcs[i]?.uuid || null;
+        const mode = rtmpState.mainProcs[i]?.mode || '';
+        const sport = rtmpState.mainProcs[i]?.sport || '';
         rooms.push({
             room,
             rtmpUrl: rtmpState.rtmpUrls[i] || null,
             running,
-            uuid
+            uuid,
+            mode,
+            sport
         });
     }
     res.json({ rooms });
@@ -551,6 +555,8 @@ app.post('/api/start_room', (req, res) => {
     pyProc.room = room;
     pyProc.idx = idx;
     pyProc.uuid = uuid;
+    pyProc.mode = mode || null;   // 保存模式
+    pyProc.sport = sport || null; // 保存运动项目
     rtmpState.mainProcs[idx] = pyProc;
 
     // 处理图片帧和控制帧（同原有逻辑）
