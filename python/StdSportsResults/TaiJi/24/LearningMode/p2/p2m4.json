@@ -1,4 +1,4 @@
-"image": "p1_frame_0374.png", "points": {"left_h": [1192, 527], "right_h": [630, 931], "left_f": [913, 1534], "right_f": [122, 1554], "center": [714, 730], "skip": true}}
+{"image": "p1_frame_0374.png", "points": {"left_h": [1192, 527], "right_h": [630, 931], "left_f": [913, 1534], "right_f": [122, 1554], "center": [714, 730], "skip": true}}
 {"image": "p1_frame_0375.png", "points": {"left_h": [1192, 511], "right_h": [633, 917], "left_f": [931, 1513], "right_f": [169, 1554], "center": [720, 739], "skip": true}}
 {"image": "p1_frame_0376.png", "points": {"left_h": [1197, 497], "right_h": [630, 912], "left_f": [933, 1525], "right_f": [132, 1543], "center": [712, 734], "skip": true}}
 {"image": "p1_frame_0377.png", "points": {"left_h": [1192, 511], "right_h": [652, 921], "left_f": [945, 1532], "right_f": [166, 1562], "center": [712, 734], "skip": true}}

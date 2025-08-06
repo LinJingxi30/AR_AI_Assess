@@ -69,7 +69,7 @@ PYGAME_UI_CONFIG = {
 }
 
 PATHS = {
-    "标准 JSON 文件路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "p1" / "p1.json",
+    "标准 JSON 文件路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "p1" / "p1m1.json",
     "标准掩膜图片路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "p1",
     "背景音乐": Path(PY_ROOT) / "gameAssets" / "sounds" / "SJTUbgm.mp3",
 }
@@ -807,7 +807,7 @@ if __name__ == "__main__":
     from Config import STD_SPORTS_RESULTS_ROOT, WIN_SIZE
     TJC_Learning_PATHS = {
         "POSTURE_1": {
-            "标准 JSON 文件路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC" / "LearningMode" / "p1.json",
+            "标准 JSON 文件路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC" / "LearningMode" / "p1m1.json",
             "标准掩膜图片路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC",
             "背景音乐": Path(PY_ROOT) / "gameAssets" / "sounds" / "SJTUbgm.mp3",
         },

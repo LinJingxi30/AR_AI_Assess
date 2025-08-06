@@ -1,4 +1,4 @@
-{"image": "p1_frame_0000.png", "points": {"left_h": [812, 955], "right_h": [496, 992], "left_f": [775, 1612], "right_f": [613, 1631], "center": [624, 635], "skip": false}}
+{"image": "p1_frame_0000.png", "points": {"left_h": [812, 955], "right_h": [496, 992], "left_f": [775, 1612], "right_f": [613, 1631], "center": [624, 635], "skip": true}}
 {"image": "p1_frame_0001.png", "points": {"left_h": [812, 977], "right_h": [492, 988], "left_f": [764, 1620], "right_f": [628, 1635], "center": [610, 624], "skip": true}}
 {"image": "p1_frame_0002.png", "points": {"left_h": [830, 937], "right_h": [489, 984], "left_f": [753, 1631], "right_f": [621, 1631], "center": [610, 643], "skip": true}}
 {"image": "p1_frame_0003.png", "points": {"left_h": [815, 959], "right_h": [489, 970], "left_f": [775, 1627], "right_f": [639, 1612], "center": [632, 639], "skip": true}}
