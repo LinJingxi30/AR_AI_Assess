@@ -380,7 +380,7 @@ class pre_clip(Guider):
                                  rt_lm_list=self.rt_landmarks_list)
 
             """保存数据"""
-            self.user_evaluation_data_save(self.conditions)
+            # self.user_evaluation_data_save(self.conditions)
 
             """步进跳帧"""
             if self.debug:
