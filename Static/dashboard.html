@@ -120,6 +120,19 @@
           });
       }
 
+      // 运动项目和模式选项
+      const sportOptions = [
+        { value: '', label: '请选择运动项目' },
+        { value: '太极操', label: '太极操' },
+        { value: '八法五步', label: '八法五步' },
+        { value: '24式太极拳', label: '24式太极拳' }
+      ];
+      const modeOptions = [
+        { value: '', label: '请选择模式' },
+        { value: '学习', label: '学习' },
+        { value: '训练', label: '训练' }
+      ];
+
       async function refreshRtmpRooms() {
         const res = await axios.get('/api/rtmp_rooms');
         const rooms = res.data.rooms;
@@ -138,6 +151,14 @@
             <div>状态: <span class="${room.running ? 'text-green-600' : 'text-gray-500'}">${room.running ? '运行中' : '未启动'}</span></div>
             <div>UUID: <span class="break-all">${room.uuid || '-'}</span></div>
             <div class="flex gap-2">
+              <select id="sport-select-${idx}" class="border px-2 py-1 rounded">
+                ${sportOptions.map(opt => `<option value="${opt.value}">${opt.label}</option>`).join('')}
+              </select>
+              <select id="mode-select-${idx}" class="border px-2 py-1 rounded">
+                ${modeOptions.map(opt => `<option value="${opt.value}">${opt.label}</option>`).join('')}
+              </select>
+            </div>
+            <div class="flex gap-2 mt-2">
               <button onclick="startRoom(${idx})" class="bg-blue-600 text-white px-2 py-1 rounded hover:bg-blue-700" ${room.running ? 'disabled' : ''}>启动</button>
               <button onclick="stopRoom(${idx})" class="bg-red-600 text-white px-2 py-1 rounded hover:bg-red-700" ${!room.running ? 'disabled' : ''}>停止</button>
             </div>
@@ -192,7 +213,14 @@
 
       async function startRoom(idx) {
         try {
-          await axios.post('/api/start_room', { idx });
+          // 获取下拉栏的值
+          const sport = document.getElementById(`sport-select-${idx}`)?.value || '';
+          const mode = document.getElementById(`mode-select-${idx}`)?.value || '';
+          // 构造参数
+          const params = { idx };
+          if (sport) params.sport = sport;
+          if (mode) params.mode = mode;
+          await axios.post('/api/start_room', params);
           setTimeout(refreshRtmpRooms, 500);
         } catch (e) {
           alert('启动失败: ' + (e.response?.data?.error || e.message));
