@@ -967,14 +967,14 @@ def run_24(sport_type_config, anim, camera, pre_align, pre_clip, DEBUG, unique_i
             videos.append(
                 Video(camera=camera, uuid=unique_id,scale = 1, paths=sport_type_config["路径"][f"POSTURE_{i + 1}"], debug=DEBUG))
             videos_slow.append(
-                Video(camera=camera, uuid=unique_id,scale = 1, paths=slow[f"POSTURE_{i + 1}"], debug=DEBUG))
+                Guider(camera=camera, uuid=unique_id,scale = 1, paths=slow[f"POSTURE_{i + 1}"], debug=DEBUG))
         if i >= 3 :
             routines.append(
                 Guider(camera=camera, uuid=unique_id,scale = 2, paths=sport_type_config["路径"][f"POSTURE_{i + 1}"], debug=DEBUG))
             videos.append(
                 Video(camera=camera, uuid=unique_id,scale = 2, paths=sport_type_config["路径"][f"POSTURE_{i + 1}"], debug=DEBUG))
             videos_slow.append(
-                Video(camera=camera, uuid=unique_id,scale = 2, paths=slow[f"POSTURE_{i + 1}"], debug=DEBUG))
+                Guider(camera=camera, uuid=unique_id,scale = 2, paths=slow[f"POSTURE_{i + 1}"], debug=DEBUG))
     p1m = [];p2m = [];p3m = [];p4m = []
     # p5m = [];p6m = [];p7m = [];p8m = [];p9m = []
     videop1 = [];videop2 = [];videop3 = [];videop4 = []
