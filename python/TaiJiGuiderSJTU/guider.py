@@ -420,7 +420,7 @@ class Guider:
 
         # ---- 画布亮度调整 + 掩膜叠加 步骤计时 ----
         # start_canvas = time.time()
-        self.canvas = (self.canvas * LIGHTNESS).astype(np.uint8)
+        # self.canvas = (self.canvas * LIGHTNESS).astype(np.uint8)
         # end_canvas = time.time()
         # sys.stderr.write(f"canvas change brightness: {end_canvas - start_canvas:.6f} 秒\n")
         # start_canvas = time.time()
