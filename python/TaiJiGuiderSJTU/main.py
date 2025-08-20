@@ -462,7 +462,12 @@ TJQ24_Learning_PATHS = {
     },
     "POSTURE_4": {
         "标准 JSON 文件路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC" / "LearningMode" / "p4.json",
-        "标准掩膜图片路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC",
+        "标准掩膜图片路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "24",
+        "背景音乐": Path(PY_ROOT) / "gameAssets" / "sounds" / "SJTUbgm.mp3",
+    },
+    "POSTURE_5": {
+        "标准 JSON 文件路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC" / "LearningMode" / "p5.json",
+        "标准掩膜图片路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "24",
         "背景音乐": Path(PY_ROOT) / "gameAssets" / "sounds" / "SJTUbgm.mp3",
     }
 }
@@ -579,6 +584,23 @@ TJQ24_P4_PATHS = {
             "背景音乐": Path(PY_ROOT) / "gameAssets" / "sounds" / "SJTUbgm.mp3",
         }
 }
+TJQ24_P5_PATHS = {
+        "m_1": {
+            "标准 JSON 文件路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "24" / "LearningMode" / "p5" / "p5m1.json",
+            "标准掩膜图片路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "24",
+            "背景音乐": Path(PY_ROOT) / "gameAssets" / "sounds" / "SJTUbgm.mp3",
+        },
+        "m_2": {
+            "标准 JSON 文件路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "24" / "LearningMode" / "p5" / "p5m2.json",
+            "标准掩膜图片路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "24",
+            "背景音乐": Path(PY_ROOT) / "gameAssets" / "sounds" / "SJTUbgm.mp3",
+        },
+        "m_3": {
+            "标准 JSON 文件路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "24" / "LearningMode" / "p5" / "p5m3.json",
+            "标准掩膜图片路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "24",
+            "背景音乐": Path(PY_ROOT) / "gameAssets" / "sounds" / "SJTUbgm.mp3",
+        }
+}
 # TJQ24_ALL_PATHS = {
 #         "标准 JSON 文件路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "24" / "LearningMode" / "all.json",
 #         "标准掩膜图片路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "24",
@@ -592,6 +614,7 @@ TJQ24_Learning_CONFIG = {
         "招式二：左右野马分鬃！",
         "招式三：白鹤亮翅！",
         "招式四：左右搂膝拗步！"
+        "招式五：手挥琵琶！"
     ]
 }
 TJQ24_Slow_PATHS = {
@@ -614,6 +637,11 @@ TJQ24_Slow_PATHS = {
         "标准 JSON 文件路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "24" / "LearningMode" / "p4_slow.json",
         "标准掩膜图片路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "24",
         "背景音乐": Path(PY_ROOT) / "gameAssets" / "sounds" / "SJTUbgm.mp3",
+    },
+    "POSTURE_5": {
+        "标准 JSON 文件路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "24" / "LearningMode" / "p5_slow.json",
+        "标准掩膜图片路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "24",
+        "背景音乐": Path(PY_ROOT) / "gameAssets" / "sounds" / "SJTUbgm.mp3",
     }
 }
 
@@ -628,6 +656,43 @@ TJQ24_Training_PATHS = {
 TJQ24_Training_CONFIG = {
     "路径": TJC_Training_PATHS,
     "片段标题": ["完整练习"],
+}
+p1_p3 = {
+    "标准 JSON 文件路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "24" / "p1-3.json" ,
+    "标准掩膜图片路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "24",
+    "背景音乐": Path(PY_ROOT) / "gameAssets" / "sounds" / "SJTUbgm.mp3",
+}
+p4_p5 = {
+    "标准 JSON 文件路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "24" / "p4-5.json" ,
+    "标准掩膜图片路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "24",
+    "背景音乐": Path(PY_ROOT) / "gameAssets" / "sounds" / "SJTUbgm.mp3",
+}
+new_path = {
+    "POSTURE_1": {
+        "标准 JSON 文件路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "24" / "LearningMode" / "p1.json",
+        "标准掩膜图片路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "24",
+        "背景音乐": Path(PY_ROOT) / "gameAssets" / "sounds" / "SJTUbgm.mp3",
+    },
+    "POSTURE_2": {
+        "标准 JSON 文件路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "24" / "LearningMode" / "p2.json",
+        "标准掩膜图片路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "24",
+        "背景音乐": Path(PY_ROOT) / "gameAssets" / "sounds" / "SJTUbgm.mp3",
+    },
+    "POSTURE_3": {
+        "标准 JSON 文件路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "24" / "LearningMode" / "p3.json",
+        "标准掩膜图片路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "24",
+        "背景音乐": Path(PY_ROOT) / "gameAssets" / "sounds" / "SJTUbgm.mp3",
+    },
+    "POSTURE_4": {
+        "标准 JSON 文件路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC" / "LearningMode" / "p4.json",
+        "标准掩膜图片路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "24",
+        "背景音乐": Path(PY_ROOT) / "gameAssets" / "sounds" / "SJTUbgm.mp3",
+    },
+    "POSTURE_5": {
+        "标准 JSON 文件路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "TJC" / "LearningMode" / "p5.json",
+        "标准掩膜图片路径": Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi" / "24",
+        "背景音乐": Path(PY_ROOT) / "gameAssets" / "sounds" / "SJTUbgm.mp3",
+    }
 }
 def combine_simple(id, save_path):
     """
@@ -953,7 +1018,93 @@ def run_TJC(sport_type_config, anim, camera, pre_align, pre_clip, DEBUG, unique_
 
     # 退出 pygame
     pygame.quit()
+def run_TJC_Training(sport_type_config, anim, camera, pre_align, pre_clip, DEBUG, unique_id):
+    # 招式实例列表
+    routines = []
+    videos = []
+    for i in range(len(sport_type_config["路径"])):
+        routines.append(
+            Guider(camera=camera, uuid=unique_id,scale=0, paths=sport_type_config["路径"][f"POSTURE_{i + 1}"], debug=DEBUG))
+        videos.append(
+            Video(camera=camera, uuid=unique_id,scale=0, paths=sport_type_config["路径"][f"POSTURE_{i + 1}"], debug=DEBUG))
 
+    # ?
+    sys.stderr.write(f"Start\n")
+
+    # 大标题
+    DataSender.send_control("PLAY_AUDIO", flag="语音1")
+    anim.animate_title(text="iTaichi-系统 正式开始！", duration=5.0, config=ANIMATOR_CONFIG)
+
+    # # 对齐四点指引
+    # pre_align.main_loop_with_voice()
+
+    # 语音：好，接下来是对齐掩膜指引。
+    DataSender.send_control("PLAY_AUDIO", flag="语音6")
+
+    # 倒计时3s
+    anim.animate_countdown(duration=1.0, config=ANIMATOR_CONFIG, cnt=3)
+
+    # 对齐掩膜指引
+    pre_clip.main_loop()
+
+    # 语音：对齐掩膜指引完成，接下来正式开始。
+    DataSender.send_control("PLAY_AUDIO", flag="语音8")
+
+    # 倒计时3s
+    anim.animate_countdown(duration=1.0, config=ANIMATOR_CONFIG, cnt=3)
+
+    # 运动开始：遍历每个片段
+    i = 0
+    while i < len(sport_type_config["路径"]):
+        # 语音：开始招式 i
+        # todo:: 针对性的语音提示，比如播放的是完整演示or实际训练
+
+        # DataSender.send_control("PLAY_VIDEO", flag ="part1.mp4")
+        # time.sleep(8)
+
+        # 招式 i 标题
+        anim.animate_title(text=sport_type_config["片段标题"][i], duration=4.0, config=ANIMATOR_CONFIG)
+        # 招式 i 视频
+        # anim.animate_title(text=f"完整视频", duration=4.0, config=ANIMATOR_CONFIG)
+        videos[i].main_loop()
+
+        # 招式 i 主循环
+        DataSender.send_control("PLAY_AUDIO", flag="太极操整体动作介绍.mp3")
+        anim.animate_title(text=f"开始练习", duration=2.0, config=ANIMATOR_CONFIG)
+        routines[i].main_loop()
+
+        # todo:: 用嵌入在config的条件来判断是否需要评分
+        # 招式 i 评分
+        anim.animate_summary(total_score=routines[i].score, move_scores=[routines[i].score], duration=2.5,
+                             config=ANIMATOR_CONFIG)
+
+        # sys.stderr.write(f"已执行片段 {i+1} finished.\n")   # 调试
+
+        # ******** 添加重做/继续逻辑的开始 ********
+        redo_selector = Selector(camera=camera, uuid=unique_id, buttons_config=REDO_SEL_CONFIG, debug=DEBUG,
+                                 win_size=(WIN_SIZE[0], WIN_SIZE[1]))
+        sys.stderr.write(str(redo_selector.buttons_positions))
+        redo_selector.main_loop_with_voice()
+
+        if redo_selector.selection == 0:  # 用户选择了“重做”
+            # 重置当前招式的状态，准备重做
+            routines[i] = Guider(camera=camera, uuid=unique_id,scale=0, paths=sport_type_config["路径"][f"POSTURE_{i + 1}"],
+                                 debug=DEBUG)
+            continue  # 再次执行当前循环，即重做当前招式
+        elif redo_selector.selection == 1:  # 用户选择了“继续”
+            # i += 1  # 进入下一个招式
+            anim.animate_title(text=f"练习结束", duration=4.0, config=ANIMATOR_CONFIG)
+            break
+        # ******** 添加重做/继续逻辑的结束 ********
+
+    # # 把 differences-<id>.json 文件合并生成
+    # combine_simple(id=unique_id, save_path=Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi")
+
+    # 结束：发送动作分列表至前端
+    DataSender.send_control(command="MOVE_SCORES", data=[t.score for t in routines])
+
+    # 退出 pygame
+    pygame.quit()
 
 def run_24(sport_type_config, anim, camera, pre_align, pre_clip, DEBUG, unique_id, p1, p2, p3, p4,slow):
     # 招式实例列表
@@ -1044,7 +1195,8 @@ def run_24(sport_type_config, anim, camera, pre_align, pre_clip, DEBUG, unique_i
     anim.animate_title(text="下面开始分动作练习", duration=3.0, config=ANIMATOR_CONFIG)
     # 运动开始：遍历每个片段
     i = 0
-    while i < len(sport_type_config["路径"]):
+    continue_count = 0
+    while i <= len(sport_type_config["路径"]):
         # 语音：开始招式 i
         # todo:: 针对性的语音提示，比如播放的是完整演示or实际训练
 
@@ -1121,6 +1273,7 @@ def run_24(sport_type_config, anim, camera, pre_align, pre_clip, DEBUG, unique_i
             routines[0].main_loop()
             routines[1].main_loop()
             routines[2].main_loop()
+
         if i == 3:
             # 招式 i 主循环
             DataSender.send_control("PLAY_AUDIO", flag=f"招式4.mp3")
@@ -1148,6 +1301,13 @@ def run_24(sport_type_config, anim, camera, pre_align, pre_clip, DEBUG, unique_i
             routines[2].main_loop()
             routines[3].main_loop()
 
+        if i == 4:
+            anim.animate_title(text=f"循环练习1~4式", duration=4.0, config=ANIMATOR_CONFIG)
+            for s in range(5):
+                videos[0].main_loop()
+                videos[1].main_loop()
+                videos[2].main_loop()
+                videos[3].main_loop()
         # anim.animate_title(text=f"开始练习", duration=2.0, config=ANIMATOR_CONFIG)
         # routines[i].main_loop()
 
@@ -1161,75 +1321,147 @@ def run_24(sport_type_config, anim, camera, pre_align, pre_clip, DEBUG, unique_i
         # ******** 添加重做/继续逻辑的开始 ********
         redo_selector = Selector(camera=camera, uuid=unique_id, buttons_config=REDO_SEL_CONFIG, debug=DEBUG,
                                  win_size=(WIN_SIZE[0], WIN_SIZE[1]))
-        sys.stderr.write(str(redo_selector.buttons_positions))
         redo_selector.main_loop_with_voice()
 
         if redo_selector.selection == 0:  # 用户选择了“重做”
-            # 重置当前招式的状态，准备重做
-            routines[i] = Guider(camera=camera, uuid=unique_id,scale=0, paths=sport_type_config["路径"][f"POSTURE_{i + 1}"],
-                                 debug=DEBUG)
+
+            continue_count = 0  # 重置“继续”计数
             continue  # 再次执行当前循环，即重做当前招式
-        if redo_selector.selection == 1:  # 用户选择了“继续”
-            if i < 3:
-                i += 1  # 进入下一个招式
-            if i == 3:
+
+        elif redo_selector.selection == 1:  # 用户选择了“继续”
+
+            continue_count += 1  # 增加“继续”计数
+
+            if continue_count == 4:  # 如果“继续”次数达到 4 次
                 anim.animate_title(text=f"循环练习1~4式", duration=4.0, config=ANIMATOR_CONFIG)
-                for b in range(10):
-                    routines[0].main_loop()
-                    routines[1].main_loop()
-                    routines[2].main_loop()
-                    routines[3].main_loop()
-                break
+                routines[0].main_loop()
+                routines[1].main_loop()
+                routines[2].main_loop()
+                routines[3].main_loop()
+                continue_count = 0  # 重置“继续”计数
+
+            i += 1  # 进入下一个招式
         # ******** 添加重做/继续逻辑的结束 ********
+    # anim.animate_title(text=f"循环练习1~4式", duration=4.0, config=ANIMATOR_CONFIG)
+    # for b in range(5):
+    #     routines[0].main_loop()
+    #     routines[1].main_loop()
+    #     routines[2].main_loop()
+    #     routines[3].main_loop()
 
     # # 把 differences-<id>.json 文件合并生成
     # combine_simple(id=unique_id, save_path=Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi")
-
+    # sys.stderr.write("1")   # 调试
+    routines[0].main_loop()
+    routines[1].main_loop()
+    routines[2].main_loop()
+    routines[3].main_loop()
     # 结束：发送动作分列表至前端
     DataSender.send_control(command="MOVE_SCORES", data=[t.score for t in routines])
 
     # 退出 pygame
     pygame.quit()
+def run_24_Training(sport_type_config, anim, camera, pre_align, pre_clip, DEBUG, unique_id, p1, p2, p3, p4,p5,slow):
+    # 语音：好，接下来是对齐掩膜指引。
+    DataSender.send_control("PLAY_AUDIO", flag="语音6.mp3")
+    # 倒计时3s
+    anim.animate_countdown(duration=1.0, config=ANIMATOR_CONFIG, cnt=3)
+    # 对齐掩膜指引
+    pre_clip.main_loop()
+    base_width = pre_clip.smoothed_pose_width
 
-
-def run_TJC_Training(sport_type_config, anim, camera, pre_align, pre_clip, DEBUG, unique_id):
     # 招式实例列表
     routines = []
     videos = []
+    videos_slow = []
     for i in range(len(sport_type_config["路径"])):
-        routines.append(
-            Guider(camera=camera, uuid=unique_id,scale=0, paths=sport_type_config["路径"][f"POSTURE_{i + 1}"], debug=DEBUG))
-        videos.append(
-            Video(camera=camera, uuid=unique_id,scale=0, paths=sport_type_config["路径"][f"POSTURE_{i + 1}"], debug=DEBUG))
+        if i < 3 :
+            routines.append(
+                Guider(camera=camera, uuid=unique_id,scale = 1,base_width=base_width, paths=sport_type_config["路径"][f"POSTURE_{i + 1}"], debug=DEBUG))
+            videos.append(
+                Video(camera=camera, uuid=unique_id,scale = 1,base_width=base_width,  paths=sport_type_config["路径"][f"POSTURE_{i + 1}"], debug=DEBUG))
+            videos_slow.append(
+                Guider(camera=camera, uuid=unique_id,scale = 1,base_width=base_width,  paths=slow[f"POSTURE_{i + 1}"], debug=DEBUG))
+        if i >= 3 :
+            routines.append(
+                Guider(camera=camera, uuid=unique_id,scale = 2,base_width=base_width,  paths=sport_type_config["路径"][f"POSTURE_{i + 1}"], debug=DEBUG))
+            videos.append(
+                Video(camera=camera, uuid=unique_id,scale = 2,base_width=base_width,  paths=sport_type_config["路径"][f"POSTURE_{i + 1}"], debug=DEBUG))
+            videos_slow.append(
+                Guider(camera=camera, uuid=unique_id,scale = 2,base_width=base_width,  paths=slow[f"POSTURE_{i + 1}"], debug=DEBUG))
+    p1m = [];p2m = [];p3m = [];p4m = [];p5m = []
+    # p6m = [];p7m = [];p8m = [];p9m = []
+    videop1 = [];videop2 = [];videop3 = [];videop4 = [];videop5 = []
+    # ;videop6 = [];videop7 = [];videop8 = [];videop9 = []
+    for i in range(len(p1)):
+        p1m.append(
+            Guider(camera=camera, uuid=unique_id,scale = 1,base_width=base_width,  paths=p1[f"m_{i + 1}"], debug=DEBUG))
+        videop1.append(
+            Video(camera=camera, uuid=unique_id,scale = 1,base_width=base_width,  paths=p1[f"m_{i + 1}"], debug=DEBUG))
+    for a in range(len(p2)):
+        p2m.append(
+            Guider(camera=camera, uuid=unique_id,scale = 1,base_width=base_width,  paths=p2[f"m_{a + 1}"], debug=DEBUG))
+        videop2.append(
+            Video(camera=camera, uuid=unique_id,scale = 1,base_width=base_width,  paths=p2[f"m_{a + 1}"], debug=DEBUG))
+    for a in range(len(p3)):
+        p3m.append(
+            Guider(camera=camera, uuid=unique_id,scale = 1,base_width=base_width,  paths=p3[f"m_{a + 1}"], debug=DEBUG))
+        videop3.append(
+            Video(camera=camera, uuid=unique_id,scale = 1,base_width=base_width,  paths=p3[f"m_{a + 1}"], debug=DEBUG))
+    for a in range(len(p4)):
+        p4m.append(
+            Guider(camera=camera, uuid=unique_id,scale = 2,base_width=base_width,  paths=p4[f"m_{a + 1}"], debug=DEBUG))
+        videop4.append(
+            Video(camera=camera, uuid=unique_id,scale = 2,base_width=base_width,  paths=p4[f"m_{a + 1}"], debug=DEBUG))
+    for a in range(len(p5)):
+        p5m.append(
+            Guider(camera=camera, uuid=unique_id,scale = 2,base_width=base_width,  paths=p4[f"m_{a + 1}"], debug=DEBUG))
+        videop5.append(
+            Video(camera=camera, uuid=unique_id,scale = 2,base_width=base_width,  paths=p4[f"m_{a + 1}"], debug=DEBUG))
 
-    # ?
+    # video_all = Video(camera=camera, uuid=unique_id, paths=all, debug=DEBUG)
     sys.stderr.write(f"Start\n")
-
-    # 大标题
-    DataSender.send_control("PLAY_AUDIO", flag="语音1")
+    # # 大标题
+    # DataSender.send_control("PLAY_AUDIO", flag="语音1.mp3")
     anim.animate_title(text="iTaichi-系统 正式开始！", duration=5.0, config=ANIMATOR_CONFIG)
 
     # # 对齐四点指引
+    # anim.animate_title(text="请按顺序 对齐点！", duration=4.0, config=ANIMATOR_CONFIG)
     # pre_align.main_loop_with_voice()
-
-    # 语音：好，接下来是对齐掩膜指引。
-    DataSender.send_control("PLAY_AUDIO", flag="语音6")
-
+    # # 语音：好，接下来是对齐掩膜指引。
+    # DataSender.send_control("PLAY_AUDIO", flag="语音6.mp3")
+    #
+    # # 倒计时3s
+    # anim.animate_countdown(duration=1.0, config=ANIMATOR_CONFIG, cnt=3)
+    #
+    # # 对齐掩膜指引
+    # pre_clip.main_loop()
+    # # 语音：对齐掩膜指引完成，接下来正式开始。
+    # DataSender.send_control("PLAY_AUDIO", flag="语音8.mp3")
     # 倒计时3s
     anim.animate_countdown(duration=1.0, config=ANIMATOR_CONFIG, cnt=3)
 
-    # 对齐掩膜指引
-    pre_clip.main_loop()
+    # 语音：太极操整体动作讲解。
+    # DataSender.send_control("PLAY_AUDIO", flag="太极操整体动作介绍.mp3")
+    anim.animate_title(text="招式1~5整体动画！", duration=3.0, config=ANIMATOR_CONFIG)
+    for i in range(len(p1)):
+        videop1[i].main_loop()
+    for i in range(len(p2)):
+        videop2[i].main_loop()
+    for i in range(len(p3)):
+        videop3[i].main_loop()
+    for i in range(len(p4)):
+        videop4[i].main_loop()
+    for i in range(len(p5)):
+        videop5[i].main_loop()
+    # video_all.main_loop()
 
-    # 语音：对齐掩膜指引完成，接下来正式开始。
-    DataSender.send_control("PLAY_AUDIO", flag="语音8")
 
-    # 倒计时3s
-    anim.animate_countdown(duration=1.0, config=ANIMATOR_CONFIG, cnt=3)
-
+    anim.animate_title(text="下面开始分动作练习", duration=3.0, config=ANIMATOR_CONFIG)
     # 运动开始：遍历每个片段
     i = 0
-    while i < len(sport_type_config["路径"]):
+    # continue_count = 0
+    while i <= len(sport_type_config["路径"]):
         # 语音：开始招式 i
         # todo:: 针对性的语音提示，比如播放的是完整演示or实际训练
 
@@ -1239,102 +1471,238 @@ def run_TJC_Training(sport_type_config, anim, camera, pre_align, pre_clip, DEBUG
         # 招式 i 标题
         anim.animate_title(text=sport_type_config["片段标题"][i], duration=4.0, config=ANIMATOR_CONFIG)
         # 招式 i 视频
-        # anim.animate_title(text=f"完整视频", duration=4.0, config=ANIMATOR_CONFIG)
-        videos[i].main_loop()
+        anim.animate_title(text=f"招式 {i + 1} 整体动画", duration=4.0, config=ANIMATOR_CONFIG)
+        sys.stderr.write('测试开始')
+        videos[i].main_loop()#???为什么执行不了
+        sys.stderr.write('测试结束')
 
-        # 招式 i 主循环
-        DataSender.send_control("PLAY_AUDIO", flag="太极操整体动作介绍.mp3")
-        anim.animate_title(text=f"开始练习", duration=2.0, config=ANIMATOR_CONFIG)
-        routines[i].main_loop()
+        if i == 0:
+            # 招式 i 主循环
+            # DataSender.send_control("PLAY_AUDIO", flag=f"招式1.mp3")
+            # time.sleep(2)  # 等待音频播放
+            for j in range(len(p1m)):
+                videop1[j].main_loop()
+                time.sleep(1)
+                # p1m[j].main_loop()
+
+            # anim.animate_title(text=f"开始练习招式1", duration=2.0, config=ANIMATOR_CONFIG)
+            #缓慢
+            # anim.animate_title(text=f"缓慢速度练习招式1", duration=2.0, config=ANIMATOR_CONFIG)
+            # videos_slow[0].main_loop()
+            #正常
+            anim.animate_title(text=f"正常速度练习招式1", duration=2.0, config=ANIMATOR_CONFIG)
+            # routines[0].main_loop()
+            # videos[0].main_loop()
+            sys.stderr.write('测试开始')
+            for j in range(len(p1m)):
+                videop1[j].main_loop()
+            sys.stderr.write('测试结束')
+
+        if i == 1:
+            # 招式 i 主循环
+            # DataSender.send_control("PLAY_AUDIO", flag=f"招式2.mp3")
+            for j in range(len(p2m)):
+                # DataSender.send_control("PLAY_VIDEO", flag=f"part1.mp4")
+                # time.sleep(8)
+                videop2[j].main_loop()
+                time.sleep(1)
+                # p2m[j].main_loop()
+
+            # anim.animate_title(text=f"开始练习招式1~2", duration=2.0, config=ANIMATOR_CONFIG)
+            #缓慢
+            # anim.animate_title(text=f"缓慢速度练习招式2", duration=2.0, config=ANIMATOR_CONFIG)
+            # videos_slow[1].main_loop()
+            #正常
+            anim.animate_title(text=f"正常速度练习招式2", duration=2.0, config=ANIMATOR_CONFIG)
+            # routines[1].main_loop()
+            # videos[1].main_loop()
+            for j in range(len(p2m)):
+                videop2[j].main_loop()
+            #加之前招式
+            # anim.animate_title(text=f"缓慢速度练习招式1~2", duration=2.0, config=ANIMATOR_CONFIG)
+            # videos_slow[0].main_loop()
+            # videos_slow[1].main_loop()
+            anim.animate_title(text=f"正常速度练习招式1~2", duration=2.0, config=ANIMATOR_CONFIG)
+            # routines[0].main_loop()
+            # routines[1].main_loop()
+            # videos[0].main_loop()
+            # videos[1].main_loop()
+            for j in range(len(p1m)):
+                videop1[j].main_loop()
+            for j in range(len(p2m)):
+                videop2[j].main_loop()
+
+        if i == 2:
+            # 招式 i 主循环
+            # DataSender.send_control("PLAY_AUDIO", flag=f"招式3.mp3")
+            for j in range(len(p3m)):
+                # DataSender.send_control("PLAY_VIDEO", flag=f"part1.mp4")
+                # time.sleep(8)
+                videop3[j].main_loop()
+                time.sleep(1)
+                # p3m[j].main_loop()
+            # anim.animate_title(text=f"开始练习招式1~3", duration=2.0, config=ANIMATOR_CONFIG)
+            #缓慢
+            # anim.animate_title(text=f"缓慢速度练习招式3", duration=2.0, config=ANIMATOR_CONFIG)
+            # videos_slow[2].main_loop()
+            #正常
+            anim.animate_title(text=f"正常速度练习招式3", duration=2.0, config=ANIMATOR_CONFIG)
+            # routines[2].main_loop()
+            # videos[2].main_loop()
+            for j in range(len(p3m)):
+                videop3[j].main_loop()
+            #加之前招式
+            # anim.animate_title(text=f"缓慢速度练习招式1~3", duration=2.0, config=ANIMATOR_CONFIG)
+            # videos_slow[0].main_loop()
+            # videos_slow[1].main_loop()
+            # videos_slow[2].main_loop()
+            anim.animate_title(text=f"正常速度练习招式1~3", duration=2.0, config=ANIMATOR_CONFIG)
+            # routines[0].main_loop()
+            # routines[1].main_loop()
+            # routines[2].main_loop()
+            for j in range(len(p1m)):
+                videop1[j].main_loop()
+            for j in range(len(p2m)):
+                videop2[j].main_loop()
+            for j in range(len(p3m)):
+                videop3[j].main_loop()
+
+        if i == 3:
+            # # 招式 i 主循环
+            # DataSender.send_control("PLAY_AUDIO", flag=f"招式4.mp3")
+            for j in range(len(p4m)):
+                videop4[j].main_loop()
+                time.sleep(1)
+                # p4m[j].main_loop()
+            # anim.animate_title(text=f"开始练习招式1~4", duration=2.0, config=ANIMATOR_CONFIG)
+            #缓慢
+            # anim.animate_title(text=f"缓慢速度练习招式4", duration=2.0, config=ANIMATOR_CONFIG)
+            # videos_slow[3].main_loop()
+            #正常
+            anim.animate_title(text=f"正常速度练习招式4", duration=2.0, config=ANIMATOR_CONFIG)
+            # routines[3].main_loop()
+            for j in range(len(p4m)):
+                videop4[j].main_loop()
+            #加之前招式
+            # anim.animate_title(text=f"缓慢速度练习招式1~4", duration=2.0, config=ANIMATOR_CONFIG)
+            # videos_slow[0].main_loop()
+            # videos_slow[1].main_loop()
+            # videos_slow[2].main_loop()
+            # videos_slow[3].main_loop()
+            anim.animate_title(text=f"正常速度练习招式1~4", duration=2.0, config=ANIMATOR_CONFIG)
+            # routines[0].main_loop()
+            # routines[1].main_loop()
+            # routines[2].main_loop()
+            # routines[3].main_loop()
+            for j in range(len(p1m)):
+                videop1[j].main_loop()
+            for j in range(len(p2m)):
+                videop2[j].main_loop()
+            for j in range(len(p3m)):
+                videop3[j].main_loop()
+            for j in range(len(p4m)):
+                videop4[j].main_loop()
+        if i == 4:
+            # # 招式 i 主循环
+            # DataSender.send_control("PLAY_AUDIO", flag=f"招式4.mp3")
+            for j in range(len(p5m)):
+                videop5[j].main_loop()
+                time.sleep(1)
+                # p4m[j].main_loop()
+            # anim.animate_title(text=f"开始练习招式1~4", duration=2.0, config=ANIMATOR_CONFIG)
+            #缓慢
+            # anim.animate_title(text=f"缓慢速度练习招式4", duration=2.0, config=ANIMATOR_CONFIG)
+            # videos_slow[3].main_loop()
+            #正常
+            anim.animate_title(text=f"正常速度练习招式5", duration=2.0, config=ANIMATOR_CONFIG)
+            # routines[3].main_loop()
+            for j in range(len(p4m)):
+                videop4[j].main_loop()
+            #加之前招式
+            # anim.animate_title(text=f"缓慢速度练习招式1~4", duration=2.0, config=ANIMATOR_CONFIG)
+            # videos_slow[0].main_loop()
+            # videos_slow[1].main_loop()
+            # videos_slow[2].main_loop()
+            # videos_slow[3].main_loop()
+            anim.animate_title(text=f"正常速度练习招式1~5", duration=2.0, config=ANIMATOR_CONFIG)
+            # routines[0].main_loop()
+            # routines[1].main_loop()
+            # routines[2].main_loop()
+            # routines[3].main_loop()
+            for j in range(len(p1m)):
+                videop1[j].main_loop()
+            for j in range(len(p2m)):
+                videop2[j].main_loop()
+            for j in range(len(p3m)):
+                videop3[j].main_loop()
+            for j in range(len(p4m)):
+                videop4[j].main_loop()
+            for j in range(len(p5m)):
+                videop5[j].main_loop()
+
+        if i == 5:
+            anim.animate_title(text=f"循环练习1~5式", duration=4.0, config=ANIMATOR_CONFIG)
+            for s in range(5):
+                for j in range(len(p1m)):
+                    videop1[j].main_loop()
+                for j in range(len(p2m)):
+                    videop2[j].main_loop()
+                for j in range(len(p3m)):
+                    videop3[j].main_loop()
+                for j in range(len(p4m)):
+                    videop4[j].main_loop()
+                for j in range(len(p5m)):
+                    videop5[j].main_loop()
+        # anim.animate_title(text=f"开始练习", duration=2.0, config=ANIMATOR_CONFIG)
+        # routines[i].main_loop()
 
         # todo:: 用嵌入在config的条件来判断是否需要评分
-        # 招式 i 评分
+        '''# 招式 i 评分
         anim.animate_summary(total_score=routines[i].score, move_scores=[routines[i].score], duration=2.5,
-                             config=ANIMATOR_CONFIG)
+                             config=ANIMATOR_CONFIG)'''
 
         # sys.stderr.write(f"已执行片段 {i+1} finished.\n")   # 调试
 
         # ******** 添加重做/继续逻辑的开始 ********
         redo_selector = Selector(camera=camera, uuid=unique_id, buttons_config=REDO_SEL_CONFIG, debug=DEBUG,
                                  win_size=(WIN_SIZE[0], WIN_SIZE[1]))
-        sys.stderr.write(str(redo_selector.buttons_positions))
         redo_selector.main_loop_with_voice()
 
         if redo_selector.selection == 0:  # 用户选择了“重做”
-            # 重置当前招式的状态，准备重做
-            routines[i] = Guider(camera=camera, uuid=unique_id,scale=0, paths=sport_type_config["路径"][f"POSTURE_{i + 1}"],
-                                 debug=DEBUG)
+            # continue_count = 0  # 重置“继续”计数
             continue  # 再次执行当前循环，即重做当前招式
+
         elif redo_selector.selection == 1:  # 用户选择了“继续”
-            # i += 1  # 进入下一个招式
-            anim.animate_title(text=f"练习结束", duration=4.0, config=ANIMATOR_CONFIG)
-            break
+            # continue_count += 1  # 增加“继续”计数
+            # if continue_count == 4:  # 如果“继续”次数达到 4 次
+            #     anim.animate_title(text=f"循环练习1~4式", duration=4.0, config=ANIMATOR_CONFIG)
+            #     for b in range(5):
+            #         routines[0].main_loop()
+            #         routines[1].main_loop()
+            #         routines[2].main_loop()
+            #         routines[3].main_loop()
+            #     break  # 跳出循环，进入循环练习逻辑
+
+            i += 1  # 进入下一个招式
         # ******** 添加重做/继续逻辑的结束 ********
 
     # # 把 differences-<id>.json 文件合并生成
     # combine_simple(id=unique_id, save_path=Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi")
 
     # 结束：发送动作分列表至前端
-    DataSender.send_control(command="MOVE_SCORES", data=[t.score for t in routines])
+    sys.stderr.write('测试开始')
+    anim.animate_title(text=f"循环练习1~4式", duration=4.0, config=ANIMATOR_CONFIG)
+    routines[0].main_loop()
+    routines[1].main_loop()
+    routines[2].main_loop()
+    routines[3].main_loop()
+    routines[4].main_loop()
+    sys.stderr.write('测试结束')
+    # DataSender.send_control(command="MOVE_SCORES", data=[t.score for t in routines])
 
     # 退出 pygame
     pygame.quit()
-def run_24_Training(sport_type_config, anim, camera, pre_align, pre_clip, DEBUG, unique_id, p1, p2, p3, p4,slow):
-    # 招式实例列表
-    routines = []
-    videos = []
-    videos_slow = []
-    for i in range(len(sport_type_config["路径"])):
-        if i < 3 :
-            routines.append(
-                Guider(camera=camera, uuid=unique_id,scale = 1, paths=sport_type_config["路径"][f"POSTURE_{i + 1}"], debug=DEBUG))
-            videos.append(
-                Video(camera=camera, uuid=unique_id,scale = 1, paths=sport_type_config["路径"][f"POSTURE_{i + 1}"], debug=DEBUG))
-            videos_slow.append(
-                Guider(camera=camera, uuid=unique_id,scale = 1, paths=slow[f"POSTURE_{i + 1}"], debug=DEBUG))
-        if i >= 3 :
-            routines.append(
-                Guider(camera=camera, uuid=unique_id,scale = 2, paths=sport_type_config["路径"][f"POSTURE_{i + 1}"], debug=DEBUG))
-            videos.append(
-                Video(camera=camera, uuid=unique_id,scale = 2, paths=sport_type_config["路径"][f"POSTURE_{i + 1}"], debug=DEBUG))
-            videos_slow.append(
-                Guider(camera=camera, uuid=unique_id,scale = 2, paths=slow[f"POSTURE_{i + 1}"], debug=DEBUG))
-    p1m = [];p2m = [];p3m = [];p4m = []
-    # p5m = [];p6m = [];p7m = [];p8m = [];p9m = []
-    videop1 = [];videop2 = [];videop3 = [];videop4 = []
-    # videop5 = [];videop6 = [];videop7 = [];videop8 = [];videop9 = []
-    for i in range(len(p1)):
-        p1m.append(
-            Guider(camera=camera, uuid=unique_id,scale = 1, paths=p1[f"m_{i + 1}"], debug=DEBUG))
-        videop1.append(
-            Video(camera=camera, uuid=unique_id,scale = 1, paths=p1[f"m_{i + 1}"], debug=DEBUG))
-    for a in range(len(p2)):
-        p2m.append(
-            Guider(camera=camera, uuid=unique_id,scale = 1, paths=p2[f"m_{a + 1}"], debug=DEBUG))
-        videop2.append(
-            Video(camera=camera, uuid=unique_id,scale = 1, paths=p2[f"m_{a + 1}"], debug=DEBUG))
-    for a in range(len(p3)):
-        p3m.append(
-            Guider(camera=camera, uuid=unique_id,scale = 1, paths=p3[f"m_{a + 1}"], debug=DEBUG))
-        videop3.append(
-            Video(camera=camera, uuid=unique_id,scale = 1, paths=p3[f"m_{a + 1}"], debug=DEBUG))
-    for a in range(len(p4)):
-        p4m.append(
-            Guider(camera=camera, uuid=unique_id,scale = 2, paths=p4[f"m_{a + 1}"], debug=DEBUG))
-        videop4.append(
-            Video(camera=camera, uuid=unique_id,scale = 2, paths=p4[f"m_{a + 1}"], debug=DEBUG))
-
-    # video_all = Video(camera=camera, uuid=unique_id, paths=all, debug=DEBUG)
-    # ?
-    sys.stderr.write(f"Start\n")
-
-    # 大标题
-    DataSender.send_control("PLAY_AUDIO", flag="语音1.mp3")
-    anim.animate_title(text="iTaichi-系统 正式开始！", duration=5.0, config=ANIMATOR_CONFIG)
-
-    # # 对齐四点指引
-    # anim.animate_title(text="请按顺序 对齐点！", duration=4.0, config=ANIMATOR_CONFIG)
-    # pre_align.main_loop_with_voice()
+def Training24new(sport_type_config, anim, camera, pre_align, pre_clip, DEBUG, unique_id, p1_p3, p4_p5):
 
     # 语音：好，接下来是对齐掩膜指引。
     DataSender.send_control("PLAY_AUDIO", flag="语音6.mp3")
@@ -1344,173 +1712,37 @@ def run_24_Training(sport_type_config, anim, camera, pre_align, pre_clip, DEBUG,
 
     # 对齐掩膜指引
     pre_clip.main_loop()
+    base_width = pre_clip.smoothed_pose_width
+    sys.stderr.write(f'{base_width}')
+    # 招式实例列表
 
-    # 语音：对齐掩膜指引完成，接下来正式开始。
-    DataSender.send_control("PLAY_AUDIO", flag="语音8.mp3")
+    p1_p3V = Video(camera=camera, uuid=unique_id,scale = 1,base_width=base_width, paths=p1_p3, debug=DEBUG)
+    # p1_p3G = Guider(camera=camera, uuid=unique_id,scale = 1, paths=p1_p3, debug=DEBUG)
+    p4_p5V = Video(camera=camera, uuid=unique_id,scale = 2,base_width=base_width, paths=p4_p5, debug=DEBUG)
+    # p4_p5G = Guider(camera=camera, uuid=unique_id,scale = 2, paths=p4_p5, debug=DEBUG)
+
+    # video_all = Video(camera=camera, uuid=unique_id, paths=all, debug=DEBUG)
+    # ?
+    sys.stderr.write(f"Start\n")
+
+    # 大标题
+    DataSender.send_control("PLAY_AUDIO", flag="语音1.mp3")
+    anim.animate_title(text="iTaichi-系统 正式开始！", duration=5.0, config=ANIMATOR_CONFIG)
 
     # 倒计时3s
     anim.animate_countdown(duration=1.0, config=ANIMATOR_CONFIG, cnt=3)
 
     # 语音：太极操整体动作讲解。
     # DataSender.send_control("PLAY_AUDIO", flag="太极操整体动作介绍.mp3")
-    anim.animate_title(text="招式1~4整体动画！", duration=3.0, config=ANIMATOR_CONFIG)
-    for i in range(len(p1)):
-        videop1[i].main_loop()
-    for i in range(len(p2)):
-        videop2[i].main_loop()
-    for i in range(len(p3)):
-        videop3[i].main_loop()
-    for i in range(len(p4)):
-        videop4[i].main_loop()
-    # video_all.main_loop()
-
+    anim.animate_title(text="招式1~5整体动画！", duration=3.0, config=ANIMATOR_CONFIG)
+    p1_p3V.main_loop()
+    p4_p5V.main_loop()
+    # p1_p3G.main_loop()
+    # p4_p5G.main_loop()
 
     anim.animate_title(text="下面开始分动作练习", duration=3.0, config=ANIMATOR_CONFIG)
-    # 运动开始：遍历每个片段
-    i = 0
-    while i < len(sport_type_config["路径"]):
-        # 语音：开始招式 i
-        # todo:: 针对性的语音提示，比如播放的是完整演示or实际训练
-
-        # DataSender.send_control("PLAY_VIDEO", flag ="part1.mp4")
-        # time.sleep(8)
-
-        # 招式 i 标题
-        anim.animate_title(text=sport_type_config["片段标题"][i], duration=4.0, config=ANIMATOR_CONFIG)
-        # 招式 i 视频
-        anim.animate_title(text=f"招式 {i + 1} 整体动画", duration=4.0, config=ANIMATOR_CONFIG)
-        videos[i].main_loop()
-
-        if i == 0:
-            # 招式 i 主循环
-            # DataSender.send_control("PLAY_AUDIO", flag=f"招式1.mp3")
-            # time.sleep(2)  # 等待音频播放
-            for j in range(len(p1m)):
-                videop1[j].main_loop()
-                p1m[j].main_loop()
-
-            # anim.animate_title(text=f"开始练习招式1", duration=2.0, config=ANIMATOR_CONFIG)
-            #缓慢
-            anim.animate_title(text=f"缓慢速度练习招式1", duration=2.0, config=ANIMATOR_CONFIG)
-            videos_slow[0].main_loop()
-            #正常
-            anim.animate_title(text=f"正常速度练习招式1", duration=2.0, config=ANIMATOR_CONFIG)
-            routines[0].main_loop()
-
-        if i == 1:
-            # 招式 i 主循环
-            # DataSender.send_control("PLAY_AUDIO", flag=f"招式2.mp3")
-            for j in range(len(p2m)):
-                # DataSender.send_control("PLAY_VIDEO", flag=f"part1.mp4")
-                # time.sleep(8)
-                videop2[j].main_loop()
-                p2m[j].main_loop()
-
-            # anim.animate_title(text=f"开始练习招式1~2", duration=2.0, config=ANIMATOR_CONFIG)
-            #缓慢
-            anim.animate_title(text=f"缓慢速度练习招式2", duration=2.0, config=ANIMATOR_CONFIG)
-            videos_slow[1].main_loop()
-            #正常
-            anim.animate_title(text=f"正常速度练习招式2", duration=2.0, config=ANIMATOR_CONFIG)
-            routines[1].main_loop()
-            #加之前招式
-            anim.animate_title(text=f"缓慢速度练习招式1~2", duration=2.0, config=ANIMATOR_CONFIG)
-            videos_slow[0].main_loop()
-            videos_slow[1].main_loop()
-            anim.animate_title(text=f"正常速度练习招式1~2", duration=2.0, config=ANIMATOR_CONFIG)
-            routines[0].main_loop()
-            routines[1].main_loop()
-
-        if i == 2:
-            # 招式 i 主循环
-            DataSender.send_control("PLAY_AUDIO", flag=f"招式3.mp3")
-            for j in range(len(p3m)):
-                # DataSender.send_control("PLAY_VIDEO", flag=f"part1.mp4")
-                # time.sleep(8)
-                videop3[j].main_loop()
-                p3m[j].main_loop()
-            # anim.animate_title(text=f"开始练习招式1~3", duration=2.0, config=ANIMATOR_CONFIG)
-            #缓慢
-            anim.animate_title(text=f"缓慢速度练习招式3", duration=2.0, config=ANIMATOR_CONFIG)
-            videos_slow[2].main_loop()
-            #正常
-            anim.animate_title(text=f"正常速度练习招式3", duration=2.0, config=ANIMATOR_CONFIG)
-            routines[2].main_loop()
-            #加之前招式
-            anim.animate_title(text=f"缓慢速度练习招式1~3", duration=2.0, config=ANIMATOR_CONFIG)
-            videos_slow[0].main_loop()
-            videos_slow[1].main_loop()
-            videos_slow[2].main_loop()
-            anim.animate_title(text=f"正常缓慢速度练习招式1~3", duration=2.0, config=ANIMATOR_CONFIG)
-            routines[0].main_loop()
-            routines[1].main_loop()
-            routines[2].main_loop()
-        if i == 3:
-            # 招式 i 主循环
-            DataSender.send_control("PLAY_AUDIO", flag=f"招式4.mp3")
-            for j in range(len(p4m)):
-                # DataSender.send_control("PLAY_VIDEO", flag=f"part1.mp4")
-                # time.sleep(8)
-                videop4[j].main_loop()
-                p4m[j].main_loop()
-            # anim.animate_title(text=f"开始练习招式1~4", duration=2.0, config=ANIMATOR_CONFIG)
-            #缓慢
-            anim.animate_title(text=f"缓慢速度练习招式4", duration=2.0, config=ANIMATOR_CONFIG)
-            videos_slow[3].main_loop()
-            #正常
-            anim.animate_title(text=f"正常速度练习招式4", duration=2.0, config=ANIMATOR_CONFIG)
-            routines[3].main_loop()
-            #加之前招式
-            anim.animate_title(text=f"缓慢速度练习招式1~4", duration=2.0, config=ANIMATOR_CONFIG)
-            videos_slow[0].main_loop()
-            videos_slow[1].main_loop()
-            videos_slow[2].main_loop()
-            videos_slow[3].main_loop()
-            anim.animate_title(text=f"正常速度练习招式1~4", duration=2.0, config=ANIMATOR_CONFIG)
-            routines[0].main_loop()
-            routines[1].main_loop()
-            routines[2].main_loop()
-            routines[3].main_loop()
-
-        # anim.animate_title(text=f"开始练习", duration=2.0, config=ANIMATOR_CONFIG)
-        # routines[i].main_loop()
-
-        # todo:: 用嵌入在config的条件来判断是否需要评分
-        # 招式 i 评分
-        anim.animate_summary(total_score=routines[i].score, move_scores=[routines[i].score], duration=2.5,
-                             config=ANIMATOR_CONFIG)
-
-        # sys.stderr.write(f"已执行片段 {i+1} finished.\n")   # 调试
-
-        # ******** 添加重做/继续逻辑的开始 ********
-        redo_selector = Selector(camera=camera, uuid=unique_id, buttons_config=REDO_SEL_CONFIG, debug=DEBUG,
-                                 win_size=(WIN_SIZE[0], WIN_SIZE[1]))
-        sys.stderr.write(str(redo_selector.buttons_positions))
-        redo_selector.main_loop_with_voice()
-
-        if redo_selector.selection == 0:  # 用户选择了“重做”
-            # 重置当前招式的状态，准备重做
-            routines[i] = Guider(camera=camera, uuid=unique_id,scale=0, paths=sport_type_config["路径"][f"POSTURE_{i + 1}"],
-                                 debug=DEBUG)
-            continue  # 再次执行当前循环，即重做当前招式
-        if redo_selector.selection == 1:  # 用户选择了“继续”
-            i += 1  # 进入下一个招式
-            if i == 3:
-                anim.animate_title(text=f"循环练习1~4式", duration=4.0, config=ANIMATOR_CONFIG)
-                for b in range(10):
-                    routines[0].main_loop()
-                    routines[1].main_loop()
-                    routines[2].main_loop()
-                    routines[3].main_loop()
-                break
-        # ******** 添加重做/继续逻辑的结束 ********
-
-    # # 把 differences-<id>.json 文件合并生成
-    # combine_simple(id=unique_id, save_path=Path(STD_SPORTS_RESULTS_ROOT) / "TaiJi")
-
-    # 结束：发送动作分列表至前端
-    DataSender.send_control(command="MOVE_SCORES", data=[t.score for t in routines])
-
+    anim.animate_title(text="招式一：起势！", duration=4.0, config=ANIMATOR_CONFIG)
+    
     # 退出 pygame
     pygame.quit()
 def run_sport_routine(sport_type_config, anim, camera, pre_align, pre_clip, DEBUG, unique_id):
@@ -1576,7 +1808,7 @@ def run_sport_routine(sport_type_config, anim, camera, pre_align, pre_clip, DEBU
         # ******** 添加重做/继续逻辑的开始 ********
         redo_selector = Selector(camera=camera,uuid = unique_id, buttons_config=REDO_SEL_CONFIG, debug=DEBUG,
                                  win_size=(WIN_SIZE[0], WIN_SIZE[1]))
-        sys.stderr.write(str(redo_selector.buttons_positions))
+        # sys.stderr.write(str(redo_selector.buttons_positions))
         redo_selector.main_loop_with_voice()
 
         if redo_selector.selection == 0:  # 用户选择了“重做”
@@ -1682,4 +1914,4 @@ if __name__ == "__main__":
         elif sport_selector.selection == 2:
             run_24_Training(sport_type_config=TJQ24_Learning_CONFIG, anim=anim, camera=camera, pre_align=pre_align,
                               pre_clip=pre_clip, DEBUG=DEBUG, unique_id=unique_id,p1=TJQ24_P1_PATHS, p2=TJQ24_P2_PATHS,
-                   p3=TJQ24_P3_PATHS, p4=TJQ24_P4_PATHS,slow=TJQ24_Slow_PATHS)
+                   p3=TJQ24_P3_PATHS, p4=TJQ24_P4_PATHS,p5= TJQ24_P5_PATHS,slow=TJQ24_Slow_PATHS)

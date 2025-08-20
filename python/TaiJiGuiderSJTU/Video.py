@@ -140,22 +140,47 @@ class Video(Guider):
         # std_pose_list 是 [33 * (x, y, z=0)]，其中左指尖、右指尖、左脚尖、右脚尖分别在 POSE_ALIGN_LANDMARKS 索引
         # 以左右指尖和左右脚尖的最大横向距离为基准，和 1100 像素做比例
         if not std_pose_list or len(std_pose_list) < max(POSE_ALIGN_LANDMARKS) + 1:
-            return 0.6  # 防止异常，返回默认缩放比例
+            if self.s == 0:
+                scale = self.base_width / 600.0
+                return scale
+            if self.s == 1:
+                scale = self.base_width / 1600.0
+                return scale
+            if self.s == 2:
+                scale = self.base_width / 1900.0
+                return scale
 
         # 获取四个关键点的 x 坐标
         y_coords = [std_pose_list[idx][1] for idx, _ in enumerate(std_pose_list)]
         # 计算最大和最小 x 坐标的距离
         pose_width = max(y_coords) - min(y_coords)
         if pose_width == 0:
-            return 0.6  # 防止除零
-        if self.s == 0:
+            if self.s == 0:
+                scale = self.base_width / 600.0
+                return scale
+            if self.s == 1:
+                scale = self.base_width / 1600.0
+                return scale
+            if self.s == 2:
+                scale = self.base_width / 1900.0
+                return scale
+        '''if self.s == 0:
             scale = pose_width / 600.0
             return scale
         if self.s == 1:
             scale = pose_width / 1700.0
             return scale
         if self.s == 2:
-            scale = pose_width / 2100.0
+            scale = pose_width / 1800.0
+            return scale'''
+        if self.s == 0:
+            scale = self.base_width / 600.0
+            return scale
+        if self.s == 1:
+            scale = self.base_width / 1600.0
+            return scale
+        if self.s == 2:
+            scale = self.base_width / 1900.0
             return scale
         # """绘制 对齐点 + 箭头 到画布"""
         # self.canvas = draw.draw_points_and_arrows(self.canvas,
@@ -314,6 +339,11 @@ class pre_clip(Guider):
         self.score = 0
         self.debug = debug
         self.running = True
+        # 初始化 pose_width 滤波相关变量
+        self.pose_width_history = []  # 存储历史 pose_width 值
+        # self.filter_window_size = 5  # 滑动窗口大小
+        # self.ema_alpha = 0.3  # EMA 平滑因子
+        self.smoothed_pose_width = 0
 
     def main_loop(self):
         while self.running:
@@ -648,6 +678,17 @@ class pre_clip(Guider):
         y_coords = [std_pose_list[idx][1] for idx, _ in enumerate(std_pose_list)]
         # 计算最大和最小 x 坐标的距离
         pose_width = max(y_coords) - min(y_coords)
+
+        # ---- 滤波操作 ----
+        # 滑动窗口滤波
+        self.pose_width_history.append(pose_width)
+        # if len(self.pose_width_history) > self.filter_window_size:
+        #     # 保持窗口大小
+        #     self.pose_width_history.pop(0)
+
+        # 计算滑动窗口平均值
+        self.smoothed_pose_width = (self.pose_width_history[0] + self.pose_width_history[1]) / 2.0
+
         if pose_width == 0:
             return 0.8  # 防止除零
         if self.s == 0:
@@ -657,7 +698,7 @@ class pre_clip(Guider):
             scale = pose_width / 1600.0
             return scale
         if self.s ==2:
-            scale = pose_width / 2000.0
+            scale = pose_width / 1900.0
             return scale
 
     def window_events(self):

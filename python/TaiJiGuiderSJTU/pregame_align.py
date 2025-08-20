@@ -26,7 +26,7 @@ PTS_CONDITION_THRESH = [[70], [70], [150], [150],[70], [70], [150], [150]] # 对
 
 class PreAlignerPoints(Guider):
     def __init__(self, camera,uuid, _paths=PATHS, debug=False):
-        super().__init__(camera=camera,uuid = uuid,scale=0, paths=_paths, debug=debug)  # 调用父类会初始化摄像头、mediapipe、pygame、加载 JSON……
+        super().__init__(camera=camera,uuid = uuid,scale=0,base_width=None, paths=_paths, debug=debug)  # 调用父类会初始化摄像头、mediapipe、pygame、加载 JSON……
         # 我们只关心这四个 landmark
         self.POSE_ALIGN_LANDMARK = None
         self.POSE_ALIGN_LANDMARKS = [[19], [20], [31], [32],[19], [20], [31], [32]]

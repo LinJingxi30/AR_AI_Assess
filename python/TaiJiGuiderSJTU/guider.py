@@ -75,7 +75,7 @@ PATHS = {
 }
 
 class Guider:
-    def __init__(self, camera,uuid,scale, paths=PATHS, debug=False):
+    def __init__(self, camera,uuid,scale,base_width, paths=PATHS, debug=False):
         # config 配置
         win_topic = "AR太极拳助手"+uuid
         self.frame_rate = 60
@@ -126,6 +126,12 @@ class Guider:
         self.score = 0
         self.debug = debug
         self.running = True
+
+        # 初始化 pose_width 滤波相关变量
+        self.pose_width_history = []  # 存储历史 pose_width 值
+        self.filter_window_size = 5  # 滑动窗口大小
+        self.ema_alpha = 0.3  # EMA 平滑因子
+        self.base_width = base_width
         
     def main_loop(self):
         while self.running:
@@ -428,48 +434,76 @@ class Guider:
                                                     center=self.std_center, target=self.rt_center,
                                                     win_size=WIN_SIZE,
                                                     scale=STD_SCALE,
-                                                    opacity=STD_OVERLAY_OPACITY)
-        end_canvas = time.time()
+                                                    opacity=0.8)
+        # end_canvas = time.time()
         # sys.stderr.write(f"mask total time: {end_canvas - start_canvas:.6f} 秒\n")
 
         # ---- 绘制点和箭头 步骤计时 ----
         # start_draw = time.time()
-        self.canvas = draw.draw_points_and_arrows(self.canvas,
+        '''self.canvas = draw.draw_points_and_arrows(self.canvas,
                                                   self.std_landmarks_list,
                                                   self.rt_landmarks_list,
-                                                  conditions)
+                                                  conditions)'''
         # end_draw = time.time()
         # sys.stderr.write(f"Point and arrow: {end_draw - start_draw:.6f} 秒\n")
 
         # end_total = time.time()
         # sys.stderr.write(f"canvas_render total cost: {end_total - start_total:.6f} 秒\n\n")
 
-    def get_scale(self,std_pose_list):
+    def get_scale(self, std_pose_list):
         """
         获取缩放比例
         """
         # std_pose_list 是 [33 * (x, y, z=0)]，其中左指尖、右指尖、左脚尖、右脚尖分别在 POSE_ALIGN_LANDMARKS 索引
         # 以左右指尖和左右脚尖的最大横向距离为基准，和 1100 像素做比例
         if not std_pose_list or len(std_pose_list) < max(POSE_ALIGN_LANDMARKS) + 1:
-            return 0.6  # 防止异常，返回默认缩放比例
+            if self.s == 0:
+                scale = self.base_width / 600.0
+                return scale
+            if self.s == 1:
+                scale = self.base_width / 1600.0
+                return scale
+            if self.s == 2:
+                scale = self.base_width / 1900.0
+                return scale
 
         # 获取四个关键点的 x 坐标
-        y_coords = [std_pose_list[idx][1] for idx,_ in enumerate(std_pose_list)]
+        y_coords = [std_pose_list[idx][1] for idx, _ in enumerate(std_pose_list)]
         # 计算最大和最小 x 坐标的距离
         pose_width = max(y_coords) - min(y_coords)
         if pose_width == 0:
-            return 0.6  # 防止除零
-        if self.s == 0:
+            if self.s == 0:
+                scale = self.base_width / 600.0
+                return scale
+            if self.s == 1:
+                scale = self.base_width / 1600.0
+                return scale
+            if self.s == 2:
+                scale = self.base_width / 1900.0
+                return scale
+        '''if self.s == 0:
             scale = pose_width / 600.0
             return scale
-        if  self.s ==1:
+        if self.s == 1:
             scale = pose_width / 1700.0
             return scale
-        if self.s ==2:
-            scale = pose_width / 2100.0
+        if self.s == 2:
+            scale = pose_width / 1800.0
+            return scale'''
+        if self.s == 0:
+            scale = self.base_width / 600.0
             return scale
-
-
+        if self.s == 1:
+            scale = self.base_width / 1600.0
+            return scale
+        if self.s == 2:
+            scale = self.base_width / 1900.0
+            return scale
+        # """绘制 对齐点 + 箭头 到画布"""
+        # self.canvas = draw.draw_points_and_arrows(self.canvas,
+        #                                           self.std_landmarks_list,
+        #                                           self.rt_landmarks_list,
+        #                                           conditions)
 
 
     def window_events(self):
@@ -686,7 +720,13 @@ class Guider:
         if overlay_idx < 0 or overlay_idx >= len(paths):
             print(f"出错了！paths长度：{len(paths)}, 掩膜索引: {overlay_idx}，应为长度-1")
             raise IndexError("错误：掩膜索引超出范围！")
-        return self._load_std_overlay(paths[overlay_idx])
+        # 加载掩膜图片
+        overlay = self._load_std_overlay(paths[overlay_idx])
+        
+        # 水平翻转掩膜图片
+        flipped_overlay = cv2.flip(overlay, 1)  # 1 表示水平翻转
+        
+        return flipped_overlay
 
     @lru_cache(maxsize=10)
     def _load_std_overlay(self, path):

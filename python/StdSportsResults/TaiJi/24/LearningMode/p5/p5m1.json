@@ -1,0 +1,16 @@
+{"image": "p2_frame_0621.png", "points": {"left_h": [1878, 1021], "right_h": [2284, 586], "left_f": [1920, 1761], "right_f": [1606, 1765], "center": [1795, 933], "skip": true}}
+{"image": "p2_frame_0622.png", "points": {"left_h": [1895, 991], "right_h": [2288, 561], "left_f": [1928, 1757], "right_f": [1585, 1795], "center": [1803, 941], "skip": true}}
+{"image": "p2_frame_0623.png", "points": {"left_h": [1878, 991], "right_h": [2280, 577], "left_f": [1928, 1774], "right_f": [1585, 1782], "center": [1807, 920], "skip": true}}
+{"image": "p2_frame_0624.png", "points": {"left_h": [1878, 983], "right_h": [2288, 598], "left_f": [1937, 1790], "right_f": [1606, 1795], "center": [1803, 920], "skip": true}}
+{"image": "p2_frame_0625.png", "points": {"left_h": [1891, 1000], "right_h": [2280, 586], "left_f": [1941, 1786], "right_f": [1590, 1795], "center": [1799, 920], "skip": true}}
+{"image": "p2_frame_0626.png", "points": {"left_h": [1882, 1000], "right_h": [2280, 590], "left_f": [1970, 1761], "right_f": [1623, 1811], "center": [1807, 924], "skip": true}}
+{"image": "p2_frame_0627.png", "points": {"left_h": [1882, 979], "right_h": [2267, 590], "left_f": [1962, 1757], "right_f": [1623, 1782], "center": [1807, 929], "skip": true}}
+{"image": "p2_frame_0628.png", "points": {"left_h": [1870, 996], "right_h": [2263, 619], "left_f": [1970, 1778], "right_f": [1644, 1803], "center": [1803, 937], "skip": true}}
+{"image": "p2_frame_0629.png", "points": {"left_h": [1870, 1033], "right_h": [2259, 611], "left_f": [1979, 1774], "right_f": [1644, 1820], "center": [1803, 937], "skip": true}}
+{"image": "p2_frame_0630.png", "points": {"left_h": [1870, 1012], "right_h": [2242, 636], "left_f": [1979, 1769], "right_f": [1669, 1807], "center": [1803, 941], "skip": true}}
+{"image": "p2_frame_0631.png", "points": {"left_h": [1878, 1016], "right_h": [2238, 636], "left_f": [1983, 1774], "right_f": [1673, 1795], "center": [1799, 933], "skip": true}}
+{"image": "p2_frame_0632.png", "points": {"left_h": [1878, 1000], "right_h": [2230, 657], "left_f": [1987, 1778], "right_f": [1656, 1815], "center": [1782, 941], "skip": true}}
+{"image": "p2_frame_0633.png", "points": {"left_h": [1895, 970], "right_h": [2221, 673], "left_f": [1995, 1782], "right_f": [1673, 1803], "center": [1778, 950], "skip": true}}
+{"image": "p2_frame_0634.png", "points": {"left_h": [1928, 945], "right_h": [2204, 661], "left_f": [1991, 1778], "right_f": [1665, 1803], "center": [1782, 954], "skip": true}}
+{"image": "p2_frame_0635.png", "points": {"left_h": [1966, 958], "right_h": [2204, 665], "left_f": [1995, 1782], "right_f": [1682, 1811], "center": [1782, 937], "skip": true}}
+{"image": "p2_frame_0636.png", "points": {"left_h": [1991, 912], "right_h": [2175, 707], "left_f": [1999, 1790], "right_f": [1702, 1828], "center": [1799, 945], "skip": false}}
