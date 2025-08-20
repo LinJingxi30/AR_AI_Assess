@@ -84,9 +84,8 @@ class CameraUtil:
         max_packet_size = 65536
         timeout = 2.0
         sock.settimeout(timeout)
-        frame_chunks = {}
-        chunk_count = {}
-        frame_id_last = None
+        frame_chunks = {}  # {frame_id: {chunk_idx: chunk}}
+        chunk_count = {}   # {frame_id: total_chunks}
         while not self._udp_thread_stop.is_set():
             try:
                 data, _ = sock.recvfrom(max_packet_size)
@@ -95,20 +94,24 @@ class CameraUtil:
                 header = data[:8]
                 frame_id, chunk_idx, total_chunks = struct.unpack('!IHH', header)
                 chunk = data[8:]
-                if frame_id_last is not None and frame_id != frame_id_last:
-                    frame_chunks.clear()
-                    chunk_count.clear()
-                frame_id_last = frame_id
-                frame_chunks[chunk_idx] = chunk
-                chunk_count[frame_id] = total_chunks
-                if len(frame_chunks) == total_chunks:
-                    full_data = b''.join(frame_chunks[i] for i in range(total_chunks))
-                    np_data = np.frombuffer(full_data, dtype=np.uint8)
-                    frame = cv2.imdecode(np_data, cv2.IMREAD_COLOR)
-                    if frame is not None:
-                        self._udp_frame_buffer.append(frame)
-                    frame_chunks.clear()
-                    chunk_count.clear()
+                # 初始化frame_id的chunk收集
+                if frame_id not in frame_chunks:
+                    frame_chunks[frame_id] = {}
+                    chunk_count[frame_id] = total_chunks
+                frame_chunks[frame_id][chunk_idx] = chunk
+                # 检查是否收齐所有chunk
+                if len(frame_chunks[frame_id]) == chunk_count[frame_id]:
+                    try:
+                        full_data = b''.join(frame_chunks[frame_id][i] for i in range(chunk_count[frame_id]))
+                        np_data = np.frombuffer(full_data, dtype=np.uint8)
+                        frame = cv2.imdecode(np_data, cv2.IMREAD_COLOR)
+                        if frame is not None:
+                            self._udp_frame_buffer.append(frame)
+                    except Exception as e:
+                        print(f"UDP帧组装异常: {e}", file=sys.stderr)
+                    # 清理已处理的frame_id
+                    del frame_chunks[frame_id]
+                    del chunk_count[frame_id]
             except socket.timeout:
                 continue
             except Exception as e:
