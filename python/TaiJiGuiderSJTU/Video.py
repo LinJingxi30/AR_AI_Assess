@@ -687,7 +687,7 @@ class pre_clip(Guider):
         #     self.pose_width_history.pop(0)
 
         # 计算滑动窗口平均值
-        self.smoothed_pose_width = (self.pose_width_history[0] + self.pose_width_history[1]) / 2.0
+        self.smoothed_pose_width = self.pose_width_history[0]
 
         if pose_width == 0:
             return 0.8  # 防止除零
