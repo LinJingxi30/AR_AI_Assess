@@ -32,7 +32,7 @@ def draw_overlay_centered(canvas, std_overlay, center, target, win_size, scale=1
     # start_time = time.time()
     # 缩放掩膜
     overlay_resized = cv2.resize(std_overlay, (0, 0), fx=scale, fy=scale)
-    end_time = time.time()
+    # end_time = time.time()
     # sys.stderr.write(f"[MASK] mask resize: {end_time - start_time:.6f}s\n")
 
     # 获取缩放后的掩膜尺寸
