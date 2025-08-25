@@ -55,7 +55,7 @@
     <audio id="audio-6" src="./audio/语音6.mp3" preload="auto"></audio>
     <audio id="audio-7" src="./audio/语音7.mp3" preload="auto"></audio>
     <audio id="audio-8" src="./audio/语音8.mp3" preload="auto"></audio> -->
-
+    <audio id="bgm-audio" src="/audio/SJTUbgm1.mp3" loop preload="auto"></audio>
 
     <script>
       let { protocol, host } = window.location;
@@ -194,10 +194,23 @@
       }
 
       window.addEventListener('DOMContentLoaded', () => {
-        // launchFullscreen(document.documentElement);
         // 全屏按钮事件
         document.getElementById('fullscreen-btn').onclick = () => {
           launchFullscreen(document.documentElement);
+
+          // 播放BGM并设置音量
+          const bgm = document.getElementById('bgm-audio');
+          bgm.volume = 0.1; // 设置音量（0~1之间）
+          bgm.play().catch(e => {
+            // 兼容浏览器自动播放策略
+            console.warn('BGM播放失败:', e);
+          });
+          
+          // 确保BGM循环播放
+          bgm.addEventListener('ended', function() {
+            bgm.currentTime = 0;
+            bgm.play();
+          });
         };
         requestWakeLock(); // 请求息屏锁
       });
